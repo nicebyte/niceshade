@@ -6,7 +6,7 @@ transforming the Vulkan dialect of GLSL into shaders for various other
 graphics APIs. Currently supported targets include: desktop OpenGL,
 OpenGL ES >= 3.0, Metal and SPIR-V.
 
-##Usage
+# Usage
 
 `ngf_shaderc [options]`
 
@@ -46,7 +46,7 @@ Options:
   * `-O <path>` - Folder to store output files in. Default is the current working
     directory.
 
-##Status
+# Status
 
  This project is under active development. Features that are planned, but not implemented yet:
  
