@@ -507,12 +507,12 @@ Id Builder::makeSampledImageType(Id imageType)
 Id Builder::makeAccelerationStructureNVType()
 {
     Instruction *type;
-    if (groupedTypes[OpTypeAccelerationStructureNVX].size() == 0) {
-        type = new Instruction(getUniqueId(), NoType, OpTypeAccelerationStructureNVX);
+    if (groupedTypes[OpTypeAccelerationStructureNV].size() == 0) {
+        type = new Instruction(getUniqueId(), NoType, OpTypeAccelerationStructureNV);
         constantsTypesGlobals.push_back(std::unique_ptr<Instruction>(type));
         module.mapInstruction(type);
     } else {
-        type = groupedTypes[OpTypeAccelerationStructureNVX].back();
+        type = groupedTypes[OpTypeAccelerationStructureNV].back();
     }
 
     return type->getResultId();
@@ -631,7 +631,7 @@ Id Builder::getContainedTypeId(Id typeId) const
 // Returns true if 'typeId' is or contains a scalar type declared with 'typeOp'
 // of width 'width'. The 'width' is only consumed for int and float types.
 // Returns false otherwise.
-bool Builder::containsType(Id typeId, spv::Op typeOp, int width) const
+bool Builder::containsType(Id typeId, spv::Op typeOp, unsigned int width) const
 {
     const Instruction& instr = *module.getInstruction(typeId);
 
