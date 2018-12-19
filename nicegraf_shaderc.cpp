@@ -253,8 +253,8 @@ enum class descriptor_type {
 };
 
 enum stage_mask_bit {
-  STAGE_MASK_VERTEX = 0x00,
-  STAGE_MASK_FRAGMENT = 0x01
+  STAGE_MASK_VERTEX = 0x01,
+  STAGE_MASK_FRAGMENT = 0x10
 };
 
 struct descriptor {
@@ -270,7 +270,8 @@ class resource_layout {
 public:
   void add_resources(const std::vector<spirv_cross::Resource> &resources,
                      const spirv_cross::Compiler &refl,
-                     descriptor_type resource_type) {
+                     descriptor_type resource_type,
+                     stage_mask_bit smb) {
     for (const auto &r : resources) {
       uint32_t set = refl.get_decoration(r.id, spv::DecorationDescriptorSet);
 	    uint32_t binding = refl.get_decoration(r.id, spv::DecorationBinding);
@@ -308,7 +309,7 @@ public:
       }
       desc_it->slot = binding;
       desc_it->type = resource_type;
-      desc_it->stage_mask = 0u;
+      desc_it->stage_mask |= smb;
       desc_it->name = r.name;
       nres_++;
     }
@@ -681,16 +682,18 @@ int main(int argc, const char *argv[]) {
         if (generate_pipeline_metadata) {
           spirv_cross::ShaderResources resources =
               compiler->get_shader_resources();
+          stage_mask_bit smb =
+              ep.kind == shaderc_vertex_shader ? STAGE_MASK_VERTEX : STAGE_MASK_FRAGMENT;
           res_layout.add_resources(resources.uniform_buffers, *compiler,
-                                    descriptor_type::UNIFORM_BUFFER);
+                                    descriptor_type::UNIFORM_BUFFER, smb);
           res_layout.add_resources(resources.storage_buffers, *compiler,
-                                   descriptor_type::STORAGE_BUFFER);
+                                   descriptor_type::STORAGE_BUFFER, smb);
           res_layout.add_resources(resources.sampled_images, *compiler,
-                                   descriptor_type::TEXTURE_AND_SAMPLER);
+                                   descriptor_type::TEXTURE_AND_SAMPLER, smb);
           res_layout.add_resources(resources.separate_samplers, *compiler,
-                                   descriptor_type::SAMPLER);
+                                   descriptor_type::SAMPLER, smb);
           res_layout.add_resources(resources.separate_images, *compiler,
-                                   descriptor_type::TEXTURE);
+                                   descriptor_type::TEXTURE, smb);
         }
         FILE *out_file = fopen(out_file_path.c_str(), "w");
         if (out_file == nullptr) {
@@ -727,6 +730,7 @@ int main(int argc, const char *argv[]) {
           for (const auto &d : ds) {
             write_network_word(d.slot, metadata_file);
             write_network_word((uint32_t)d.type, metadata_file);
+            write_network_word(d.stage_mask, metadata_file);
           }
         }
       }
