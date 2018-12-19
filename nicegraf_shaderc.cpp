@@ -23,12 +23,12 @@ SOFTWARE.
 #include "spirv_msl.hpp"
 #include "spirv_reflect.hpp"
 #include <ctype.h>
+#include <memory>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
-#include <unordered_map>
 #include <unordered_set>
 
 // Platform-specific stuff.
@@ -249,9 +249,22 @@ enum class descriptor_type {
   TEXTURE = 0x03,
   SAMPLER = 0x04,
   TEXTURE_AND_SAMPLER = 0x05,
+  INVALID = 0x06
 };
 
-using descriptor_set_layout = std::vector<std::pair<size_t, descriptor_type>>;
+enum stage_mask_bit {
+  STAGE_MASK_VERTEX = 0x00,
+  STAGE_MASK_FRAGMENT = 0x01
+};
+
+struct descriptor {
+  uint32_t slot;
+  descriptor_type type = descriptor_type::INVALID;
+  uint32_t stage_mask = 0u;
+  std::string name;
+};
+
+using descriptor_set_layout = std::vector<descriptor>;
 
 class resource_layout {
 public:
@@ -262,7 +275,41 @@ public:
       uint32_t set = refl.get_decoration(r.id, spv::DecorationDescriptorSet);
 	    uint32_t binding = refl.get_decoration(r.id, spv::DecorationBinding);
       max_set_ = max_set_ < set ? set : max_set_;
-      set_map_[set].emplace_back(binding, resource_type);
+      auto set_it = std::find_if(sets_.begin(), sets_.end(),
+                                 [set](const descriptor_set &ds) {
+                                   return ds.slot == set;
+                                  });
+      if (set_it == sets_.end()) {
+        set_it = sets_.insert(sets_.end(), descriptor_set());
+      }
+      set_it->slot = set;
+      auto desc_it = std::find_if(set_it->layout.begin(), 
+                                  set_it->layout.end(),
+                                  [binding](const descriptor &ds) {
+                                    return ds.slot == binding;
+                                  });
+      if (desc_it == set_it->layout.end()) {
+        desc_it = set_it->layout.insert(set_it->layout.end(), descriptor());
+      }
+      if (desc_it->type != descriptor_type::INVALID &&
+          desc_it->type != resource_type) {
+        fprintf(stderr, "Attempt to assign a descriptor of different type to "
+                        "slot %d in set %d which is already occupied by "
+                        "\"%s\"\n", binding, set, desc_it->name.c_str());
+        exit(1);
+      }
+      if (desc_it->type != descriptor_type::INVALID &&
+          r.name != desc_it->name) {
+        fprintf(stderr, "Assigning different names "
+                        "(\"%s\" and \"%s\")  to descriptor at slot %d in set "
+                        "%d.\n", desc_it->name.c_str(), r.name.c_str(),
+                        binding, set);
+        exit(1);
+      }
+      desc_it->slot = binding;
+      desc_it->type = resource_type;
+      desc_it->stage_mask = 0u;
+      desc_it->name = r.name;
       nres_++;
     }
   }
@@ -272,13 +319,23 @@ public:
 
   const descriptor_set_layout& resource_layout::set(uint32_t set) const {
     static const descriptor_set_layout empty_layout;
-    auto it = set_map_.find(set);
-    if (it != set_map_.end()) return it->second;
-    else return empty_layout;
+    auto it = std::find_if(sets_.cbegin(), sets_.cend(),
+                           [set](const descriptor_set &ds) {
+                             return ds.slot == set;
+                           });
+    if (it != sets_.cend()) {
+      return it->layout;
+    } else {
+      return empty_layout;
+    }
   }
 
 private:
-  std::unordered_map<uint32_t, descriptor_set_layout> set_map_;
+  struct descriptor_set {
+    uint32_t slot;
+    descriptor_set_layout layout;
+  };
+  std::vector<descriptor_set> sets_;
   uint32_t max_set_ = 0u;
   uint32_t nres_ = 0u;
 };
@@ -668,8 +725,8 @@ int main(int argc, const char *argv[]) {
           write_network_word(set, metadata_file);
           write_network_word(ds.size(), metadata_file);
           for (const auto &d : ds) {
-            write_network_word(d.first, metadata_file);
-            write_network_word((uint32_t)d.second, metadata_file);
+            write_network_word(d.slot, metadata_file);
+            write_network_word((uint32_t)d.type, metadata_file);
           }
         }
       }
