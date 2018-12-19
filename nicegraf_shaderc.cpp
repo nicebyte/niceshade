@@ -214,8 +214,8 @@ enum class technique_parser_state {
   LOOKING_FOR_PARAMETER_NAME,
   PARSING_PARAMETER_NAME,
   PARSING_ENTRYPOINT_NAME,
-  PARSING_DEFINE_NAME,
-  PARSING_DEFINE_VALUE,
+  PARSING_NAMEVAL_NAME,
+  PARSING_NAMEVAL_VALUE,
   FINALIZING_TECHNIQUE
 };
 
@@ -240,6 +240,7 @@ struct technique {
   std::string name;
   define_container defines;
   std::vector<entry_point> entry_points;
+  std::vector<std::pair<std::string, std::string>> additional_metadata;
 };
 
 enum class descriptor_type {
@@ -333,7 +334,7 @@ public:
 
 private:
   struct descriptor_set {
-    uint32_t slot;
+    uint32_t slot = 0u;
     descriptor_set_layout layout;
   };
   std::vector<descriptor_set> sets_;
@@ -506,8 +507,8 @@ int main(int argc, const char *argv[]) {
   uint32_t line_num = 1u;
   const uint32_t technique_prefix = 0x2f2f543a; // `//T:'
   technique_parser_state state = technique_parser_state::LOOKING_FOR_PREFIX;
-  std::string parameter_name, entry_point_name, define_name,
-              define_value;
+  std::string parameter_name, entry_point_name, nameval_name,
+              nameval_value;
   std::vector<technique> techniques;
   bool have_vertex_stage = false;
   for (const char c : input_source) {
@@ -556,9 +557,9 @@ int main(int argc, const char *argv[]) {
       if (IS_IDENT(c)) {
         parameter_name.push_back(c);
       } else if (c == ':') {
-        if (parameter_name == "define") {
-          state = technique_parser_state::PARSING_DEFINE_NAME;
-          define_name.clear();
+        if (parameter_name == "define" || parameter_name == "meta") {
+          state = technique_parser_state::PARSING_NAMEVAL_NAME;
+          nameval_name.clear();
         } else if (parameter_name == "vs" || parameter_name == "ps") {
           state = technique_parser_state::PARSING_ENTRYPOINT_NAME;
           entry_point_name.clear();
@@ -599,22 +600,29 @@ int main(int argc, const char *argv[]) {
             line_num, "unexpected character [%c] in entry point name", c);
       }
       break;
-    case technique_parser_state::PARSING_DEFINE_NAME:
+    case technique_parser_state::PARSING_NAMEVAL_NAME:
       if (IS_IDENT(c)) {
-        define_name.push_back(c);
+        nameval_name.push_back(c);
       } else if (c == '=') {
-        state = technique_parser_state::PARSING_DEFINE_VALUE;
-        define_value.clear();
+        state = technique_parser_state::PARSING_NAMEVAL_VALUE;
+        nameval_value.clear();
       } else {
         report_technique_parser_error(
             line_num, "unexpected character [%c] in definition name", c);
       }
       break;
-    case technique_parser_state::PARSING_DEFINE_VALUE:
+    case technique_parser_state::PARSING_NAMEVAL_VALUE:
       if(!IS_TAB_SPACE(c) && c != '\n') {
-        define_value.push_back(c);
+        nameval_value.push_back(c);
       } else {
-        techniques.back().defines.emplace_back(define_name, define_value);
+        if (parameter_name == "define") {
+          techniques.back().defines.emplace_back(nameval_name, nameval_value);
+        } else if (parameter_name == "meta") {
+        techniques.back().additional_metadata.emplace_back(nameval_name,
+                                                           nameval_value);
+        } else {
+          assert(false);
+        }
         state = c != '\n'
           ? technique_parser_state::LOOKING_FOR_PARAMETER_NAME
           : technique_parser_state::FINALIZING_TECHNIQUE;
@@ -683,7 +691,9 @@ int main(int argc, const char *argv[]) {
           spirv_cross::ShaderResources resources =
               compiler->get_shader_resources();
           stage_mask_bit smb =
-              ep.kind == shaderc_vertex_shader ? STAGE_MASK_VERTEX : STAGE_MASK_FRAGMENT;
+              ep.kind == shaderc_vertex_shader
+                           ? STAGE_MASK_VERTEX
+                           : STAGE_MASK_FRAGMENT;
           res_layout.add_resources(resources.uniform_buffers, *compiler,
                                     descriptor_type::UNIFORM_BUFFER, smb);
           res_layout.add_resources(resources.storage_buffers, *compiler,
@@ -732,6 +742,13 @@ int main(int argc, const char *argv[]) {
             write_network_word((uint32_t)d.type, metadata_file);
             write_network_word(d.stage_mask, metadata_file);
           }
+        }
+        write_network_word(tech.additional_metadata.size(), metadata_file);
+        for (const auto &nameval : tech.additional_metadata) {
+          fwrite(nameval.first.c_str(), 1u, nameval.first.size() + 1u,
+                 metadata_file);
+          fwrite(nameval.second.c_str(), 1u, nameval.second.size() + 1u,
+                 metadata_file);
         }
       }
     }
