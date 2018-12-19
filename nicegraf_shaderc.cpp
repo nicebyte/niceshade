@@ -21,6 +21,7 @@ SOFTWARE.
 #include "shaderc/shaderc.hpp"
 #include "spirv_glsl.hpp"
 #include "spirv_msl.hpp"
+#include "spirv_reflect.hpp"
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -218,8 +219,11 @@ enum class technique_parser_state {
   FINALIZING_TECHNIQUE
 };
 
+// Stores a sequence of preprocessor definitions.
 using define_container = std::vector<std::pair<std::string, std::string>>;
 
+// Adds the preprocessor definitions from the given container to the
+// shaderc compile options.
 void add_defines_from_container(shaderc::CompileOptions &options,
                                 const define_container &container) {
   for (const auto &name_value_pair : container) {
@@ -227,6 +231,7 @@ void add_defines_from_container(shaderc::CompileOptions &options,
   }
 }
 
+// Technique description.
 struct technique {
   struct entry_point {
     shaderc_shader_kind kind;
@@ -237,8 +242,105 @@ struct technique {
   std::vector<entry_point> entry_points;
 };
 
+enum class descriptor_type {
+  UNIFORM_BUFFER = 0x00,
+  STORAGE_BUFFER = 0x01,
+  LOADSTORE_IMAGE = 0x02,
+  TEXTURE = 0x03,
+  SAMPLER = 0x04,
+  TEXTURE_AND_SAMPLER = 0x05,
+};
+
+using descriptor_set_layout = std::vector<std::pair<size_t, descriptor_type>>;
+
+class resource_layout {
+public:
+  void add_resources(const std::vector<spirv_cross::Resource> &resources,
+                     const spirv_cross::Compiler &refl,
+                     descriptor_type resource_type) {
+    for (const auto &r : resources) {
+      uint32_t set = refl.get_decoration(r.id, spv::DecorationDescriptorSet);
+	    uint32_t binding = refl.get_decoration(r.id, spv::DecorationBinding);
+      max_set_ = max_set_ < set ? set : max_set_;
+      set_map_[set].emplace_back(binding, resource_type);
+      nres_++;
+    }
+  }
+
+  uint32_t set_count() const { return max_set_ + 1; }
+  uint32_t res_count() const { return nres_; }
+
+  const descriptor_set_layout& resource_layout::set(uint32_t set) const {
+    static const descriptor_set_layout empty_layout;
+    auto it = set_map_.find(set);
+    if (it != set_map_.end()) return it->second;
+    else return empty_layout;
+  }
+
+private:
+  std::unordered_map<uint32_t, descriptor_set_layout> set_map_;
+  uint32_t max_set_ = 0u;
+  uint32_t nres_ = 0u;
+};
+
+std::unique_ptr<spirv_cross::Compiler> create_cross_compiler(
+    const uint32_t *spv_data, uint32_t spv_data_size,
+    target_type t, const target_info &ti) {
+   switch(t) {
+   case TARGET_GLES_300:
+   case TARGET_GLES_310:
+   case TARGET_GL_430: {
+     auto spv_cross = std::make_unique<spirv_cross::CompilerGLSL>(
+         spv_data, spv_data_size);
+     spirv_cross::CompilerGLSL::Options opts;
+     opts.version = ti.version_maj * 100u + ti.version_min * 10u;
+     opts.separate_shader_objects = true;
+     opts.es = (ti.platform == target_platform_class::MOBILE);
+     spv_cross->build_combined_image_samplers();
+     spv_cross->set_common_options(opts);
+     return spv_cross;
+     break;
+   }
+   case TARGET_SPIRV: {
+     auto spv_cross =
+         std::make_unique<spirv_cross::CompilerReflection>(spv_data,
+                                                           spv_data_size);
+     return spv_cross;
+     break;
+   }
+   case TARGET_MSL_10:
+   case TARGET_MSL_11:
+   case TARGET_MSL_12:
+   case TARGET_MSL_20:
+   case TARGET_MSL_10_IOS:
+   case TARGET_MSL_11_IOS:
+   case TARGET_MSL_12_IOS:
+   case TARGET_MSL_20_IOS: {
+     auto spv_cross = std::make_unique<spirv_cross::CompilerMSL>(
+         spv_data, spv_data_size);
+     spirv_cross::CompilerMSL::Options opts;
+     opts.set_msl_version(ti.version_maj, ti.version_min);
+     const bool ios = ti.platform == target_platform_class::MOBILE;
+     opts.platform = ios ? spirv_cross::CompilerMSL::Options::iOS
+                         : spirv_cross::CompilerMSL::Options::macOS;
+     spv_cross->set_msl_options(opts);
+     return spv_cross;
+     break;
+   }
+   default: assert(false);
+   }
+   return nullptr;
+ }
+
 #define IS_IDENT(c) (isalnum(c) || c == '_')
 #define IS_TAB_SPACE(c) (c == ' '  || c == '\t')
+
+// Writes a 32-bit integer in network byte order to the given file.
+void write_network_word(uint32_t word, FILE *f) {
+  uint32_t nbo = htonl(word);
+  fwrite(&nbo, sizeof(uint32_t), 1u, f);
+}
+
 
 // Reports a technique preprocessor error and exits.
 void report_technique_parser_error(uint32_t line_num,
@@ -331,6 +433,12 @@ int main(int argc, const char *argv[]) {
       exit(1);
     }
    }
+
+  if (target_types.empty()) {
+    fprintf(stderr, "No target shader flavors specified!"
+                    " Use -t to specify a target.\n");
+    exit(1);
+  }
 
   // Load the input file.
   std::string input_source = read_file(input_file_path.c_str());
@@ -494,11 +602,14 @@ int main(int argc, const char *argv[]) {
   }
 
   // Generate output.
+  bool generate_pipeline_metadata = true;
   for (const target_type t : target_types) {
     uint32_t spv_idx = 0u;
     const target_info &ti = TARGET_INFOS[t];
     for (const technique &tech : techniques) {
+      resource_layout res_layout;
       for (const technique::entry_point ep : tech.entry_points) {
+        
         const shaderc::SpvCompilationResult &spv_result =
             spv_results[spv_idx++];
         std::string out;
@@ -506,45 +617,23 @@ int main(int argc, const char *argv[]) {
             out_folder + PATH_SEPARATOR + tech.name + 
             (ep.kind == shaderc_vertex_shader ? ".vs." : ".ps.")
             + ti.file_ext;
-        switch(t) {
-        case TARGET_GLES_300:
-        case TARGET_GLES_310:
-        case TARGET_GL_430: {
-          spirv_cross::CompilerGLSL spv_cross(
-              spv_result.cbegin(),
-              spv_result.cend() - spv_result.cbegin());
-          spirv_cross::CompilerGLSL::Options opts;
-          opts.version = ti.version_maj * 100u + ti.version_min * 10u;
-          opts.separate_shader_objects = true;
-          opts.es = (ti.platform == target_platform_class::MOBILE);
-          spv_cross.build_combined_image_samplers();
-          spv_cross.set_common_options(opts);
-          out = spv_cross.compile();
-          break;
-        }
-        case TARGET_SPIRV: break;
-        case TARGET_MSL_10:
-        case TARGET_MSL_11:
-        case TARGET_MSL_12:
-        case TARGET_MSL_20:
-        case TARGET_MSL_10_IOS:
-        case TARGET_MSL_11_IOS:
-        case TARGET_MSL_12_IOS:
-        case TARGET_MSL_20_IOS: {
-          spirv_cross::CompilerMSL spv_cross(
-              spv_result.cbegin(),
-              spv_result.cend() - spv_result.cbegin());
-          spirv_cross::CompilerMSL::Options opts;
-          opts.set_msl_version(ti.version_maj, ti.version_min);
-          const bool ios = ti.platform == target_platform_class::MOBILE;
-          opts.platform = ios ? spirv_cross::CompilerMSL::Options::iOS
-                              : spirv_cross::CompilerMSL::Options::macOS;
-          spv_cross.set_msl_options(opts);
-          out = spv_cross.compile();
-          break;
-        }
-        default:
-          fprintf(stderr, "Not implemented yet\n");
+        std::unique_ptr<spirv_cross::Compiler> compiler =
+            create_cross_compiler(spv_result.cbegin(),
+                                  spv_result.cend() - spv_result.cbegin(),
+                                  t, ti);
+        if (generate_pipeline_metadata) {
+          spirv_cross::ShaderResources resources =
+              compiler->get_shader_resources();
+          res_layout.add_resources(resources.uniform_buffers, *compiler,
+                                    descriptor_type::UNIFORM_BUFFER);
+          res_layout.add_resources(resources.storage_buffers, *compiler,
+                                   descriptor_type::STORAGE_BUFFER);
+          res_layout.add_resources(resources.sampled_images, *compiler,
+                                   descriptor_type::TEXTURE_AND_SAMPLER);
+          res_layout.add_resources(resources.separate_samplers, *compiler,
+                                   descriptor_type::SAMPLER);
+          res_layout.add_resources(resources.separate_images, *compiler,
+                                   descriptor_type::TEXTURE);
         }
         FILE *out_file = fopen(out_file_path.c_str(), "w");
         if (out_file == nullptr) {
@@ -553,6 +642,7 @@ int main(int argc, const char *argv[]) {
           exit(1);
         }
         if (t != TARGET_SPIRV) {
+          out = compiler->compile();
           fwrite(&out[0], sizeof(uint8_t), out.length(), out_file);
         } else {
           fwrite(spv_result.cbegin(), sizeof(uint32_t),
@@ -560,8 +650,31 @@ int main(int argc, const char *argv[]) {
         }
         fclose(out_file);
       }
-      
+
+      // Write out the .pipeline file for the current technique.
+      if (generate_pipeline_metadata) {
+        std::string metadata_file_path =
+            out_folder + PATH_SEPARATOR + tech.name + ".pipeline";
+        FILE *metadata_file = fopen(metadata_file_path.c_str(), "wb");
+        if (metadata_file == nullptr) {
+          fprintf(stderr, "Error opening output file %s\n",
+                  metadata_file_path.c_str());
+          exit(1);
+        }
+        write_network_word(0xdeadbeef, metadata_file);
+        write_network_word(res_layout.set_count(), metadata_file);
+        for (uint32_t set = 0u; set < res_layout.set_count(); ++set) {
+          const auto &ds = res_layout.set(set);
+          write_network_word(set, metadata_file);
+          write_network_word(ds.size(), metadata_file);
+          for (const auto &d : ds) {
+            write_network_word(d.first, metadata_file);
+            write_network_word((uint32_t)d.second, metadata_file);
+          }
+        }
+      }
     }
+    generate_pipeline_metadata = false;
   }
   return 0;
 }
