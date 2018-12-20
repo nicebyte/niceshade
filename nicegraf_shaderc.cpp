@@ -37,7 +37,7 @@ SOFTWARE.
   #include <io.h>
   #define PATH_SEPARATOR  "\\"
   #if defined(_WIN64)
-  #define filelen(f) _filelength64(_fileno(f))
+  #define filelen(f) _filelengthi64(_fileno(f))
   #elif defined(_WIN32)
   #define filelen(f) _filelength(_fileno(f))
   #endif
@@ -682,8 +682,9 @@ int main(int argc, const char *argv[]) {
             (ep.kind == shaderc_vertex_shader ? ".vs." : ".ps.")
             + t.file_ext;
         std::unique_ptr<spirv_cross::Compiler> compiler =
-            create_cross_compiler(spv_result.cbegin(),
-                                  spv_result.cend() - spv_result.cbegin(), t);
+            create_cross_compiler(
+                spv_result.cbegin(),
+                (uint32_t)(spv_result.cend() - spv_result.cbegin()), t);
         if (generate_pipeline_metadata) {
           spirv_cross::ShaderResources resources =
               compiler->get_shader_resources();
@@ -733,14 +734,15 @@ int main(int argc, const char *argv[]) {
         for (uint32_t set = 0u; set < res_layout.set_count(); ++set) {
           const auto &ds = res_layout.set(set);
           write_network_word(set, metadata_file);
-          write_network_word(ds.size(), metadata_file);
+          write_network_word((uint32_t)ds.size(), metadata_file);
           for (const auto &d : ds) {
             write_network_word(d.slot, metadata_file);
             write_network_word((uint32_t)d.type, metadata_file);
             write_network_word(d.stage_mask, metadata_file);
           }
         }
-        write_network_word(tech.additional_metadata.size(), metadata_file);
+        write_network_word((uint32_t)tech.additional_metadata.size(),
+                            metadata_file);
         for (const auto &nameval : tech.additional_metadata) {
           fwrite(nameval.first.c_str(), 1u, nameval.first.size() + 1u,
                  metadata_file);
