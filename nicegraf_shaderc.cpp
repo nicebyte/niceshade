@@ -29,7 +29,6 @@ SOFTWARE.
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
-#include <unordered_set>
 
 // Platform-specific stuff.
 #if defined(_WIN32) || defined(_WIN64)
@@ -83,21 +82,8 @@ Options:
     be generated.
 )RAW";
 
-// Supported code generation targets.
-enum target_type {
-  TARGET_GL_430 = 0,
-  TARGET_GLES_300,
-  TARGET_GLES_310,
-  TARGET_MSL_10,
-  TARGET_MSL_11,
-  TARGET_MSL_12,
-  TARGET_MSL_20,
-  TARGET_MSL_10_IOS,
-  TARGET_MSL_11_IOS,
-  TARGET_MSL_12_IOS,
-  TARGET_MSL_20_IOS,
-  TARGET_SPIRV,
-  TARGET_COUNT
+enum class target_api {
+  GL, METAL, VULKAN
 };
 
 enum class target_platform_class {
@@ -107,103 +93,124 @@ enum class target_platform_class {
 };
 
 struct target_info {
-  const char *name_string;
+  target_api api;
   const char *file_ext;
   uint32_t version_maj;
   uint32_t version_min;
   target_platform_class platform;
 };
 
-const target_info TARGET_INFOS[TARGET_COUNT] = {
+// Map of string identifiers to a target-specific information.
+static const struct { const char *name;
+                      target_info target; } TARGET_MAP[] = {
   {
     "gl430",
-    "430.glsl",
-    4u, 3u,
-    target_platform_class::DESKTOP
+    {
+      target_api::GL,
+      "430.glsl",
+      4u, 3u,
+      target_platform_class::DESKTOP
+    }
   },
   {
     "gles300",
-    "300es.glsl",
-    3u, 0u,
-    target_platform_class::MOBILE
+    {
+      target_api::GL,
+      "300es.glsl",
+      3u, 0u,
+      target_platform_class::MOBILE
+    }
   },
   {
     "gles310",
-    "310es.glsl",
-    3u, 1u,
-    target_platform_class::MOBILE,
+    {
+      target_api::GL,
+      "310es.glsl",
+      3u, 1u,
+      target_platform_class::MOBILE
+    }
   },
   {
     "msl10",
-    "10.msl",
-    1u, 0u,
-    target_platform_class::DESKTOP
+    {
+      target_api::METAL,
+      "10.msl",
+      1u, 0u,
+      target_platform_class::DESKTOP
+    }
   },
   {
     "msl11",
-    "11.msl",
-    1u, 1u,
-    target_platform_class::DESKTOP
+    {
+      target_api::METAL,
+      "11.msl",
+      1u, 1u,
+      target_platform_class::DESKTOP
+    }
   },
   {
     "msl12",
-    "12.msl",
-    1u, 2u,
-    target_platform_class::DESKTOP
+    {
+      target_api::METAL,
+      "12.msl",
+      1u, 2u,
+      target_platform_class::DESKTOP
+    }
   },
   {
     "msl20",
-    "20.msl",
-    2u, 0u,
-    target_platform_class::DESKTOP
+    {
+      target_api::METAL,
+      "20.msl",
+      2u, 0u,
+      target_platform_class::DESKTOP
+    }
   },
   {
     "msl10ios",
-    "10ios.msl",
-    1u, 0u,
-    target_platform_class::MOBILE
+    {
+      target_api::METAL,
+      "10ios.msl",
+      1u, 0u,
+      target_platform_class::MOBILE
+    }
   },
   {
     "msl11ios",
-    "11ios.msl",
-    1u, 1u,
-    target_platform_class::MOBILE
+    {
+      target_api::METAL,
+      "11ios.msl",
+      1u, 1u,
+      target_platform_class::MOBILE
+    }
   },
   {
     "msl12ios",
-    "12ios.msl",
-    1u, 2u,
-    target_platform_class::MOBILE
+    {
+      target_api::METAL,
+      "12ios.msl",
+      1u, 2u,
+      target_platform_class::MOBILE
+    }
   },
   {
     "msl20ios",
-    "20ios.msl",
-    2u, 0u,
-    target_platform_class::MOBILE
+    {
+      target_api::METAL,
+      "20ios.msl",
+      2u, 0u,
+      target_platform_class::MOBILE
+    }
   },
   {
     "spv",
-    "spv",
-    0u, 0u,
-    target_platform_class::DONTCARE
+    {
+      target_api::VULKAN,
+      "spv",
+      0u, 0u,
+      target_platform_class::DONTCARE
+    }
   }
-};
-
-// Map of string identifiers to a target type.
-static const struct { const char *name;
-                      target_type target; } TARGET_MAP[TARGET_COUNT] = {
-      {"gl430", TARGET_GL_430},
-      {"gles300", TARGET_GLES_300},
-      {"gles310", TARGET_GLES_310},
-      {"spirv", TARGET_SPIRV},
-      {"msl10", TARGET_MSL_10},
-      {"msl11", TARGET_MSL_11},
-      {"msl12", TARGET_MSL_12},
-      {"msl20", TARGET_MSL_20},
-      {"msl10ios", TARGET_MSL_10_IOS},
-      {"msl11ios", TARGET_MSL_11_IOS},
-      {"msl12ios", TARGET_MSL_12_IOS},
-      {"msl20ios", TARGET_MSL_20_IOS}
 };
 
 // States of the technique parser.
@@ -343,12 +350,9 @@ private:
 };
 
 std::unique_ptr<spirv_cross::Compiler> create_cross_compiler(
-    const uint32_t *spv_data, uint32_t spv_data_size,
-    target_type t, const target_info &ti) {
-   switch(t) {
-   case TARGET_GLES_300:
-   case TARGET_GLES_310:
-   case TARGET_GL_430: {
+    const uint32_t *spv_data, uint32_t spv_data_size, const target_info &ti) {
+   switch(ti.api) {
+   case target_api::GL: {
      auto spv_cross = std::make_unique<spirv_cross::CompilerGLSL>(
          spv_data, spv_data_size);
      spirv_cross::CompilerGLSL::Options opts;
@@ -360,21 +364,14 @@ std::unique_ptr<spirv_cross::Compiler> create_cross_compiler(
      return spv_cross;
      break;
    }
-   case TARGET_SPIRV: {
+   case target_api::VULKAN: {
      auto spv_cross =
          std::make_unique<spirv_cross::CompilerReflection>(spv_data,
                                                            spv_data_size);
      return spv_cross;
      break;
    }
-   case TARGET_MSL_10:
-   case TARGET_MSL_11:
-   case TARGET_MSL_12:
-   case TARGET_MSL_20:
-   case TARGET_MSL_10_IOS:
-   case TARGET_MSL_11_IOS:
-   case TARGET_MSL_12_IOS:
-   case TARGET_MSL_20_IOS: {
+   case target_api::METAL: {
      auto spv_cross = std::make_unique<spirv_cross::CompilerMSL>(
          spv_data, spv_data_size);
      spirv_cross::CompilerMSL::Options opts;
@@ -457,7 +454,7 @@ int main(int argc, const char *argv[]) {
   const std::string input_file_path { argv[1] }; // input file name.
   std::string out_folder = ".";
   define_container global_defines;
-  std::unordered_set<target_type> target_types;
+  std::vector<target_info> targets;
   for (uint32_t o = 2u; o < (uint32_t)argc; o += 2u) { // options.
     const std::string option_name { argv[o] };
     if (o + 1u >= (uint32_t)argc) {
@@ -474,9 +471,9 @@ int main(int argc, const char *argv[]) {
       global_defines.emplace_back(name, value);
     } else if ("-t" == option_name) { // Target to generate code for.
       bool found_target = false;
-      for (uint32_t t = 0u; t < TARGET_COUNT; ++t) {
+      for (uint32_t t = 0u; t < sizeof(TARGET_MAP)/sizeof(TARGET_MAP[0]); ++t) {
         if (option_value == TARGET_MAP[t].name) {
-          target_types.insert(TARGET_MAP[t].target);
+          targets.push_back(TARGET_MAP[t].target);
           found_target = true;
           break;
         }
@@ -493,7 +490,7 @@ int main(int argc, const char *argv[]) {
     }
    }
 
-  if (target_types.empty()) {
+  if (targets.empty()) {
     fprintf(stderr, "No target shader flavors specified!"
                     " Use -t to specify a target.\n");
     exit(1);
@@ -669,9 +666,8 @@ int main(int argc, const char *argv[]) {
 
   // Generate output.
   bool generate_pipeline_metadata = true;
-  for (const target_type t : target_types) {
+  for (const target_info &t : targets) {
     uint32_t spv_idx = 0u;
-    const target_info &ti = TARGET_INFOS[t];
     for (const technique &tech : techniques) {
       resource_layout res_layout;
       for (const technique::entry_point ep : tech.entry_points) {
@@ -682,11 +678,10 @@ int main(int argc, const char *argv[]) {
         std::string out_file_path =
             out_folder + PATH_SEPARATOR + tech.name + 
             (ep.kind == shaderc_vertex_shader ? ".vs." : ".ps.")
-            + ti.file_ext;
+            + t.file_ext;
         std::unique_ptr<spirv_cross::Compiler> compiler =
             create_cross_compiler(spv_result.cbegin(),
-                                  spv_result.cend() - spv_result.cbegin(),
-                                  t, ti);
+                                  spv_result.cend() - spv_result.cbegin(), t);
         if (generate_pipeline_metadata) {
           spirv_cross::ShaderResources resources =
               compiler->get_shader_resources();
@@ -711,7 +706,7 @@ int main(int argc, const char *argv[]) {
                   out_file_path.c_str());
           exit(1);
         }
-        if (t != TARGET_SPIRV) {
+        if (t.api != target_api::VULKAN) {
           out = compiler->compile();
           fwrite(&out[0], sizeof(uint8_t), out.length(), out_file);
         } else {
