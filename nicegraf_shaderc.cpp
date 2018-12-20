@@ -213,6 +213,8 @@ static const struct { const char *name;
   }
 };
 
+constexpr uint32_t TARGET_COUNT = sizeof(TARGET_MAP)/sizeof(TARGET_MAP[0]);
+
 // States of the technique parser.
 enum class technique_parser_state {
   LOOKING_FOR_PREFIX,
@@ -471,7 +473,7 @@ int main(int argc, const char *argv[]) {
       global_defines.emplace_back(name, value);
     } else if ("-t" == option_name) { // Target to generate code for.
       bool found_target = false;
-      for (uint32_t t = 0u; t < sizeof(TARGET_MAP)/sizeof(TARGET_MAP[0]); ++t) {
+      for (uint32_t t = 0u; t < TARGET_COUNT; ++t) {
         if (option_value == TARGET_MAP[t].name) {
           targets.push_back(TARGET_MAP[t].target);
           found_target = true;
