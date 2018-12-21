@@ -361,7 +361,13 @@ protected:
 		bool long_long_literal_suffix = false;
 		const char *basic_int_type = "int";
 		const char *basic_uint_type = "uint";
+		const char *basic_int8_type = "int8_t";
+		const char *basic_uint8_type = "uint8_t";
+		const char *basic_int16_type = "int16_t";
+		const char *basic_uint16_type = "uint16_t";
 		const char *half_literal_suffix = "hf";
+		const char *int16_t_literal_suffix = "s";
+		const char *uint16_t_literal_suffix = "us";
 		bool swizzle_is_function = false;
 		bool shared_is_implied = false;
 		bool flexible_member_array_supported = true;
@@ -438,10 +444,9 @@ protected:
 	SPIRExpression &emit_op(uint32_t result_type, uint32_t result_id, const std::string &rhs, bool forward_rhs,
 	                        bool suppress_usage_tracking = false);
 	std::string access_chain_internal(uint32_t base, const uint32_t *indices, uint32_t count, bool index_is_literal,
-	                                  bool chain_only = false, bool *need_transpose = nullptr,
-	                                  bool *result_is_packed = nullptr);
+	                                  bool chain_only = false, AccessChainMeta *meta = nullptr);
 	std::string access_chain(uint32_t base, const uint32_t *indices, uint32_t count, const SPIRType &target_type,
-	                         bool *need_transpose = nullptr, bool *result_is_packed = nullptr);
+	                         AccessChainMeta *meta = nullptr);
 
 	std::string flattened_access_chain(uint32_t base, const uint32_t *indices, uint32_t count,
 	                                   const SPIRType &target_type, uint32_t offset, uint32_t matrix_stride,
@@ -599,6 +604,9 @@ protected:
 	// Sometimes we will need to automatically perform bitcasts on load and store to make this work.
 	virtual void bitcast_to_builtin_store(uint32_t target_id, std::string &expr, const SPIRType &expr_type);
 	virtual void bitcast_from_builtin_load(uint32_t source_id, std::string &expr, const SPIRType &expr_type);
+
+	void handle_store_to_invariant_variable(uint32_t store_id, uint32_t value_id);
+	void disallow_forwarding_in_expression_chain(const SPIRExpression &expr);
 
 private:
 	void init()

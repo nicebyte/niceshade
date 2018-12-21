@@ -494,6 +494,8 @@ const char *CompilerHLSL::to_storage_qualifiers_glsl(const SPIRVariable &var)
 
 void CompilerHLSL::emit_builtin_outputs_in_struct()
 {
+	auto &execution = get_entry_point();
+
 	bool legacy = hlsl_options.shader_model <= 30;
 	active_output_builtins.for_each_bit([&](uint32_t i) {
 		const char *type = nullptr;
@@ -508,7 +510,19 @@ void CompilerHLSL::emit_builtin_outputs_in_struct()
 
 		case BuiltInFragDepth:
 			type = "float";
-			semantic = legacy ? "DEPTH" : "SV_Depth";
+			if (legacy)
+			{
+				semantic = "DEPTH";
+			}
+			else
+			{
+				if (hlsl_options.shader_model >= 50 && execution.flags.get(ExecutionModeDepthGreater))
+					semantic = "SV_DepthGreaterEqual";
+				else if (hlsl_options.shader_model >= 50 && execution.flags.get(ExecutionModeDepthLess))
+					semantic = "SV_DepthLessEqual";
+				else
+					semantic = "SV_Depth";
+			}
 			break;
 
 		case BuiltInClipDistance:
@@ -1157,6 +1171,8 @@ void CompilerHLSL::emit_resources()
 		emitted = true;
 	}
 
+	bool skip_separate_image_sampler = !combined_image_samplers.empty() || hlsl_options.shader_model <= 30;
+
 	// Output Uniform Constants (values, samplers, images, etc).
 	for (auto &id : ir.ids)
 	{
@@ -1164,6 +1180,17 @@ void CompilerHLSL::emit_resources()
 		{
 			auto &var = id.get<SPIRVariable>();
 			auto &type = get<SPIRType>(var.basetype);
+
+			// If we're remapping separate samplers and images, only emit the combined samplers.
+			if (skip_separate_image_sampler)
+			{
+				// Sampler buffers are always used without a sampler, and they will also work in regular D3D.
+				bool sampler_buffer = type.basetype == SPIRType::Image && type.image.dim == DimBuffer;
+				bool separate_image = type.basetype == SPIRType::Image && type.image.sampled == 1;
+				bool separate_sampler = type.basetype == SPIRType::Sampler;
+				if (!sampler_buffer && (separate_image || separate_sampler))
+					continue;
+			}
 
 			if (var.storage != StorageClassFunction && !is_builtin_variable(var) && !var.remapped_variable &&
 			    type.pointer &&
@@ -1993,7 +2020,15 @@ string CompilerHLSL::to_sampler_expression(uint32_t id)
 
 void CompilerHLSL::emit_sampled_image_op(uint32_t result_type, uint32_t result_id, uint32_t image_id, uint32_t samp_id)
 {
-	set<SPIRCombinedImageSampler>(result_id, result_type, image_id, samp_id);
+	if (hlsl_options.shader_model >= 40 && combined_image_samplers.empty())
+	{
+		set<SPIRCombinedImageSampler>(result_id, result_type, image_id, samp_id);
+	}
+	else
+	{
+		// Make sure to suppress usage tracking. It is illegal to create temporaries of opaque types.
+		emit_op(result_type, result_id, to_combined_image_sampler(image_id, samp_id), true, true);
+	}
 }
 
 string CompilerHLSL::to_func_call_arg(uint32_t id)
@@ -2055,28 +2090,34 @@ void CompilerHLSL::emit_function_prototype(SPIRFunction &func, const Bitset &ret
 		decl += to_name(func.self);
 
 	decl += "(";
+	vector<string> arglist;
 
 	if (!type.array.empty())
 	{
 		// Fake array returns by writing to an out array instead.
-		decl += "out ";
-		decl += type_to_glsl(type);
-		decl += " ";
-		decl += "SPIRV_Cross_return_value";
-		decl += type_to_array_glsl(type);
-		if (!func.arguments.empty())
-			decl += ", ";
+		string out_argument;
+		out_argument += "out ";
+		out_argument += type_to_glsl(type);
+		out_argument += " ";
+		out_argument += "SPIRV_Cross_return_value";
+		out_argument += type_to_array_glsl(type);
+		arglist.push_back(move(out_argument));
 	}
 
 	for (auto &arg : func.arguments)
 	{
+		// Do not pass in separate images or samplers if we're remapping
+		// to combined image samplers.
+		if (skip_argument(arg.id))
+			continue;
+
 		// Might change the variable name if it already exists in this function.
 		// SPIRV OpName doesn't have any semantic effect, so it's valid for an implementation
 		// to use same name for variables.
 		// Since we want to make the GLSL debuggable and somewhat sane, use fallback names for variables which are duplicates.
 		add_local_variable_name(arg.id);
 
-		decl += argument_decl(arg);
+		arglist.push_back(argument_decl(arg));
 
 		// Flatten a combined sampler to two separate arguments in modern HLSL.
 		auto &arg_type = get<SPIRType>(arg.type);
@@ -2084,13 +2125,9 @@ void CompilerHLSL::emit_function_prototype(SPIRFunction &func, const Bitset &ret
 		    arg_type.image.dim != DimBuffer)
 		{
 			// Manufacture automatic sampler arg for SampledImage texture
-			decl += ", ";
-			decl += join(image_is_comparison(arg_type, arg.id) ? "SamplerComparisonState " : "SamplerState ",
-			             to_sampler_expression(arg.id), type_to_array_glsl(arg_type));
+			arglist.push_back(join(image_is_comparison(arg_type, arg.id) ? "SamplerComparisonState " : "SamplerState ",
+			                       to_sampler_expression(arg.id), type_to_array_glsl(arg_type)));
 		}
-
-		if (&arg != &func.arguments.back())
-			decl += ", ";
 
 		// Hold a pointer to the parameter so we can invalidate the readonly field if needed.
 		auto *var = maybe_get<SPIRVariable>(arg.id);
@@ -2098,6 +2135,23 @@ void CompilerHLSL::emit_function_prototype(SPIRFunction &func, const Bitset &ret
 			var->parameter = &arg;
 	}
 
+	for (auto &arg : func.shadow_arguments)
+	{
+		// Might change the variable name if it already exists in this function.
+		// SPIRV OpName doesn't have any semantic effect, so it's valid for an implementation
+		// to use same name for variables.
+		// Since we want to make the GLSL debuggable and somewhat sane, use fallback names for variables which are duplicates.
+		add_local_variable_name(arg.id);
+
+		arglist.push_back(argument_decl(arg));
+
+		// Hold a pointer to the parameter so we can invalidate the readonly field if needed.
+		auto *var = maybe_get<SPIRVariable>(arg.id);
+		if (var)
+			var->parameter = &arg;
+	}
+
+	decl += merge(arglist);
 	decl += ")";
 	statement(decl);
 }
@@ -3554,10 +3608,7 @@ void CompilerHLSL::emit_access_chain(const Instruction &instruction)
 
 		string base;
 		if (to_plain_buffer_length != 0)
-		{
-			bool need_transpose;
-			base = access_chain(ops[2], &ops[3], to_plain_buffer_length, get<SPIRType>(ops[0]), &need_transpose);
-		}
+			base = access_chain(ops[2], &ops[3], to_plain_buffer_length, get<SPIRType>(ops[0]));
 		else if (chain)
 			base = chain->base;
 		else
@@ -4616,6 +4667,8 @@ string CompilerHLSL::compile()
 	backend.half_literal_suffix = nullptr;
 	backend.long_long_literal_suffix = true;
 	backend.uint32_t_literal_suffix = true;
+	backend.int16_t_literal_suffix = nullptr;
+	backend.uint16_t_literal_suffix = "u";
 	backend.basic_int_type = "int";
 	backend.basic_uint_type = "uint";
 	backend.swizzle_is_function = false;

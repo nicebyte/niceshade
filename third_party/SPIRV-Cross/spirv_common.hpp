@@ -402,6 +402,10 @@ struct SPIRType : IVariant
 		Void,
 		Boolean,
 		Char,
+		SByte,
+		UByte,
+		Short,
+		UShort,
 		Int,
 		UInt,
 		Int64,
@@ -433,7 +437,10 @@ struct SPIRType : IVariant
 	std::vector<bool> array_size_literal;
 
 	// Pointers
+	// Keep track of how many pointer layers we have.
+	uint32_t pointer_depth = 0;
 	bool pointer = false;
+
 	spv::StorageClass storage = spv::StorageClassGeneric;
 
 	std::vector<uint32_t> member_types;
@@ -1010,6 +1017,11 @@ struct SPIRConstant : IVariant
 		return m.c[col].r[row].u32;
 	}
 
+	inline int16_t scalar_i16(uint32_t col = 0, uint32_t row = 0) const
+	{
+		return int16_t(m.c[col].r[row].u32 & 0xffffu);
+	}
+
 	inline uint16_t scalar_u16(uint32_t col = 0, uint32_t row = 0) const
 	{
 		return uint16_t(m.c[col].r[row].u32 & 0xffffu);
@@ -1290,6 +1302,13 @@ T &variant_set(Variant &var, P &&... args)
 	return *ptr;
 }
 
+struct AccessChainMeta
+{
+	bool need_transpose = false;
+	bool storage_is_packed = false;
+	bool storage_is_invariant = false;
+};
+
 struct Meta
 {
 	struct Decoration
@@ -1317,15 +1336,7 @@ struct Meta
 
 	std::unordered_map<uint32_t, uint32_t> decoration_word_offset;
 
-	// Used when the parser has detected a candidate identifier which matches
-	// known "magic" counter buffers as emitted by HLSL frontends.
-	// We will need to match the identifiers by name later when reflecting resources.
-	// We could use the regular alias later, but the alias will be mangled when parsing SPIR-V because the identifier
-	// is not a valid identifier in any high-level language.
-	std::string hlsl_magic_counter_buffer_name;
-	bool hlsl_magic_counter_buffer_candidate = false;
-
-	// For SPV_GOOGLE_hlsl_functionality1, this avoids the workaround.
+	// For SPV_GOOGLE_hlsl_functionality1.
 	bool hlsl_is_magic_counter_buffer = false;
 	// ID for the sibling counter buffer.
 	uint32_t hlsl_magic_counter_buffer = 0;
@@ -1377,8 +1388,9 @@ static inline bool type_is_floating_point(const SPIRType &type)
 
 static inline bool type_is_integral(const SPIRType &type)
 {
-	return type.basetype == SPIRType::Int || type.basetype == SPIRType::UInt || type.basetype == SPIRType::Int64 ||
-	       type.basetype == SPIRType::UInt64;
+	return type.basetype == SPIRType::SByte || type.basetype == SPIRType::UByte || type.basetype == SPIRType::Short ||
+	       type.basetype == SPIRType::UShort || type.basetype == SPIRType::Int || type.basetype == SPIRType::UInt ||
+	       type.basetype == SPIRType::Int64 || type.basetype == SPIRType::UInt64;
 }
 } // namespace spirv_cross
 

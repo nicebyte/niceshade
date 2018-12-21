@@ -27,6 +27,16 @@
 namespace spirv_cross
 {
 
+// Indicates the format of the vertex attribute. Currently limited to specifying
+// if the attribute is an 8-bit unsigned integer, 16-bit unsigned integer, or
+// some other format.
+enum MSLVertexFormat
+{
+	MSL_VERTEX_FORMAT_OTHER,
+	MSL_VERTEX_FORMAT_UINT8,
+	MSL_VERTEX_FORMAT_UINT16
+};
+
 // Defines MSL characteristics of a vertex attribute at a particular location.
 // The used_by_shader flag is set to true during compilation of SPIR-V to MSL
 // if the shader makes use of this vertex attribute.
@@ -37,6 +47,7 @@ struct MSLVertexAttr
 	uint32_t msl_offset = 0;
 	uint32_t msl_stride = 0;
 	bool per_instance = false;
+	MSLVertexFormat format = MSL_VERTEX_FORMAT_OTHER;
 	bool used_by_shader = false;
 };
 
@@ -230,6 +241,7 @@ public:
 		SPVFuncImplFindILsb,
 		SPVFuncImplFindSMsb,
 		SPVFuncImplFindUMsb,
+		SPVFuncImplSSign,
 		SPVFuncImplArrayCopyMultidimBase,
 		// Unfortunately, we cannot use recursive templates in the MSL compiler properly,
 		// so stamp out variants up to some arbitrary maximum.
@@ -351,6 +363,7 @@ protected:
 	uint32_t add_interface_block(spv::StorageClass storage);
 	void mark_location_as_used_by_shader(uint32_t location, spv::StorageClass storage);
 	uint32_t ensure_correct_builtin_type(uint32_t type_id, spv::BuiltIn builtin);
+	uint32_t ensure_correct_attribute_type(uint32_t type_id, uint32_t location);
 
 	void emit_custom_functions();
 	void emit_resources();

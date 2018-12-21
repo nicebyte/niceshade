@@ -32,6 +32,18 @@ Parser::Parser(const uint32_t *spirv_data, size_t word_count)
 	ir.spirv = vector<uint32_t>(spirv_data, spirv_data + word_count);
 }
 
+static bool decoration_is_string(Decoration decoration)
+{
+	switch (decoration)
+	{
+	case DecorationHlslSemanticGOOGLE:
+		return true;
+
+	default:
+		return false;
+	}
+}
+
 static inline uint32_t swap_endian(uint32_t v)
 {
 	return ((v >> 24) & 0x000000ffu) | ((v >> 8) & 0x0000ff00u) | ((v << 8) & 0x00ff0000u) | ((v << 24) & 0xff000000u);
@@ -147,11 +159,13 @@ void Parser::parse(const Instruction &instruction)
 	switch (op)
 	{
 	case OpMemoryModel:
+	case OpSourceContinued:
 	case OpSourceExtension:
 	case OpNop:
 	case OpLine:
 	case OpNoLine:
 	case OpString:
+	case OpModuleProcessed:
 		break;
 
 	case OpSource:
@@ -298,9 +312,71 @@ void Parser::parse(const Instruction &instruction)
 		break;
 	}
 
+	case OpDecorationGroup:
+	{
+		// Noop, this simply means an ID should be a collector of decorations.
+		// The meta array is already a flat array of decorations which will contain the relevant decorations.
+		break;
+	}
+
+	case OpGroupDecorate:
+	{
+		uint32_t group_id = ops[0];
+		auto &decorations = ir.meta[group_id].decoration;
+		auto &flags = decorations.decoration_flags;
+
+		// Copies decorations from one ID to another. Only copy decorations which are set in the group,
+		// i.e., we cannot just copy the meta structure directly.
+		for (uint32_t i = 1; i < length; i++)
+		{
+			uint32_t target = ops[i];
+			flags.for_each_bit([&](uint32_t bit) {
+				auto decoration = static_cast<Decoration>(bit);
+
+				if (decoration_is_string(decoration))
+				{
+					ir.set_decoration_string(target, decoration, ir.get_decoration_string(group_id, decoration));
+				}
+				else
+				{
+					ir.meta[target].decoration_word_offset[decoration] =
+					    ir.meta[group_id].decoration_word_offset[decoration];
+					ir.set_decoration(target, decoration, ir.get_decoration(group_id, decoration));
+				}
+			});
+		}
+		break;
+	}
+
+	case OpGroupMemberDecorate:
+	{
+		uint32_t group_id = ops[0];
+		auto &flags = ir.meta[group_id].decoration.decoration_flags;
+
+		// Copies decorations from one ID to another. Only copy decorations which are set in the group,
+		// i.e., we cannot just copy the meta structure directly.
+		for (uint32_t i = 1; i + 1 < length; i += 2)
+		{
+			uint32_t target = ops[i + 0];
+			uint32_t index = ops[i + 1];
+			flags.for_each_bit([&](uint32_t bit) {
+				auto decoration = static_cast<Decoration>(bit);
+
+				if (decoration_is_string(decoration))
+					ir.set_member_decoration_string(target, index, decoration,
+					                                ir.get_decoration_string(group_id, decoration));
+				else
+					ir.set_member_decoration(target, index, decoration, ir.get_decoration(group_id, decoration));
+			});
+		}
+		break;
+	}
+
 	case OpDecorate:
 	case OpDecorateId:
 	{
+		// OpDecorateId technically supports an array of arguments, but our only supported decorations are single uint,
+		// so merge decorate and decorate-id here.
 		uint32_t id = ops[0];
 
 		auto decoration = static_cast<Decoration>(ops[1]);
@@ -383,9 +459,25 @@ void Parser::parse(const Instruction &instruction)
 	{
 		uint32_t id = ops[0];
 		uint32_t width = ops[1];
+		bool signedness = ops[2] != 0;
 		auto &type = set<SPIRType>(id);
-		type.basetype =
-		    ops[2] ? (width > 32 ? SPIRType::Int64 : SPIRType::Int) : (width > 32 ? SPIRType::UInt64 : SPIRType::UInt);
+		switch (width)
+		{
+		case 64:
+			type.basetype = signedness ? SPIRType::Int64 : SPIRType::UInt64;
+			break;
+		case 32:
+			type.basetype = signedness ? SPIRType::Int : SPIRType::UInt;
+			break;
+		case 16:
+			type.basetype = signedness ? SPIRType::Short : SPIRType::UShort;
+			break;
+		case 8:
+			type.basetype = signedness ? SPIRType::SByte : SPIRType::UByte;
+			break;
+		default:
+			SPIRV_CROSS_THROW("Unrecognized bit-width of integral type.");
+		}
 		type.width = width;
 		break;
 	}
@@ -507,9 +599,8 @@ void Parser::parse(const Instruction &instruction)
 		auto &ptrbase = set<SPIRType>(id);
 
 		ptrbase = base;
-		if (ptrbase.pointer)
-			SPIRV_CROSS_THROW("Cannot make pointer-to-pointer type.");
 		ptrbase.pointer = true;
+		ptrbase.pointer_depth++;
 		ptrbase.storage = static_cast<StorageClass>(ops[1]);
 
 		if (ptrbase.storage == StorageClassAtomicCounter)
