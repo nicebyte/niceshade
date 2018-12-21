@@ -1,6 +1,15 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(nicegraf_shaderc)
 
+function(set_output_dir target dir)
+  set_target_properties(${target} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${dir}")
+  set_target_properties(${target} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${dir}")
+  set_target_properties(${target} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${dir}")
+endfunction(set_output_dir)
+
 set(SHADERC_SKIP_TESTS "on")
 set(SPIRV_SKIP_TESTS "on")
 
@@ -14,7 +23,7 @@ add_executable(nicegraf_shaderc ${NICEGRAF_SHADERC_SOURCES})
 target_include_directories(nicegraf_shaderc PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../library/include)
 target_link_libraries(nicegraf_shaderc
   shaderc spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl)
-  
+set_output_dir(nicegraf_shaderc ${CMAKE_CURRENT_LIST_DIR})  
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_target_properties(shaderc  glslc glslc_exe install-headers 
                       shaderc_combined_genfile shaderc_shared shaderc_util shaderc-online-compile                      

@@ -427,22 +427,28 @@ std::string read_file(const char *path) {
 
 // Provide file inclusion for shaderc.
 class includer: public shaderc::CompileOptions::IncluderInterface {
+  struct includer_data {
+    std::string file_name;
+    std::string content;
+  };
 public:
   shaderc_include_result* GetInclude(const char *file_name,
                                      shaderc_include_type,
                                      const char *, size_t) override {
-    std::string *content = new std::string(read_file(file_name));
+    includer_data *data = new includer_data{};
+    data->content =read_file(file_name);
+    data->file_name = file_name;
     auto result = new shaderc_include_result;
-    result->source_name = nullptr;
-    result->source_name_length = 0u;
-    result->content = content->c_str();
-    result->content_length = content->length();
-    result->user_data = content;
+    result->source_name = data->file_name.c_str();
+    result->source_name_length = data->file_name.length();
+    result->content = data->content.c_str();
+    result->content_length = data->content.length();
+    result->user_data = data;
     return result;
   }
 
   void ReleaseInclude(shaderc_include_result *data) override {
-    delete static_cast<std::string*>(data->user_data);
+    delete static_cast<includer_data*>(data->user_data);
   }
 };
 
@@ -648,8 +654,8 @@ int main(int argc, const char *argv[]) {
       add_defines_from_container(shaderc_opts, tech.defines);
       shaderc_opts.SetAutoBindUniforms(true);
       shaderc_opts.SetAutoMapLocations(true);
-      shaderc_opts.SetIncluder(std::make_unique<includer>());
       shaderc_opts.SetSourceLanguage(shaderc_source_language_hlsl);
+      shaderc_opts.SetIncluder(std::make_unique<includer>());
       shaderc_opts.SetWarningsAsErrors();
       shaderc::Compiler compiler;
       // Produce SPIR-V.
