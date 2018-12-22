@@ -485,14 +485,14 @@ int main(int argc, const char *argv[]) {
   std::string out_folder = ".";
   define_container global_defines;
   std::vector<target_info> targets;
-  for (uint32_t o = 2u; o < (uint32_t)argc; o += 2u) { // options.
+  for (uint32_t o = 2u; o < (uint32_t)argc; o += 2u) { // process options.
     const std::string option_name { argv[o] };
     if (o + 1u >= (uint32_t)argc) {
-      fprintf(stderr, "Expected option value after %s\n", argv[o]);
+      fprintf(stderr, "Expected an option value after %s\n", argv[o]);
       exit(1);
     }
     const std::string option_value { argv[o + 1u] };
-    if ("-D" == option_name) { // #define
+    if ("-D" == option_name) { // Additional #define
       size_t eq_idx = option_value.find_first_of('=');
       const std::string name = option_value.substr(0, eq_idx);
       const std::string value =
@@ -518,8 +518,9 @@ int main(int argc, const char *argv[]) {
       fprintf(stderr, "Unknown option: \"%s\"\n", option_name.c_str());
       exit(1);
     }
-   }
+  }
 
+  // Do a sanity check - no point in running with no targets.
   if (targets.empty()) {
     fprintf(stderr, "No target shader flavors specified!"
                     " Use -t to specify a target.\n");
@@ -529,7 +530,7 @@ int main(int argc, const char *argv[]) {
   // Load the input file.
   std::string input_source = read_file(input_file_path.c_str());
 
-  // Look for technique directives in the code.
+  // Look for and parse technique directives in the code.
   uint32_t last_four_chars = 0u;
   uint32_t line_num = 1u;
   const uint32_t technique_prefix = 0x2f2f543a; // `//T:'
