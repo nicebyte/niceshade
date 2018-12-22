@@ -249,6 +249,7 @@ struct technique {
   std::vector<std::pair<std::string, std::string>> additional_metadata;
 };
 
+// Indicates the type of resource accessed by a programmable shader stage.
 enum class descriptor_type {
   UNIFORM_BUFFER = 0x00,
   STORAGE_BUFFER = 0x01,
@@ -259,20 +260,23 @@ enum class descriptor_type {
   INVALID = 0x06
 };
 
+// Indicates which programmable shader stage a descriptor is visible from.
 enum stage_mask_bit {
   STAGE_MASK_VERTEX = 0x01,
   STAGE_MASK_FRAGMENT = 0x10
 };
 
+// Descriptor data.
 struct descriptor {
-  uint32_t slot;
-  descriptor_type type = descriptor_type::INVALID;
-  uint32_t stage_mask = 0u;
-  std::string name;
+  uint32_t slot; // A descriptor's binding within its set.
+  descriptor_type type = descriptor_type::INVALID; // Type of resorce accessed.
+  uint32_t stage_mask = 0u; // Which stages the descriptor is used from.
+  std::string name; // The name used to refer to it in the source code.
 };
 
 using descriptor_set_layout = std::vector<descriptor>;
 
+// Stores information about shader resources accessed by a technique.
 class resource_layout {
 public:
   void add_resources(const std::vector<spirv_cross::Resource> &resources,
@@ -348,6 +352,8 @@ private:
   uint32_t nres_ = 0u;
 };
 
+
+// Create an instance of SPIRV-Cross compiler for a given target.
 std::unique_ptr<spirv_cross::Compiler> create_cross_compiler(
     const uint32_t *spv_data, uint32_t spv_data_size, const target_info &ti) {
    switch(ti.api) {
@@ -432,7 +438,11 @@ std::string read_file(const char *path) {
   }
   size_t len = filelen(input_file);
   std::string contents(len, '\0');
-  fread(&contents[0], 1u, len, input_file);
+  size_t read_bytes = fread(&contents[0], 1u, len, input_file);
+  if (read_bytes != len) {
+    fprintf(stderr, "Failed to read file %s\n", path);
+    exit(1);
+  }
   fclose(input_file);
   return contents;
 }
