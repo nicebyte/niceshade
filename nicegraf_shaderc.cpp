@@ -212,6 +212,18 @@ static const struct { const char *name;
 };
 constexpr uint32_t TARGET_COUNT = sizeof(TARGET_MAP)/sizeof(TARGET_MAP[0]);
 
+// Stores a sequence of preprocessor definitions.
+using define_container = std::vector<std::pair<std::string, std::string>>;
+
+// Adds the preprocessor definitions from the given container to the
+// shaderc compile options.
+void add_defines_from_container(shaderc::CompileOptions &options,
+                                const define_container &container) {
+  for (const auto &name_value_pair : container) {
+    options.AddMacroDefinition(name_value_pair.first, name_value_pair.second);
+  }
+}
+
 // States of the technique parser.
 enum class technique_parser_state {
   LOOKING_FOR_PREFIX,
@@ -224,18 +236,6 @@ enum class technique_parser_state {
   PARSING_NAMEVAL_VALUE,
   FINALIZING_TECHNIQUE
 };
-
-// Stores a sequence of preprocessor definitions.
-using define_container = std::vector<std::pair<std::string, std::string>>;
-
-// Adds the preprocessor definitions from the given container to the
-// shaderc compile options.
-void add_defines_from_container(shaderc::CompileOptions &options,
-                                const define_container &container) {
-  for (const auto &name_value_pair : container) {
-    options.AddMacroDefinition(name_value_pair.first, name_value_pair.second);
-  }
-}
 
 // Technique description.
 struct technique {
