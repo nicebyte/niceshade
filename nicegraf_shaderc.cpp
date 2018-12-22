@@ -362,6 +362,21 @@ std::unique_ptr<spirv_cross::Compiler> create_cross_compiler(
      opts.separate_shader_objects = true;
      opts.es = (ti.platform == target_platform_class::MOBILE);
      spv_cross->build_combined_image_samplers();
+     for (const spirv_cross::CombinedImageSampler &remap :
+              spv_cross->get_combined_image_samplers()) {
+        spv_cross->set_name(remap.combined_id,
+                            spv_cross->get_name(remap.image_id) + "_" +
+                            spv_cross->get_name(remap.sampler_id));
+        spv_cross->set_decoration(
+            remap.combined_id,
+            spv::DecorationBinding,
+            spv_cross->get_decoration(remap.image_id, spv::DecorationBinding));
+        spv_cross->set_decoration(
+            remap.image_id,
+            spv::DecorationBinding,
+            100 * spv_cross->get_decoration(remap.image_id,
+                                            spv::DecorationBinding));
+     }
      spv_cross->set_common_options(opts);
      return spv_cross;
      break;
