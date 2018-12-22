@@ -18,10 +18,12 @@ SOFTWARE.
 */
 
 #define _CRT_SECURE_NO_WARNINGS
+
 #include "shaderc/shaderc.hpp"
 #include "spirv_glsl.hpp"
 #include "spirv_msl.hpp"
 #include "spirv_reflect.hpp"
+
 #include <ctype.h>
 #include <memory>
 #include <stdarg.h>
@@ -66,20 +68,13 @@ Options:
       `value' to all shaders generated from the given input file.
 
   -t <target> - Generate shaders for the given target.  Accepted values are:
-      gl430
-      gles310
-      gles300
-      msl10
-      msl11
-      msl12
-      msl20
-      msl10ios
-      msl11ios
-      msl12ios
-      msl20ios
-      spv 
-    If specified multiple times, shaders for all of the mentioned targets will
-    be generated.
+      * gl430;
+      * gles310, gles300;
+      * msl10, msl11, msl12, msl20;
+      * msl10ios, msl11ios, msl12ios, msl20ios;
+      * spv 
+    If the option is encountered multiple times, shaders for all of the
+    mentioned targets will be generated.
 )RAW";
 
 enum class target_api {
@@ -714,7 +709,7 @@ int main(int argc, const char *argv[]) {
                            ? STAGE_MASK_VERTEX
                            : STAGE_MASK_FRAGMENT;
           res_layout.add_resources(resources.uniform_buffers, *compiler,
-                                    descriptor_type::UNIFORM_BUFFER, smb);
+                                   descriptor_type::UNIFORM_BUFFER, smb);
           res_layout.add_resources(resources.storage_buffers, *compiler,
                                    descriptor_type::STORAGE_BUFFER, smb);
           res_layout.add_resources(resources.sampled_images, *compiler,
