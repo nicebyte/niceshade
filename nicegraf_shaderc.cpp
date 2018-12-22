@@ -77,22 +77,25 @@ Options:
     mentioned targets will be generated.
 )RAW";
 
+// Target API class.
 enum class target_api {
   GL, METAL, VULKAN
 };
 
+// Device type that a target API runs on.
 enum class target_platform_class {
   DONTCARE,
   DESKTOP,
   MOBILE
 };
 
+// Information about a compilation target.
 struct target_info {
-  target_api api;
-  const char *file_ext;
-  uint32_t version_maj;
-  uint32_t version_min;
-  target_platform_class platform;
+  target_api api; // API class.
+  const char *file_ext; // Extension for the generated files.
+  uint32_t version_maj; // Major version number.
+  uint32_t version_min; // Minor version number.
+  target_platform_class platform; // Deviice types that the target API runs on.
 };
 
 // Map of string identifiers to a target-specific information.
@@ -207,7 +210,6 @@ static const struct { const char *name;
     }
   }
 };
-
 constexpr uint32_t TARGET_COUNT = sizeof(TARGET_MAP)/sizeof(TARGET_MAP[0]);
 
 // States of the technique parser.
