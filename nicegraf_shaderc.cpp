@@ -669,6 +669,7 @@ int main(int argc, const char *argv[]) {
 
   // Obtain SPIR-V.
   std::vector<shaderc::SpvCompilationResult> spv_results;
+  shaderc::Compiler compiler;
   for (const technique &tech : techniques) {
     for (const technique::entry_point ep : tech.entry_points) {
       // Set compile options.
@@ -680,7 +681,6 @@ int main(int argc, const char *argv[]) {
       shaderc_opts.SetSourceLanguage(shaderc_source_language_hlsl);
       shaderc_opts.SetIncluder(std::make_unique<includer>());
       shaderc_opts.SetWarningsAsErrors();
-      shaderc::Compiler compiler;
       // Produce SPIR-V.
       spv_results.emplace_back(
         compiler.CompileGlslToSpv(input_source,
@@ -721,16 +721,11 @@ int main(int argc, const char *argv[]) {
               ep.kind == shaderc_vertex_shader
                            ? STAGE_MASK_VERTEX
                            : STAGE_MASK_FRAGMENT;
-          res_layout.add_resources(resources.uniform_buffers, *compiler,
-                                   descriptor_type::UNIFORM_BUFFER, smb);
-          res_layout.add_resources(resources.storage_buffers, *compiler,
-                                   descriptor_type::STORAGE_BUFFER, smb);
-          res_layout.add_resources(resources.sampled_images, *compiler,
-                                   descriptor_type::TEXTURE_AND_SAMPLER, smb);
-          res_layout.add_resources(resources.separate_samplers, *compiler,
-                                   descriptor_type::SAMPLER, smb);
-          res_layout.add_resources(resources.separate_images, *compiler,
-                                   descriptor_type::TEXTURE, smb);
+          for (uint32_t dt = (uint32_t)descriptor_type::UNIFORM_BUFFER;
+               dt < (uint32_t)descriptor_type::INVALID; ++dt) {
+            res_layout.add_resources(resources.uniform_buffers, *compiler,
+                                     (descriptor_type)dt, smb);
+          }
         }
         FILE *out_file = fopen(out_file_path.c_str(), "w");
         if (out_file == nullptr) {
