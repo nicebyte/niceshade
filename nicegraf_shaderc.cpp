@@ -31,6 +31,7 @@ SOFTWARE.
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
+#include <vector>
 
 // Platform-specific stuff.
 #if defined(_WIN32) || defined(_WIN64)
@@ -274,7 +275,46 @@ struct descriptor {
   std::string name; // The name used to refer to it in the source code.
 };
 
-using descriptor_set_layout = std::vector<descriptor>;
+// A dictionary that stores entries in a linear container.
+template <class K, class V>
+class linear_dict {
+  using container_type = std::vector<std::pair<K, V>>;
+public:
+  using iterator = typename container_type::iterator;
+  using const_iterator = typename container_type::const_iterator;
+
+  iterator begin() { return data_.begin(); }
+  iterator end() { return data_.end(); }
+  const_iterator begin() const { return data_.begin(); }
+  const_iterator end() const { return data_.end(); }
+  const_iterator cbegin() const { return data_.cbegin(); }
+  const_iterator cend() const { return data_.cend(); }
+  iterator find(const K &k) {
+    return std::find_if(
+        begin(), end(),
+        [&k](const std::pair<K, V> &p) { return k == p.first; });
+  }
+  const_iterator find(const K &k) const {
+    return std::find_if(
+        cbegin(), cend(),
+        [&k](const std::pair<K, V> &p) { return k == p.first; });
+  }
+
+  V& operator[](const K &k) {
+    auto it = find(k);
+    if (it == end()) {
+      it = data_.insert(data_.end(), std::make_pair(k, V()));
+    }
+    return it->second;
+  }
+
+  size_t size() const { return data_.size(); }
+
+private:
+  std::vector<std::pair<K, V>> data_;
+};
+
+using descriptor_set_layout = linear_dict<uint32_t, descriptor>;
 
 // Stores information about shader resources accessed by a technique.
 class resource_layout {
@@ -284,44 +324,32 @@ public:
                      descriptor_type resource_type,
                      stage_mask_bit smb) {
     for (const auto &r : resources) {
-      uint32_t set = refl.get_decoration(r.id, spv::DecorationDescriptorSet);
-	    uint32_t binding = refl.get_decoration(r.id, spv::DecorationBinding);
-      max_set_ = max_set_ < set ? set : max_set_;
-      auto set_it = std::find_if(sets_.begin(), sets_.end(),
-                                 [set](const descriptor_set &ds) {
-                                   return ds.slot == set;
-                                  });
-      if (set_it == sets_.end()) {
-        set_it = sets_.insert(sets_.end(), descriptor_set());
-      }
-      set_it->slot = set;
-      auto desc_it = std::find_if(set_it->layout.begin(), 
-                                  set_it->layout.end(),
-                                  [binding](const descriptor &ds) {
-                                    return ds.slot == binding;
-                                  });
-      if (desc_it == set_it->layout.end()) {
-        desc_it = set_it->layout.insert(set_it->layout.end(), descriptor());
-      }
-      if (desc_it->type != descriptor_type::INVALID &&
-          desc_it->type != resource_type) {
+      uint32_t set_id =
+          refl.get_decoration(r.id, spv::DecorationDescriptorSet);
+	    uint32_t binding_id = refl.get_decoration(r.id, spv::DecorationBinding);
+      max_set_ = max_set_ < set_id ? set_id : max_set_;
+      descriptor_set &set = sets_[set_id];
+      set.slot = set_id;
+      descriptor &desc = set.layout[binding_id];
+      if (desc.type != descriptor_type::INVALID &&
+          desc.type != resource_type) {
         fprintf(stderr, "Attempt to assign a descriptor of different type to "
                         "slot %d in set %d which is already occupied by "
-                        "\"%s\"\n", binding, set, desc_it->name.c_str());
+                        "\"%s\"\n", binding_id, set_id, desc.name.c_str());
         exit(1);
       }
-      if (desc_it->type != descriptor_type::INVALID &&
-          r.name != desc_it->name) {
+      if (desc.type != descriptor_type::INVALID &&
+          r.name != desc.name) {
         fprintf(stderr, "Assigning different names "
                         "(\"%s\" and \"%s\")  to descriptor at slot %d in set "
-                        "%d.\n", desc_it->name.c_str(), r.name.c_str(),
-                        binding, set);
+                        "%d.\n", desc.name.c_str(), r.name.c_str(),
+                        binding_id, set_id);
         exit(1);
       }
-      desc_it->slot = binding;
-      desc_it->type = resource_type;
-      desc_it->stage_mask |= smb;
-      desc_it->name = r.name;
+      desc.slot = binding_id;
+      desc.type = resource_type;
+      desc.stage_mask |= smb;
+      desc.name = r.name;
       nres_++;
     }
   }
@@ -329,14 +357,11 @@ public:
   uint32_t set_count() const { return max_set_ + 1; }
   uint32_t res_count() const { return nres_; }
 
-  const descriptor_set_layout& resource_layout::set(uint32_t set) const {
+  const descriptor_set_layout& resource_layout::set(uint32_t set_id) const {
     static const descriptor_set_layout empty_layout;
-    auto it = std::find_if(sets_.cbegin(), sets_.cend(),
-                           [set](const descriptor_set &ds) {
-                             return ds.slot == set;
-                           });
+    auto it = sets_.find(set_id);
     if (it != sets_.cend()) {
-      return it->layout;
+      return it->second.layout;
     } else {
       return empty_layout;
     }
@@ -347,7 +372,7 @@ private:
     uint32_t slot = 0u;
     descriptor_set_layout layout;
   };
-  std::vector<descriptor_set> sets_;
+  linear_dict<uint32_t, descriptor_set> sets_;
   uint32_t max_set_ = 0u;
   uint32_t nres_ = 0u;
 };
@@ -760,9 +785,9 @@ int main(int argc, const char *argv[]) {
           write_network_word(set, metadata_file);
           write_network_word((uint32_t)ds.size(), metadata_file);
           for (const auto &d : ds) {
-            write_network_word(d.slot, metadata_file);
-            write_network_word((uint32_t)d.type, metadata_file);
-            write_network_word(d.stage_mask, metadata_file);
+            write_network_word(d.second.slot, metadata_file);
+            write_network_word((uint32_t)d.second.type, metadata_file);
+            write_network_word(d.second.stage_mask, metadata_file);
           }
         }
         write_network_word((uint32_t)tech.additional_metadata.size(),
