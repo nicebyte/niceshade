@@ -604,8 +604,10 @@ int main(int argc, const char *argv[]) {
   std::vector<technique> techniques;
   bool have_vertex_stage = false;
   for (const char c : input_source) {
-    last_four_chars <<= 8u;
-    last_four_chars |= (uint32_t)c;
+    if (!isspace(c)) {
+      last_four_chars <<= 8u;
+      last_four_chars |= (uint32_t)c;
+    }
     switch(state) {
     case technique_parser_state::LOOKING_FOR_PREFIX:
       if (last_four_chars == technique_prefix) {
