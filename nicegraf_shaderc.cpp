@@ -498,7 +498,7 @@ void report_technique_parser_error(uint32_t line_num,
 
 // Reads the contents of a file into an std::string.
 std::string read_file(const char *path) {
-  FILE *input_file = fopen(path, "r");
+  FILE *input_file = fopen(path, "rb");
   if (input_file == nullptr) {
     fprintf(stderr, "Failed to open file %s\n", path);
     exit(1);
@@ -606,7 +606,18 @@ int main(int argc, const char *argv[]) {
               nameval_value;
   std::vector<technique> techniques;
   bool have_vertex_stage = false;
-  for (const char c : input_source) {
+  for (uint32_t c_idx = 0u; c_idx < input_source.size(); ++c_idx) {
+    char c = input_source[c_idx];
+
+    // Collapse windows line endings into '\n'.
+    if (c == '\r' && (c_idx == input_source.size() - 1u ||
+                      input_source[c_idx + 1u] != '\n')) {
+      fprintf(stderr, "Stray carriage return in input on line %d\n", line_num);
+      exit(1);
+    } else if (c == '\r') {
+      continue;
+    }
+
     if (!isspace(c)) {
       last_four_chars <<= 8u;
       last_four_chars |= (uint32_t)c;
@@ -674,7 +685,9 @@ int main(int argc, const char *argv[]) {
         entry_point_name.push_back(c);
       } else if (IS_TAB_SPACE(c) || c == '\n') {
         technique::entry_point ep {
-          parameter_name == "vs"?shaderc_vertex_shader:shaderc_fragment_shader,
+          parameter_name == "vs"
+              ? shaderc_vertex_shader
+              : shaderc_fragment_shader,
           entry_point_name
         };
         for (const auto &prev_ep : techniques.back().entry_points) {
@@ -686,7 +699,7 @@ int main(int argc, const char *argv[]) {
           }
         }
         techniques.back().entry_points.emplace_back(ep);
-        if (parameter_name == "vs") have_vertex_stage = true;
+        have_vertex_stage |= (parameter_name == "vs");
         state =
             c != '\n'
             ? technique_parser_state::LOOKING_FOR_PARAMETER_NAME
