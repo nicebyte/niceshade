@@ -504,7 +504,9 @@ std::string read_file(const char *path) {
     exit(1);
   }
   size_t len = filelen(input_file);
-  std::string contents(len, '\0');
+  std::string contents;
+  contents.reserve(len + 1u);
+  contents.resize(len);
   size_t read_bytes = fread(&contents[0], 1u, len, input_file);
   if (read_bytes != len) {
     fprintf(stderr, "Failed to read file %s\n", path);
@@ -593,6 +595,7 @@ int main(int argc, const char *argv[]) {
 
   // Load the input file.
   std::string input_source = read_file(input_file_path.c_str());
+  input_source.push_back('\n');
 
   // Look for and parse technique directives in the code.
   uint32_t last_four_chars = 0u;
@@ -688,8 +691,7 @@ int main(int argc, const char *argv[]) {
             c != '\n'
             ? technique_parser_state::LOOKING_FOR_PARAMETER_NAME
             : technique_parser_state::FINALIZING_TECHNIQUE;
-      }
-      else {
+      } else {
         report_technique_parser_error(
             line_num, "unexpected character [%c] in entry point name", c);
       }
