@@ -790,11 +790,16 @@ int main(int argc, const char *argv[]) {
               ep.kind == shaderc_vertex_shader
                            ? STAGE_MASK_VERTEX
                            : STAGE_MASK_FRAGMENT;
-          for (uint32_t dt = (uint32_t)descriptor_type::UNIFORM_BUFFER;
-               dt < (uint32_t)descriptor_type::INVALID; ++dt) {
-            res_layout.add_resources(resources.uniform_buffers, *compiler,
-                                     (descriptor_type)dt, smb);
-          }
+          res_layout.add_resources(resources.uniform_buffers, *compiler,
+                                   descriptor_type::UNIFORM_BUFFER, smb);
+          res_layout.add_resources(resources.storage_buffers, *compiler,
+                                   descriptor_type::STORAGE_BUFFER, smb);
+          res_layout.add_resources(resources.sampled_images, *compiler,
+                                   descriptor_type::TEXTURE_AND_SAMPLER, smb);
+          res_layout.add_resources(resources.separate_samplers, *compiler,
+                                   descriptor_type::SAMPLER, smb);
+          res_layout.add_resources(resources.separate_images, *compiler,
+                                   descriptor_type::TEXTURE, smb);
           for (const spirv_cross::CombinedImageSampler &cis:
                    compiler->get_combined_image_samplers()) {
             images_to_cis.add_resource(cis.image_id, cis.combined_id,
