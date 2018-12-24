@@ -567,18 +567,15 @@ int main(int argc, const char *argv[]) {
               ? option_value.substr(eq_idx + 1u) : "";
       global_defines.emplace_back(name, value);
     } else if ("-t" == option_name) { // Target to generate code for.
-      bool found_target = false;
-      for (uint32_t t = 0u; t < TARGET_COUNT; ++t) {
-        if (option_value == TARGET_MAP[t].name) {
-          targets.push_back(TARGET_MAP[t].target);
-          found_target = true;
-          break;
-        }
-      }
-      if (!found_target) {
+      const auto *t = std::find_if(TARGET_MAP, TARGET_MAP + TARGET_COUNT,
+                                   [&option_value](const auto &x) {
+                                     return option_value == x.name;
+                                   });
+      if (t == TARGET_MAP + TARGET_COUNT) {
         fprintf(stderr, "Unknown target \"%s\"\n", option_value.c_str());
         exit(1);
       }
+      targets.push_back(t->target);
     } else if ("-O" == option_name) { // Output folder.
       out_folder = option_value;
     } else {
