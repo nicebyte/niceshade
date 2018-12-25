@@ -382,31 +382,28 @@ std::unique_ptr<spirv_cross::Compiler> create_cross_compiler(
     const uint32_t *spv_data, uint32_t spv_data_size, const target_info &ti) {
   switch(ti.api) {
   case target_api::GL: {
-   auto spv_cross = std::make_unique<spirv_cross::CompilerGLSL>(
+    auto spv_cross = std::make_unique<spirv_cross::CompilerGLSL>(
        spv_data, spv_data_size);
-   spirv_cross::CompilerGLSL::Options opts;
-   opts.version = ti.version_maj * 100u + ti.version_min * 10u;
-   opts.separate_shader_objects = true;
-   opts.es = (ti.platform == target_platform_class::MOBILE);
-   spv_cross->build_combined_image_samplers();
-   for (const spirv_cross::CombinedImageSampler &remap :
-            spv_cross->get_combined_image_samplers()) {
+    spirv_cross::CompilerGLSL::Options opts;
+    opts.version = ti.version_maj * 100u + ti.version_min * 10u;
+    opts.separate_shader_objects = true;
+    opts.es = (ti.platform == target_platform_class::MOBILE);
+    spv_cross->build_combined_image_samplers();
+    const std::vector<spirv_cross::CombinedImageSampler> &cis =
+        spv_cross->get_combined_image_samplers();
+    const uint32_t cis_binding_offset =
+        spv_cross->get_shader_resources().sampled_images.size();
+    for (uint32_t cis_idx = 0u; cis_idx < cis.size(); ++cis_idx) {
+      const spirv_cross::CombinedImageSampler &remap = cis[cis_idx];
       spv_cross->set_name(remap.combined_id,
                           spv_cross->get_name(remap.image_id) + "_" +
                           spv_cross->get_name(remap.sampler_id));
-      spv_cross->set_decoration(
-          remap.combined_id,
-          spv::DecorationBinding,
-          spv_cross->get_decoration(remap.image_id, spv::DecorationBinding));
-      spv_cross->set_decoration(
-          remap.image_id,
-          spv::DecorationBinding,
-          100 * spv_cross->get_decoration(remap.image_id,
-                                          spv::DecorationBinding));
-   }
-   spv_cross->set_common_options(opts);
-   return spv_cross;
-   break;
+      spv_cross->set_decoration(remap.combined_id, spv::DecorationBinding,
+                                cis_binding_offset + cis_idx);
+    }
+    spv_cross->set_common_options(opts);
+    return spv_cross;
+    break;
   }
   case target_api::VULKAN: {
    auto spv_cross =
@@ -608,7 +605,6 @@ int main(int argc, const char *argv[]) {
   bool have_vertex_stage = false;
   for (uint32_t c_idx = 0u; c_idx < input_source.size(); ++c_idx) {
     char c = input_source[c_idx];
-
     // Collapse windows line endings into '\n'.
     if (c == '\r' && (c_idx == input_source.size() - 1u ||
                       input_source[c_idx + 1u] != '\n')) {
@@ -617,7 +613,6 @@ int main(int argc, const char *argv[]) {
     } else if (c == '\r') {
       continue;
     }
-
     if (!isspace(c)) {
       last_four_chars <<= 8u;
       last_four_chars |= (uint32_t)c;
