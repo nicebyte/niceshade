@@ -406,23 +406,23 @@ std::unique_ptr<spirv_cross::Compiler> create_cross_compiler(
     break;
   }
   case target_api::VULKAN: {
-   auto spv_cross =
-       std::make_unique<spirv_cross::CompilerReflection>(spv_data,
-                                                         spv_data_size);
-   return spv_cross;
-   break;
+    auto spv_cross =
+        std::make_unique<spirv_cross::CompilerReflection>(spv_data,
+                                                          spv_data_size);
+    return spv_cross;
+    break;
   }
   case target_api::METAL: {
-   auto spv_cross = std::make_unique<spirv_cross::CompilerMSL>(
-       spv_data, spv_data_size);
-   spirv_cross::CompilerMSL::Options opts;
-   opts.set_msl_version(ti.version_maj, ti.version_min);
-   const bool ios = ti.platform == target_platform_class::MOBILE;
-   opts.platform = ios ? spirv_cross::CompilerMSL::Options::iOS
-                       : spirv_cross::CompilerMSL::Options::macOS;
-   spv_cross->set_msl_options(opts);
-   return spv_cross;
-   break;
+    auto spv_cross = std::make_unique<spirv_cross::CompilerMSL>(spv_data,
+                                                                spv_data_size);
+    spirv_cross::CompilerMSL::Options opts;
+    opts.set_msl_version(ti.version_maj, ti.version_min);
+    const bool ios = ti.platform == target_platform_class::MOBILE;
+    opts.platform = ios ? spirv_cross::CompilerMSL::Options::iOS
+                        : spirv_cross::CompilerMSL::Options::macOS;
+    spv_cross->set_msl_options(opts);
+    return spv_cross;
+    break;
   }
   default: assert(false);
   }
