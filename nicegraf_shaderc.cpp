@@ -19,6 +19,7 @@ SOFTWARE.
 
 #define _CRT_SECURE_NO_WARNINGS
 
+#include "linear_dict.h"
 #include "metadata_parser.h"
 #include "shaderc/shaderc.hpp"
 #include "spirv_glsl.hpp"
@@ -274,45 +275,6 @@ struct descriptor {
   descriptor_type type = descriptor_type::INVALID; // Type of resorce accessed.
   uint32_t stage_mask = 0u; // Which stages the descriptor is used from.
   std::string name; // The name used to refer to it in the source code.
-};
-
-// A dictionary that stores entries in a linear container.
-template <class K, class V>
-class linear_dict {
-  using container_type = std::vector<std::pair<K, V>>;
-public:
-  using iterator = typename container_type::iterator;
-  using const_iterator = typename container_type::const_iterator;
-
-  iterator begin() { return data_.begin(); }
-  iterator end() { return data_.end(); }
-  const_iterator begin() const { return data_.begin(); }
-  const_iterator end() const { return data_.end(); }
-  const_iterator cbegin() const { return data_.cbegin(); }
-  const_iterator cend() const { return data_.cend(); }
-  iterator find(const K &k) {
-    return std::find_if(
-        begin(), end(),
-        [&k](const std::pair<K, V> &p) { return k == p.first; });
-  }
-  const_iterator find(const K &k) const {
-    return std::find_if(
-        cbegin(), cend(),
-        [&k](const std::pair<K, V> &p) { return k == p.first; });
-  }
-
-  V& operator[](const K &k) {
-    auto it = find(k);
-    if (it == end()) {
-      it = data_.insert(data_.end(), std::make_pair(k, V()));
-    }
-    return it->second;
-  }
-
-  size_t size() const { return data_.size(); }
-
-private:
-  std::vector<std::pair<K, V>> data_;
 };
 
 using descriptor_set_layout = linear_dict<uint32_t, descriptor>;
