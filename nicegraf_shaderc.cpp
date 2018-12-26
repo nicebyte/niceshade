@@ -816,7 +816,7 @@ int main(int argc, const char *argv[]) {
                                          *compiler);
           }
         }
-        FILE *out_file = fopen(out_file_path.c_str(), "w");
+        FILE *out_file = fopen(out_file_path.c_str(), "wb");
         if (out_file == nullptr) {
           fprintf(stderr, "Failed to open output file %s\n",
                   out_file_path.c_str());
