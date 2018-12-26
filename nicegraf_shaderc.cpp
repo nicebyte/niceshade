@@ -22,6 +22,7 @@ SOFTWARE.
 #include "linear_dict.h"
 #include "metadata_parser.h"
 #include "pipeline_metadata_file.h"
+#include "target.h"
 #include "shaderc/shaderc.hpp"
 #include "spirv_glsl.hpp"
 #include "spirv_msl.hpp"
@@ -77,141 +78,6 @@ Options:
     If the option is encountered multiple times, shaders for all of the
     mentioned targets will be generated.
 )RAW";
-
-// Target API class.
-enum class target_api {
-  GL, METAL, VULKAN
-};
-
-// Device type that a target API runs on.
-enum class target_platform_class {
-  DONTCARE,
-  DESKTOP,
-  MOBILE
-};
-
-// Information about a compilation target.
-struct target_info {
-  target_api api; // API class.
-  const char *file_ext; // Extension for the generated files.
-  uint32_t version_maj; // Major version number.
-  uint32_t version_min; // Minor version number.
-  target_platform_class platform; // Device types that the target API runs on.
-};
-
-// Map of string identifiers to a target-specific information.
-static const struct { const char *name;
-                      target_info target; } TARGET_MAP[] = {
-  {
-    "gl430",
-    {
-      target_api::GL,
-      "430.glsl",
-      4u, 3u,
-      target_platform_class::DESKTOP
-    }
-  },
-  {
-    "gles300",
-    {
-      target_api::GL,
-      "300es.glsl",
-      3u, 0u,
-      target_platform_class::MOBILE
-    }
-  },
-  {
-    "gles310",
-    {
-      target_api::GL,
-      "310es.glsl",
-      3u, 1u,
-      target_platform_class::MOBILE
-    }
-  },
-  {
-    "msl10",
-    {
-      target_api::METAL,
-      "10.msl",
-      1u, 0u,
-      target_platform_class::DESKTOP
-    }
-  },
-  {
-    "msl11",
-    {
-      target_api::METAL,
-      "11.msl",
-      1u, 1u,
-      target_platform_class::DESKTOP
-    }
-  },
-  {
-    "msl12",
-    {
-      target_api::METAL,
-      "12.msl",
-      1u, 2u,
-      target_platform_class::DESKTOP
-    }
-  },
-  {
-    "msl20",
-    {
-      target_api::METAL,
-      "20.msl",
-      2u, 0u,
-      target_platform_class::DESKTOP
-    }
-  },
-  {
-    "msl10ios",
-    {
-      target_api::METAL,
-      "10ios.msl",
-      1u, 0u,
-      target_platform_class::MOBILE
-    }
-  },
-  {
-    "msl11ios",
-    {
-      target_api::METAL,
-      "11ios.msl",
-      1u, 1u,
-      target_platform_class::MOBILE
-    }
-  },
-  {
-    "msl12ios",
-    {
-      target_api::METAL,
-      "12ios.msl",
-      1u, 2u,
-      target_platform_class::MOBILE
-    }
-  },
-  {
-    "msl20ios",
-    {
-      target_api::METAL,
-      "20ios.msl",
-      2u, 0u,
-      target_platform_class::MOBILE
-    }
-  },
-  {
-    "spv",
-    {
-      target_api::VULKAN,
-      "spv",
-      0u, 0u,
-      target_platform_class::DONTCARE
-    }
-  }
-};
-constexpr uint32_t TARGET_COUNT = sizeof(TARGET_MAP)/sizeof(TARGET_MAP[0]);
 
 // Stores a sequence of preprocessor definitions.
 using define_container = std::vector<std::pair<std::string, std::string>>;
