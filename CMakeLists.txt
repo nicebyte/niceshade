@@ -35,7 +35,7 @@ target_link_libraries(nicegraf_shaderc
   shaderc spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl)
 set_output_dir(nicegraf_shaderc ${CMAKE_CURRENT_LIST_DIR})  
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-add_library(metadata_parser metadata_parser.h metadata_parser.c)
+add_library(metadata_parser metadata_parser/metadata_parser.h metadata_parser/metadata_parser.c)
 add_executable(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples/display_metadata.c)
 target_include_directories(display_metadata PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(display_metadata PRIVATE metadata_parser)

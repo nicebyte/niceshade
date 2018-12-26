@@ -18,6 +18,7 @@ SOFTWARE.
 */
 #pragma once
 
+#include "metadata_parser/metadata_parser.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
