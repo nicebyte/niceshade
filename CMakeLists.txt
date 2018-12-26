@@ -1,4 +1,8 @@
 cmake_minimum_required(VERSION 3.0.2)
+if (WIN32)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
+endif()
 project(nicegraf_shaderc)
 
 function(set_output_dir target dir)
@@ -17,7 +21,11 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/third_party/shaderc)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/third_party/SPIRV-Cross)
 
 set(NICEGRAF_SHADERC_SOURCES
-    ${CMAKE_CURRENT_LIST_DIR}/nicegraf_shaderc.cpp)
+    ${CMAKE_CURRENT_LIST_DIR}/nicegraf_shaderc.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/technique_parser.h
+    ${CMAKE_CURRENT_LIST_DIR}/technique_parser.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/defines.h
+    ${CMAKE_CURRENT_LIST_DIR}/defines.cpp)
 
 add_executable(nicegraf_shaderc ${NICEGRAF_SHADERC_SOURCES})
 target_include_directories(nicegraf_shaderc PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../library/include)
