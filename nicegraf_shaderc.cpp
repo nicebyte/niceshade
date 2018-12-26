@@ -144,7 +144,7 @@ struct descriptor {
 using descriptor_set_layout = linear_dict<uint32_t, descriptor>;
 
 // Stores information about shader resources accessed by a technique.
-class resource_layout {
+class pipeline_layout {
 public:
   void add_resources(const std::vector<spirv_cross::Resource> &resources,
                      const spirv_cross::Compiler &refl,
@@ -184,7 +184,7 @@ public:
   uint32_t set_count() const { return max_set_ + 1; }
   uint32_t res_count() const { return nres_; }
 
-  const descriptor_set_layout& resource_layout::set(uint32_t set_id) const {
+  const descriptor_set_layout& pipeline_layout::set(uint32_t set_id) const {
     static const descriptor_set_layout empty_layout;
     auto it = sets_.find(set_id);
     if (it != sets_.cend()) {
@@ -596,7 +596,7 @@ int main(int argc, const char *argv[]) {
   for (const target_info &t : targets) {
     uint32_t spv_idx = 0u;
     for (const technique &tech : techniques) {
-      resource_layout res_layout;
+      pipeline_layout res_layout;
       separate_to_combined_map images_to_cis, samplers_to_cis;
       for (const technique::entry_point ep : tech.entry_points) {
         
