@@ -19,13 +19,13 @@ SOFTWARE.
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "defines.h"
 #include "file_utils.h"
 #include "linear_dict.h"
 #include "metadata_parser.h"
 #include "pipeline_layout.h"
 #include "pipeline_metadata_file.h"
 #include "separate_to_combined_map.h"
+#include "shader_defines.h"
 #include "shader_includer.h"
 #include "target.h"
 #include "technique_parser.h"

@@ -17,7 +17,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "defines.h"
+#include "shader_defines.h"
 
 void add_defines_from_container(shaderc::CompileOptions &options,
                                 const define_container &container) {

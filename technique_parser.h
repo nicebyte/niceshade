@@ -18,7 +18,7 @@ SOFTWARE.
 */
 #pragma once
 
-#include "defines.h"
+#include "shader_defines.h"
 #include "shaderc/shaderc.hpp"
 #include <string>
 #include <vector>
