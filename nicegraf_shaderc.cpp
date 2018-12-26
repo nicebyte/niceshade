@@ -128,19 +128,6 @@ std::unique_ptr<spirv_cross::Compiler> create_cross_compiler(
     opts.version = ti.version_maj * 100u + ti.version_min * 10u;
     opts.separate_shader_objects = true;
     opts.es = (ti.platform == target_platform_class::MOBILE);
-    spv_cross->build_combined_image_samplers();
-    const std::vector<spirv_cross::CombinedImageSampler> &cis =
-        spv_cross->get_combined_image_samplers();
-    const uint32_t cis_binding_offset =
-        spv_cross->get_shader_resources().sampled_images.size();
-    for (uint32_t cis_idx = 0u; cis_idx < cis.size(); ++cis_idx) {
-      const spirv_cross::CombinedImageSampler &remap = cis[cis_idx];
-      spv_cross->set_name(remap.combined_id,
-                          spv_cross->get_name(remap.image_id) + "_" +
-                          spv_cross->get_name(remap.sampler_id));
-      spv_cross->set_decoration(remap.combined_id, spv::DecorationBinding,
-                                cis_binding_offset + cis_idx);
-    }
     spv_cross->set_common_options(opts);
     return spv_cross;
     break;
@@ -524,6 +511,19 @@ int main(int argc, const char *argv[]) {
             create_cross_compiler(
                 spv_result.cbegin(),
                 (uint32_t)(spv_result.cend() - spv_result.cbegin()), t);
+        compiler->build_combined_image_samplers();
+        const std::vector<spirv_cross::CombinedImageSampler> &cis =
+            compiler->get_combined_image_samplers();
+        const uint32_t cis_binding_offset =
+            compiler->get_shader_resources().sampled_images.size();
+        for (uint32_t cis_idx = 0u; cis_idx < cis.size(); ++cis_idx) {
+          const spirv_cross::CombinedImageSampler &remap = cis[cis_idx];
+          compiler->set_name(remap.combined_id,
+                              compiler->get_name(remap.image_id) + "_" +
+                              compiler->get_name(remap.sampler_id));
+          compiler->set_decoration(remap.combined_id, spv::DecorationBinding,
+                                    cis_binding_offset + cis_idx);
+        }
         if (generate_pipeline_metadata) {
           spirv_cross::ShaderResources resources =
               compiler->get_shader_resources();
