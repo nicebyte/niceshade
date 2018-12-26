@@ -20,6 +20,7 @@ SOFTWARE.
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "defines.h"
+#include "file_utils.h"
 #include "linear_dict.h"
 #include "metadata_parser.h"
 #include "pipeline_layout.h"
@@ -40,25 +41,6 @@ SOFTWARE.
 #include <stdio.h>
 #include <string>
 #include <vector>
-
-// Platform-specific stuff.
-#if defined(_WIN32) || defined(_WIN64)
-  #include <io.h>
-  #define PATH_SEPARATOR  "\\"
-  #if defined(_WIN64)
-  #define filelen(f) _filelengthi64(_fileno(f))
-  #elif defined(_WIN32)
-  #define filelen(f) _filelength(_fileno(f))
-  #endif
-#else
-  #define PATH_SEPARATOR "/"
-  #include <sys/stat.h>
-  size_t filelen(FILE *f) {
-    struct stat statbuf;
-    fstat(fileno(f), &statbuf);
-    return statbuf.st_size;
-  }
-#endif
 
 const char *USAGE = R"RAW(
 Usage: ngf_shaderc <input file name> [options]
@@ -122,26 +104,6 @@ std::unique_ptr<spirv_cross::Compiler> create_cross_compiler(
   return nullptr;
 }
 
-// Reads the contents of a file into an std::string.
-std::string read_file(const char *path) {
-  FILE *input_file = fopen(path, "rb");
-  if (input_file == nullptr) {
-    fprintf(stderr, "Failed to open file %s\n", path);
-    exit(1);
-  }
-  size_t len = filelen(input_file);
-  std::string contents;
-  contents.reserve(len + 1u);
-  contents.resize(len);
-  size_t read_bytes = fread(&contents[0], 1u, len, input_file);
-  if (read_bytes != len) {
-    fprintf(stderr, "Failed to read file %s\n", path);
-    exit(1);
-  }
-  fclose(input_file);
-  return contents;
-}
-
 // Provide file inclusion for shaderc.
 class includer: public shaderc::CompileOptions::IncluderInterface {
   struct includer_data {
@@ -153,7 +115,7 @@ public:
                                      shaderc_include_type,
                                      const char *, size_t) override {
     includer_data *data = new includer_data{};
-    data->content =read_file(file_name);
+    data->content = read_file(file_name);
     data->file_name = file_name;
     auto result = new shaderc_include_result;
     result->source_name = data->file_name.c_str();

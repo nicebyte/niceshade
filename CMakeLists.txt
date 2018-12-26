@@ -25,7 +25,9 @@ set(NICEGRAF_SHADERC_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/technique_parser.h
     ${CMAKE_CURRENT_LIST_DIR}/technique_parser.cpp
     ${CMAKE_CURRENT_LIST_DIR}/defines.h
-    ${CMAKE_CURRENT_LIST_DIR}/defines.cpp)
+    ${CMAKE_CURRENT_LIST_DIR}/defines.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/file_utils.h 
+    ${CMAKE_CURRENT_LIST_DIR}/file_utils.cpp)
 
 add_executable(nicegraf_shaderc ${NICEGRAF_SHADERC_SOURCES})
 target_include_directories(nicegraf_shaderc PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../library/include)
