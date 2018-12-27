@@ -19,57 +19,26 @@ SOFTWARE.
 #pragma once
 
 #include "metadata_parser/metadata_parser.h"
-#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#if defined(_WIN32) || defined(_WIN64)
-#pragma comment(lib, "ws2_32.lib")
-#include <winsock2.h>
-#else
-#include <arpa/inet.h>
-#endif
 
 // Convenience class for generating pipeline metadata in binary format.
 class pipeline_metadata_file {
 public:
-  explicit pipeline_metadata_file(const char *file_path) {
-    f_ = fopen(file_path, "wb");
-    if (f_ == nullptr) {
-      fprintf(stderr, "Error opening output file %s\n", file_path);
-      exit(1);
-    }
-    fwrite(&header_, sizeof(header_), 1u, f_); // write placeholder header.
-    current_section_offset_ptr_ = &header_.pipeline_layout_offset;
-  }
-  void start_new_record() {
-    assert(f_);
-    *current_section_offset_ptr_ = htonl(current_offset_);
-    current_section_offset_ptr_ += 1u;
-  }
+  // Open a new pipeline metadata file for writing.
+  explicit pipeline_metadata_file(const char *file_path);
 
-  void write_field(uint32_t value) {
-    assert(f_);
-    uint32_t nbo = htonl(value);
-    fwrite(&nbo, sizeof(uint32_t), 1u, f_);
-    current_offset_ += 4u;
-  }
+  // Begin a new record.
+  void start_new_record();
 
-  void write_raw_bytes(const void *bytes, size_t nbytes) {
-    fwrite(bytes, 1u, nbytes, f_);
-    current_offset_ += (uint32_t)nbytes;
-  }
+  // Write a field into the current record.
+  void write_field(uint32_t value);
 
-  void finalize() {
-    header_.magic_number = htonl(0xdeadbeef);
-    header_.header_size = htonl(sizeof(header_));
-    header_.version_maj = htonl(0u);
-    header_.version_min = htonl(1u);
-    fseek(f_, 0u, 0u);
-    fwrite(&header_, sizeof(header_), 1u, f_);
-    fclose(f_);
-    f_ = NULL;
-  }
+  // Write the contents of the given byte buffer into the file.
+  void write_raw_bytes(const void *bytes, size_t nbytes);
+
+  // Finalize writing and close the file.
+  void finalize();
 
 private:
   FILE *f_;
