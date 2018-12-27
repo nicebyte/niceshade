@@ -27,7 +27,9 @@ set(NICEGRAF_SHADERC_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/shader_defines.h
     ${CMAKE_CURRENT_LIST_DIR}/shader_defines.cpp
     ${CMAKE_CURRENT_LIST_DIR}/file_utils.h 
-    ${CMAKE_CURRENT_LIST_DIR}/file_utils.cpp)
+    ${CMAKE_CURRENT_LIST_DIR}/file_utils.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/pipeline_layout.h
+    ${CMAKE_CURRENT_LIST_DIR}/pipeline_layout.cpp)
 
 add_executable(nicegraf_shaderc ${NICEGRAF_SHADERC_SOURCES})
 target_include_directories(nicegraf_shaderc PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../library/include)

@@ -21,9 +21,7 @@ SOFTWARE.
 
 #include "linear_dict.h"
 #include "spirv_reflect.hpp"
-#include <stdlib.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <string>
 #include <vector>
 
@@ -57,53 +55,21 @@ using descriptor_set_layout = linear_dict<uint32_t, descriptor>;
 // Stores information about shader resources accessed by a technique.
 class pipeline_layout {
 public:
+  // Adds descriptors of a given type to the pipeline layout.
   void add_resources(const std::vector<spirv_cross::Resource> &resources,
                      const spirv_cross::Compiler &refl,
                      descriptor_type resource_type,
-                     stage_mask_bit smb) {
-    for (const auto &r : resources) {
-      uint32_t set_id =
-          refl.get_decoration(r.id, spv::DecorationDescriptorSet);
-	    uint32_t binding_id = refl.get_decoration(r.id, spv::DecorationBinding);
-      max_set_ = max_set_ < set_id ? set_id : max_set_;
-      descriptor_set &set = sets_[set_id];
-      set.slot = set_id;
-      descriptor &desc = set.layout[binding_id];
-      if (desc.type != descriptor_type::INVALID &&
-          desc.type != resource_type) {
-        fprintf(stderr, "Attempt to assign a descriptor of different type to "
-                        "slot %d in set %d which is already occupied by "
-                        "\"%s\"\n", binding_id, set_id, desc.name.c_str());
-        exit(1);
-      }
-      if (desc.type != descriptor_type::INVALID &&
-          r.name != desc.name) {
-        fprintf(stderr, "Assigning different names "
-                        "(\"%s\" and \"%s\")  to descriptor at slot %d in set "
-                        "%d.\n", desc.name.c_str(), r.name.c_str(),
-                        binding_id, set_id);
-        exit(1);
-      }
-      desc.slot = binding_id;
-      desc.type = resource_type;
-      desc.stage_mask |= smb;
-      desc.name = r.name;
-      nres_++;
-    }
-  }
+                     stage_mask_bit smb);
 
+  // Returns the total number of descriptor sets in the layout.
   uint32_t set_count() const { return max_set_ + 1; }
+
+  // Returns the total number of descriptors across all descriptor sets in the
+  // layout.
   uint32_t res_count() const { return nres_; }
 
-  const descriptor_set_layout& pipeline_layout::set(uint32_t set_id) const {
-    static const descriptor_set_layout empty_layout;
-    auto it = sets_.find(set_id);
-    if (it != sets_.cend()) {
-      return it->second.layout;
-    } else {
-      return empty_layout;
-    }
-  }
+  // Returns the layout of the n-th descriptor set.
+  const descriptor_set_layout& set(uint32_t set_id) const;
 
 private:
   struct descriptor_set {
