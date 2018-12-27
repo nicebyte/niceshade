@@ -72,7 +72,7 @@ void parse_techniques(const std::string &input_source,
     } else if (c == '\r') {
       continue;
     }
-    if (!isspace(c)) {
+    if (!IS_TAB_SPACE(c)) {
       last_four_chars <<= 8u;
       last_four_chars |= (uint32_t)c;
     }

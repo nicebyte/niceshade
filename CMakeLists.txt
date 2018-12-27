@@ -41,12 +41,15 @@ add_executable(nicegraf_shaderc ${NICEGRAF_SHADERC_SOURCES})
 target_include_directories(nicegraf_shaderc PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../library/include)
 target_link_libraries(nicegraf_shaderc
   shaderc spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl)
-set_output_dir(nicegraf_shaderc ${CMAKE_CURRENT_LIST_DIR})  
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_output_dir(nicegraf_shaderc ${CMAKE_CURRENT_LIST_DIR})
+
 add_library(metadata_parser metadata_parser/metadata_parser.h metadata_parser/metadata_parser.c)
-add_executable(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples/display_metadata.c)
+
+add_executable(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples/display_metadata.cpp ${CMAKE_CURRENT_LIST_DIR}/file_utils.cpp)
 target_include_directories(display_metadata PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(display_metadata PRIVATE metadata_parser)
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_target_properties(shaderc  glslc glslc_exe install-headers 
                       shaderc_combined_genfile shaderc_shared shaderc_util shaderc-online-compile                      
                       SPIRV-Headers-example SPIRV-Headers-example-1.1
