@@ -32,30 +32,9 @@ class separate_to_combined_map {
 public:
   void add_resource(uint32_t separate_id,
                     uint32_t combined_id,
-                    const spirv_cross::Compiler &compiler) {
-    uint32_t set_id = compiler.get_decoration(separate_id,
-                                              spv::DecorationDescriptorSet);
-    uint32_t binding_id = compiler.get_decoration(separate_id,
-                                                  spv::DecorationBinding);
-    uint32_t combined_binding_id =
-        compiler.get_decoration(combined_id, spv::DecorationBinding);
-    map_[set_and_binding{set_id, binding_id}][combined_binding_id] = true;
-  }
+                    const spirv_cross::Compiler &compiler);
 
-  void serialize(pipeline_metadata_file &metadata_file) const {
-    metadata_file.write_field((uint32_t)map_.size());
-    for (const auto &entry : map_) {
-      const set_and_binding &sb = entry.first;
-      const linear_dict<uint32_t, bool> &combined_image_samplers =
-          entry.second;
-      metadata_file.write_field(sb.set);
-      metadata_file.write_field(sb.binding);
-      metadata_file.write_field((uint32_t)combined_image_samplers.size());
-      for (const auto &c : combined_image_samplers) {
-        metadata_file.write_field(c.first);
-      }
-    }
-  }
+  void serialize(pipeline_metadata_file &metadata_file) const;
 
 private:
   struct set_and_binding {
