@@ -18,6 +18,8 @@ SOFTWARE.
 */
 
 #pragma once
+#pragma warning(push)
+#pragma warning(disable:4200)
 
 #include <stdint.h>
 
@@ -112,3 +114,5 @@ const plmd_header* plmd_get_header(const plmd *m);
 #if defined(__cplusplus)
 }
 #endif
+
+#pragma warning(pop)
