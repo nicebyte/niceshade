@@ -65,7 +65,6 @@ void pipeline_metadata_file::write_raw_bytes(const void *bytes,
     uint32_t dummy = 0u;
     fwrite(&dummy, 1u, sizeof(uint32_t) - nwords_mod, f_);
   }
-  printf("Wrote %dpadding bytes\n", sizeof(uint32_t) - nwords_mod);
   current_offset_ += (uint32_t)(nwords * sizeof(uint32_t));
 }
 
@@ -77,6 +76,5 @@ void pipeline_metadata_file::finalize() {
   fseek(f_, 0u, 0u);
   fwrite(&header_, sizeof(header_), 1u, f_);
   fclose(f_);
-  printf("Written %d bytes\n", current_offset_);
   f_ = NULL;
 }
