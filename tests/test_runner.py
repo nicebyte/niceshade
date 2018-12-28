@@ -1,4 +1,4 @@
-import os, sys, shutil, pathlib, logging, subprocess, filecmp
+import os, sys, shutil, pathlib, logging, subprocess, filecmp, json
 
 def main(argv):
   logging.basicConfig(format='%(asctime)-15s %(message)s')
@@ -68,8 +68,12 @@ def main(argv):
       if result.returncode != 0:
         LOG.critical("Failed to convert to JSON")
         sys.exit(1)
+      validated_json = json.loads(json_file.read_text())
     except subprocess.TimeoutExpired:
       LOG.critical("Timeout expired when converting to JSON")
+      sys.exit(1)
+    except json.JSONDecodeError:
+      LOG.critical("Not valid JSON: " + str(json_file))
       sys.exit(1)
   
   LOG.info("Comparing output against goldens")
