@@ -185,16 +185,16 @@ void plmd_destroy(plmd *m, const plmd_alloc_callbacks *alloc_cb) {
       alloc_cb->free(m->raw_data);
     }
     if (m->layout.set_layouts != NULL) {
-      alloc_cb->free(m->layout.set_layouts);
+      alloc_cb->free((void*)m->layout.set_layouts);
     }
     if (m->images_to_cis_map.entries != NULL) {
-      alloc_cb->free(m->images_to_cis_map.entries);
+      alloc_cb->free((void*)m->images_to_cis_map.entries);
     }
     if (m->samplers_to_cis_map.entries != NULL) {
-      alloc_cb->free(m->samplers_to_cis_map.entries);
+      alloc_cb->free((void*)m->samplers_to_cis_map.entries);
     }
     if (m->user.entries != NULL) {
-      alloc_cb->free(m->user.entries);
+      alloc_cb->free((void*)m->user.entries);
     }
     alloc_cb->free(m);
   }
