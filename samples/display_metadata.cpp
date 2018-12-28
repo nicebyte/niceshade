@@ -37,62 +37,80 @@ int main(int argc, const char *argv[]) {
     fprintf(stderr, "Error loading pipeline metadata: %d\n", err);
     exit(1);
   }
-  printf("HEADER record\n");
+  printf("{\n");
+  printf("\"header\": {\n");
   const plmd_header *header = plmd_get_header(m);
-  printf("  magic_number: 0x%x\n", header->magic_number);
-  printf("  header_size: %d\n", header->header_size);
-  printf("  version_maj: %d\n", header->version_maj);
-  printf("  version_min: %d\n", header->version_min);
-  printf("  pipeline_layout_offset: %d\n", header->pipeline_layout_offset);
-  printf("  image_to_cis_map_offset: %d\n", header->image_to_cis_map_offset);
-  printf("  sampler_to_cis_map_offset: %d\n", header->sampler_to_cis_map_offset);
-  printf("  user_metadata_offset: %d\n\n", header->user_metadata_offset);
+  printf("  \"magic_number\": %u,\n", header->magic_number);
+  printf("  \"header_size\": %d,\n", header->header_size);
+  printf("  \"version_maj\": %d,\n", header->version_maj);
+  printf("  \"version_min\": %d,\n", header->version_min);
+  printf("  \"pipeline_layout_offset\": %d,\n", header->pipeline_layout_offset);
+  printf("  \"image_to_cis_map_offset\": %d,\n",
+         header->image_to_cis_map_offset);
+  printf("  \"sampler_to_cis_map_offset\": %d,\n",
+         header->sampler_to_cis_map_offset);
+  printf("  \"user_metadata_offset\": %d\n},\n", header->user_metadata_offset);
 
-  printf("PIPELINE_LAYOUT record\n");
+  printf("\"pipeline_layout\": {\n");
   const plmd_layout *layout = plmd_get_layout(m);
-  printf("  ndescriptor_sets: %d\n", layout->ndescriptor_sets);
+  printf("  \"descriptor_sets\": [\n");
   for (uint32_t s = 0u; s < layout->ndescriptor_sets; ++s) {
     const plmd_descriptor_set_layout *dsl = layout->set_layouts[s];
-    printf("    set: %d\n", s);
-    printf("    ndescs: %d\n", dsl->ndescriptors);
+    printf("    {\n");
+    printf("      \"set\": %d,\n", s);
+    printf("      \"descriptors\": [\n");
     for (uint32_t di = 0u; di < dsl->ndescriptors; ++di) {
       const plmd_descriptor *d = &(dsl->descriptors[di]);
-      printf("        binding: %d\n", d->binding);
-      printf("        type: %d\n", d->type);
-      printf("        stage_vis: %x\n", d->stage_visibility_mask);
+      printf("        {\n");
+      printf("          \"binding\": %d,\n", d->binding);
+      printf("          \"type\": %d,\n", d->type);
+      printf("          \"stage_vis\": %d\n", d->stage_visibility_mask);
+      printf("        }");
+      if (di != dsl->ndescriptors - 1u) printf(",\n");
+      else printf("\n");
     }
+    printf("      ]\n");
+    if (s != layout->ndescriptor_sets - 1u) printf("    },\n");
+    else printf("    }\n");
   }
-  printf("\n");
+  printf("  ]\n");
+  printf("},\n");
 
-  printf("SEPARATE_TO_COMBINED_MAP record for images\n");
+  printf("\"image_to_cis_map\": {\n");
   print_cis_map(plmd_get_image_to_cis_map(m));
-  printf("\n");
+  printf("},\n");
 
-  printf("SEPARATE_TO_COMBINED_MAP record for samplers\n");
+  printf("\"sampler_to_cis_map\": {\n");
   print_cis_map(plmd_get_sampler_to_cis_map(m));
-  printf("\n");
+  printf("},\n");
 
-  printf("USER_METADATA record\n");
+  printf("\"user_metadata\": {\n");
   const plmd_user *user = plmd_get_user(m);
-  printf("  nentries: %d\n", user->nentries);
   for (uint32_t e = 0u; e < user->nentries; ++e) {
-    printf("  %s = %s\n", user->entries[e].key, user->entries[e].value);
+    printf("  \"%s\": \"%s\"", user->entries[e].key, user->entries[e].value);
+    if (e != user->nentries - 1) printf(",");
+    printf("\n");
   }
+  printf("}\n}\n");
   plmd_destroy(m, NULL);
   return 0;
 }
 
 void print_cis_map(const plmd_cis_map *m) {
-  printf("  nentries: %d\n", m->nentries);
+  printf("  \"entries\": [\n");
   for (uint32_t e = 0u; e < m->nentries; ++e) {
     const plmd_cis_map_entry *entry = m->entries[e];
-    printf("  entry: %d\n", e);
-    printf("  separate_set_id: %d\n", entry->separate_set_id);
-    printf("  separate_binding_id: %d\n", entry->separate_binding_id);
-    printf("  combined_ids: ");
+    printf("    {\n");
+    printf("      \"entry\": %d,\n", e);
+    printf("      \"separate_set_id\": %d,\n", entry->separate_set_id);
+    printf("      \"separate_binding_id\": %d,\n", entry->separate_binding_id);
+    printf("      \"combined_ids\": [");
     for (uint32_t c = 0u; c < entry->ncombined_ids; ++c) {
-      printf("%d ", entry->combined_ids[c]);
+      printf("%d%s", entry->combined_ids[c],
+              c != entry->ncombined_ids - 1? ", " : "");
     }
-    printf("\n");
+    printf("]\n");
+    printf("    }%s", e != m->nentries - 1? ",\n" : "\n");
   }
+  printf("  ]\n");
 }
