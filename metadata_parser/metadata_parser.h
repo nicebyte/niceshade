@@ -65,26 +65,33 @@ typedef struct ngf_meta_layout {
 } ngf_meta_layout;
 
 typedef struct ngf_meta_cis_map_entry {
-  uint32_t separate_id;
+  uint32_t separate_set_id;
+  uint32_t separate_binding_id;
   uint32_t ncombined_ids;
   uint32_t combined_ids[];
 } ngf_meta_cis_map_entry;
 
 typedef struct ngf_meta_cis_map {
   uint32_t nentries;
-  const ngf_meta_cis_map_entry *entries[];
+  const ngf_meta_cis_map_entry **entries;
 } ngf_meta_cis_map;
 
+typedef struct ngf_meta_user_entry {
+  const char *key;
+  const char *value;
+} ngf_meta_user_entry;
+
 typedef struct ngf_meta_user {
-  uint32_t npairs;
-  const char *pairs;
+  uint32_t nentries;
+  ngf_meta_user_entry *entries;
 } ngf_meta_user;
 
 typedef enum ngf_meta_error {
   NGF_META_ERROR_OK,
   NGF_META_ERROR_OUTOFMEM,
   NGF_META_ERROR_MAGIC_NUMBER_MISMATCH,
-  NGF_META_ERROR_BUFFER_TOO_SMALL
+  NGF_META_ERROR_BUFFER_TOO_SMALL,
+  NGF_META_ERROR_WEIRD_BUFFER_SIZE
 } ngf_meta_error;
 
 typedef struct ngf_meta_alloc_callbacks {
