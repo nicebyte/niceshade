@@ -19,6 +19,7 @@ SOFTWARE.
 
 #pragma once
 
+#include "metadata_parser/metadata_parser.h"
 #include "linear_dict.h"
 #include "spirv_reflect.hpp"
 #include <stdint.h>
@@ -27,19 +28,19 @@ SOFTWARE.
 
 // Indicates the type of resource accessed by a programmable shader stage.
 enum class descriptor_type {
-  UNIFORM_BUFFER = 0x00,
-  STORAGE_BUFFER = 0x01,
-  LOADSTORE_IMAGE = 0x02,
-  TEXTURE = 0x03,
-  SAMPLER = 0x04,
-  TEXTURE_AND_SAMPLER = 0x05,
-  INVALID = 0x06
+  UNIFORM_BUFFER = PLMD_DESC_UNIFORM_BUFFER,
+  STORAGE_BUFFER = PLMD_DESC_STORAGE_BUFFER,
+  LOADSTORE_IMAGE = PLMD_DESC_LOADSTORE_IMAGE,
+  TEXTURE = PLMD_DESC_IMAGE,
+  SAMPLER = PLMD_DESC_SAMPLER,
+  TEXTURE_AND_SAMPLER = PLMD_DESC_COMBINED_IMAGE_SAMPLER,
+  INVALID = 0xff
 };
 
 // Indicates which programmable shader stage a descriptor is visible from.
 enum stage_mask_bit {
-  STAGE_MASK_VERTEX = 0x01,
-  STAGE_MASK_FRAGMENT = 0x10
+  STAGE_MASK_VERTEX = PLMD_STAGE_VISIBILITY_VERTEX_BIT,
+  STAGE_MASK_FRAGMENT = PLMD_STAGE_VISIBILITY_FRAGMENT_BIT
 };
 
 // Descriptor data.
