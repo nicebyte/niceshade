@@ -48,6 +48,7 @@ add_library(metadata_parser metadata_parser/metadata_parser.h metadata_parser/me
 add_executable(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples/display_metadata.cpp ${CMAKE_CURRENT_LIST_DIR}/file_utils.cpp)
 target_include_directories(display_metadata PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(display_metadata PRIVATE metadata_parser)
+set_output_dir(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_target_properties(shaderc  glslc glslc_exe install-headers 

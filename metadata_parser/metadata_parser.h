@@ -25,19 +25,19 @@ SOFTWARE.
 extern "C" {
 #endif
 
-typedef struct ngf_meta ngf_meta;
+typedef struct plmd plmd;
 
-#define NGF_META_DESC_UNIFORM_BUFFER         (0x00)
-#define NGF_META_DESC_STORAGE_BUFFER         (0x01)
-#define NGF_META_DESC_LOADSTORE_IMAGE        (0x02)
-#define NGF_META_DESC_IMAGE                  (0x03)
-#define NGF_META_DESC_SAMPLER                (0x04)
-#define NGF_META_DESC_COMBINED_IMAGE_SAMPLER (0x05)
+#define PLMD_DESC_UNIFORM_BUFFER         (0x00)
+#define PLMD_DESC_STORAGE_BUFFER         (0x01)
+#define PLMD_DESC_LOADSTORE_IMAGE        (0x02)
+#define PLMD_DESC_IMAGE                  (0x03)
+#define PLMD_DESC_SAMPLER                (0x04)
+#define PLMD_DESC_COMBINED_IMAGE_SAMPLER (0x05)
 
-#define NGF_META_STAGE_VISIBILITY_VERTEX_BIT   (0x01)
-#define NGF_META_STAGE_VISIBILITY_FRAGMENT_BIT (0x02)
+#define PLMD_STAGE_VISIBILITY_VERTEX_BIT   (0x01)
+#define PLMD_STAGE_VISIBILITY_FRAGMENT_BIT (0x02)
 
-typedef struct ngf_meta_header {
+typedef struct plmd_header {
   uint32_t magic_number;
   uint32_t header_size;
   uint32_t version_maj;
@@ -46,68 +46,68 @@ typedef struct ngf_meta_header {
   uint32_t image_to_cis_map_offset;
   uint32_t sampler_to_cis_map_offset;
   uint32_t user_metadata_offset;
-} ngf_meta_header;
+} plmd_header;
 
-typedef struct ngf_meta_desc {
+typedef struct plmd_descriptor {
   uint32_t binding;
   uint32_t type;
   uint32_t stage_visibility_mask; 
-} ngf_meta_desc;
+} plmd_descriptor;
 
-typedef struct ngf_meta_desc_set_layout {
+typedef struct plmd_descriptor_set_layout {
   uint32_t ndescriptors;
-  ngf_meta_desc descriptors[];
-} ngf_meta_desc_set_layout;
+  plmd_descriptor descriptors[];
+} plmd_descriptor_set_layout;
 
-typedef struct ngf_meta_layout {
+typedef struct plmd_layout {
   uint32_t ndescriptor_sets;
-  const ngf_meta_desc_set_layout **set_layouts;
-} ngf_meta_layout;
+  const plmd_descriptor_set_layout **set_layouts;
+} plmd_layout;
 
-typedef struct ngf_meta_cis_map_entry {
+typedef struct plmd_cis_map_entry {
   uint32_t separate_set_id;
   uint32_t separate_binding_id;
   uint32_t ncombined_ids;
   uint32_t combined_ids[];
-} ngf_meta_cis_map_entry;
+} plmd_cis_map_entry;
 
-typedef struct ngf_meta_cis_map {
+typedef struct plmd_cis_map {
   uint32_t nentries;
-  const ngf_meta_cis_map_entry **entries;
-} ngf_meta_cis_map;
+  const plmd_cis_map_entry **entries;
+} plmd_cis_map;
 
-typedef struct ngf_meta_user_entry {
+typedef struct plmd_user_entry {
   const char *key;
   const char *value;
-} ngf_meta_user_entry;
+} plmd_user_entry;
 
-typedef struct ngf_meta_user {
+typedef struct plmd_user {
   uint32_t nentries;
-  ngf_meta_user_entry *entries;
-} ngf_meta_user;
+  plmd_user_entry *entries;
+} plmd_user;
 
-typedef enum ngf_meta_error {
-  NGF_META_ERROR_OK,
-  NGF_META_ERROR_OUTOFMEM,
-  NGF_META_ERROR_MAGIC_NUMBER_MISMATCH,
-  NGF_META_ERROR_BUFFER_TOO_SMALL,
-  NGF_META_ERROR_WEIRD_BUFFER_SIZE
-} ngf_meta_error;
+typedef enum plmd_error {
+  PLMD_ERROR_OK,
+  PLMD_ERROR_OUTOFMEM,
+  PLMD_ERROR_MAGIC_NUMBER_MISMATCH,
+  PLMD_ERROR_BUFFER_TOO_SMALL,
+  PLMD_ERROR_WEIRD_BUFFER_SIZE
+} plmd_error;
 
-typedef struct ngf_meta_alloc_callbacks {
+typedef struct plmd_alloc_callbacks {
   void* (*alloc)(size_t);
   void  (*free)(void*);
-} ngf_meta_alloc_callbacks;
+} plmd_alloc_callbacks;
 
-ngf_meta_error ngf_meta_load(const void *buf, size_t buf_size,
-                             const ngf_meta_alloc_callbacks *alloc_cb,
-                             ngf_meta **result);
-void ngf_meta_destroy(ngf_meta *m, const ngf_meta_alloc_callbacks *alloc_cb);
-const ngf_meta_layout* ngf_meta_get_layout(const ngf_meta *m);
-const ngf_meta_cis_map* ngf_meta_get_image_to_cis_map(const ngf_meta *m);
-const ngf_meta_cis_map* ngf_meta_get_sampler_to_cis_map(const ngf_meta *m);
-const ngf_meta_user* ngf_meta_get_user(const ngf_meta *m);
-const ngf_meta_header* ngf_meta_get_header(const ngf_meta *m);
+plmd_error plmd_load(const void *buf, size_t buf_size,
+                             const plmd_alloc_callbacks *alloc_cb,
+                             plmd **result);
+void plmd_destroy(plmd *m, const plmd_alloc_callbacks *alloc_cb);
+const plmd_layout* plmd_get_layout(const plmd *m);
+const plmd_cis_map* plmd_get_image_to_cis_map(const plmd *m);
+const plmd_cis_map* plmd_get_sampler_to_cis_map(const plmd *m);
+const plmd_user* plmd_get_user(const plmd *m);
+const plmd_header* plmd_get_header(const plmd *m);
 
 #if defined(__cplusplus)
 }

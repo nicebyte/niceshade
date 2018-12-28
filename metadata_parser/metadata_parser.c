@@ -9,46 +9,46 @@
   #include <arpa/inet.h>
 #endif
 
-static const ngf_meta_alloc_callbacks stdlib_alloc = {
+static const plmd_alloc_callbacks stdlib_alloc = {
   .alloc = malloc,
   .free = free
 };
 
-struct ngf_meta {
+struct plmd {
   uint8_t *raw_data;
-  const ngf_meta_header *header;
-  ngf_meta_layout layout;
-  ngf_meta_cis_map images_to_cis_map;
-  ngf_meta_cis_map samplers_to_cis_map;
-  ngf_meta_user user;
+  const plmd_header *header;
+  plmd_layout layout;
+  plmd_cis_map images_to_cis_map;
+  plmd_cis_map samplers_to_cis_map;
+  plmd_user user;
 };
 
-static ngf_meta_error _create_cis_map(uint8_t *ptr,
-                                      const ngf_meta_alloc_callbacks *cb,
-                                      ngf_meta_cis_map *map) {
+static plmd_error _create_cis_map(uint8_t *ptr,
+                                  const plmd_alloc_callbacks *cb,
+                                  plmd_cis_map *map) {
   assert(ptr);
   map->nentries = *(uint32_t*)ptr;
-  map->entries = cb->alloc(map->nentries * sizeof(ngf_meta_cis_map_entry*));
+  map->entries = cb->alloc(map->nentries * sizeof(plmd_cis_map_entry*));
   if (map->entries == NULL) {
-    return NGF_META_ERROR_OUTOFMEM;
+    return PLMD_ERROR_OUTOFMEM;
   }
 
   size_t offset = 4u;
   for (uint32_t e = 0u; e < map->nentries; ++e) {
-    map->entries[e] = (ngf_meta_cis_map_entry*)(ptr + offset);
+    map->entries[e] = (plmd_cis_map_entry*)(ptr + offset);
     offset += 3 * 4u + map->entries[e]->ncombined_ids * sizeof(uint32_t);
   }
 
-  return NGF_META_ERROR_OK;
+  return PLMD_ERROR_OK;
 }
 
-ngf_meta_error ngf_meta_load(const void *buf, size_t buf_size,
-                             const ngf_meta_alloc_callbacks *alloc_cb,
-                             ngf_meta **result) {
+plmd_error plmd_load(const void *buf, size_t buf_size,
+                     const plmd_alloc_callbacks *alloc_cb,
+                     plmd **result) {
   static const uint32_t START_OF_RAW_BYTE_BLOCK = 0xffffffff;
   static const uint32_t MAGIC_NUMBER = 0xdeadbeef;
-  ngf_meta_error err = NGF_META_ERROR_OK;
-  ngf_meta *meta = NULL;
+  plmd_error err = PLMD_ERROR_OK;
+  plmd *meta = NULL;
   assert(buf);
   assert(result);
 
@@ -59,26 +59,26 @@ ngf_meta_error ngf_meta_load(const void *buf, size_t buf_size,
   
   // Any well-formed pipeline metadata file must contain a multiple of 4 bytes.
   if ((buf_size & 0b11) != 0) {
-    err = NGF_META_ERROR_WEIRD_BUFFER_SIZE;
-    goto ngf_meta_load_cleanup;
+    err = PLMD_ERROR_WEIRD_BUFFER_SIZE;
+    goto plmd_load_cleanup;
   }
   const uint32_t nfields = ((uint32_t)buf_size) >> 2u; // number of 4 byte
                                                        // blocks in the buffer.
 
   // Allocate space for the result.
-  meta = alloc_cb->alloc(sizeof(ngf_meta));
+  meta = alloc_cb->alloc(sizeof(plmd));
   if (result == NULL) {
-    err = NGF_META_ERROR_OUTOFMEM;
-    goto ngf_meta_load_cleanup;
+    err = PLMD_ERROR_OUTOFMEM;
+    goto plmd_load_cleanup;
   }
-  memset(meta, 0u, sizeof(ngf_meta));
+  memset(meta, 0u, sizeof(plmd));
   *result = meta;
 
   // Create a copy of the metadata buffer.
   meta->raw_data = alloc_cb->alloc(buf_size);
   if (meta->raw_data == NULL) {
-    err = NGF_META_ERROR_OUTOFMEM;
-    goto ngf_meta_load_cleanup;
+    err = PLMD_ERROR_OUTOFMEM;
+    goto plmd_load_cleanup;
   }
   memcpy(meta->raw_data, buf, buf_size);
 
@@ -89,8 +89,8 @@ ngf_meta_error ngf_meta_load(const void *buf, size_t buf_size,
     const uint32_t field_value = fields[field_idx];
     if (field_value == START_OF_RAW_BYTE_BLOCK) {
       if (field_idx >= nfields - 1u) {
-        err = NGF_META_ERROR_BUFFER_TOO_SMALL;
-        goto ngf_meta_load_cleanup;
+        err = PLMD_ERROR_BUFFER_TOO_SMALL;
+        goto plmd_load_cleanup;
       }
       field_idx += 1u; // skip over the raw byte block start mark.
       // Convert the length of raw byte block from network to host byte order,
@@ -104,11 +104,11 @@ ngf_meta_error ngf_meta_load(const void *buf, size_t buf_size,
   }
 
   // Process header.
-  meta->header = (const ngf_meta_header*)meta->raw_data;
-  const ngf_meta_header *header = meta->header;
+  meta->header = (const plmd_header*)meta->raw_data;
+  const plmd_header *header = meta->header;
   if (header->magic_number != MAGIC_NUMBER) {
-    err = NGF_META_ERROR_MAGIC_NUMBER_MISMATCH;
-    goto ngf_meta_load_cleanup;
+    err = PLMD_ERROR_MAGIC_NUMBER_MISMATCH;
+    goto plmd_load_cleanup;
   }
 
   // Sanity-check offsets in the header.
@@ -116,8 +116,8 @@ ngf_meta_error ngf_meta_load(const void *buf, size_t buf_size,
       header->image_to_cis_map_offset >= buf_size ||
       header->sampler_to_cis_map_offset >= buf_size ||
       header->user_metadata_offset >= buf_size) {
-    err = NGF_META_ERROR_BUFFER_TOO_SMALL;
-    goto ngf_meta_load_cleanup;
+    err = PLMD_ERROR_BUFFER_TOO_SMALL;
+    goto plmd_load_cleanup;
   }
 
   // Process the pipeline layout record.
@@ -127,14 +127,14 @@ ngf_meta_error ngf_meta_load(const void *buf, size_t buf_size,
   meta->layout.ndescriptor_sets = nsets;
   meta->layout.set_layouts = alloc_cb->alloc(sizeof(void*) * nsets);
   if (meta->layout.set_layouts == NULL) {
-    err = NGF_META_ERROR_OUTOFMEM;
-    goto ngf_meta_load_cleanup;
+    err = PLMD_ERROR_OUTOFMEM;
+    goto plmd_load_cleanup;
   }
   const uint8_t *set_ptr = pipeline_layout_ptr + sizeof(uint32_t);
   for (uint32_t s = 0u; s < nsets; ++s) {
-    meta->layout.set_layouts[s] = (const ngf_meta_desc_set_layout*)set_ptr;
+    meta->layout.set_layouts[s] = (const plmd_descriptor_set_layout*)set_ptr;
     const uint32_t set_data_size =
-        meta->layout.set_layouts[s]->ndescriptors * sizeof(ngf_meta_desc) +
+        meta->layout.set_layouts[s]->ndescriptors * sizeof(plmd_descriptor) +
         sizeof(uint32_t);
     set_ptr += set_data_size;
   }
@@ -151,10 +151,10 @@ ngf_meta_error ngf_meta_load(const void *buf, size_t buf_size,
   meta->user.nentries = 
       *(uint32_t*)&meta->raw_data[header->user_metadata_offset];
   meta->user.entries =
-      alloc_cb->alloc(sizeof(ngf_meta_user_entry) * meta->user.nentries);
+      alloc_cb->alloc(sizeof(plmd_user_entry) * meta->user.nentries);
   if (meta->user.entries == NULL) {
-    err = NGF_META_ERROR_OUTOFMEM;
-    goto ngf_meta_load_cleanup;
+    err = PLMD_ERROR_OUTOFMEM;
+    goto plmd_load_cleanup;
   }
   uint8_t *blk_ptr = &meta->raw_data[header->user_metadata_offset + 4u];
   for (uint32_t e = 0u; e < meta->user.nentries; ++e) {
@@ -169,14 +169,14 @@ ngf_meta_error ngf_meta_load(const void *buf, size_t buf_size,
     blk_ptr += *size_ptr * sizeof(uint32_t);
   }
 
-ngf_meta_load_cleanup:
-  if (err != NGF_META_ERROR_OK) {
-    ngf_meta_destroy(meta, alloc_cb);
+plmd_load_cleanup:
+  if (err != PLMD_ERROR_OK) {
+    plmd_destroy(meta, alloc_cb);
   }
   return err;
 }
 
-void ngf_meta_destroy(ngf_meta *m, const ngf_meta_alloc_callbacks *alloc_cb) {
+void plmd_destroy(plmd *m, const plmd_alloc_callbacks *alloc_cb) {
   if (alloc_cb == NULL) {
     alloc_cb = &stdlib_alloc;
   }
@@ -200,22 +200,22 @@ void ngf_meta_destroy(ngf_meta *m, const ngf_meta_alloc_callbacks *alloc_cb) {
   }
 }
 
-const ngf_meta_layout* ngf_meta_get_layout(const ngf_meta *m) {
+const plmd_layout* plmd_get_layout(const plmd *m) {
   return &m->layout;
 }
 
-const ngf_meta_cis_map* ngf_meta_get_image_to_cis_map(const ngf_meta *m) {
+const plmd_cis_map* plmd_get_image_to_cis_map(const plmd *m) {
   return &m->images_to_cis_map;
 }
 
-const ngf_meta_cis_map* ngf_meta_get_sampler_to_cis_map(const ngf_meta *m) {
+const plmd_cis_map* plmd_get_sampler_to_cis_map(const plmd *m) {
   return &m->samplers_to_cis_map;
 }
 
-const ngf_meta_user* ngf_meta_get_user(const ngf_meta *m) {
+const plmd_user* plmd_get_user(const plmd *m) {
   return &m->user;
 }
 
-const ngf_meta_header* ngf_meta_get_header(const ngf_meta *m) {
+const plmd_header* plmd_get_header(const plmd *m) {
   return m->header;
 }
