@@ -210,22 +210,23 @@ int main(int argc, const char *argv[]) {
             create_cross_compiler(
                 spv_result.cbegin(),
                 (uint32_t)(spv_result.cend() - spv_result.cbegin()), t);
+        spirv_cross::ShaderResources resources =
+            compiler->get_shader_resources();
         compiler->build_combined_image_samplers();
         const std::vector<spirv_cross::CombinedImageSampler> &cis =
             compiler->get_combined_image_samplers();
-        const uint32_t cis_binding_offset =
-            compiler->get_shader_resources().sampled_images.size();
         for (uint32_t cis_idx = 0u; cis_idx < cis.size(); ++cis_idx) {
           const spirv_cross::CombinedImageSampler &remap = cis[cis_idx];
           compiler->set_name(remap.combined_id,
-                              compiler->get_name(remap.image_id) + "_" +
-                              compiler->get_name(remap.sampler_id));
+                             compiler->get_name(remap.image_id) + "_" +
+                             compiler->get_name(remap.sampler_id));
           compiler->set_decoration(remap.combined_id, spv::DecorationBinding,
-                                    cis_binding_offset + cis_idx);
+                                   cis_idx);
+          compiler->set_decoration(remap.combined_id,
+                                   spv::DecorationDescriptorSet,
+                                   AUTOGEN_CIS_DESCRIPTOR_SET);
         }
         if (generate_pipeline_metadata) {
-          spirv_cross::ShaderResources resources =
-              compiler->get_shader_resources();
           stage_mask_bit smb =
               ep.kind == shaderc_vertex_shader
                            ? STAGE_MASK_VERTEX

@@ -28,6 +28,10 @@ void pipeline_layout::add_resources(
   for (const auto &r : resources) {
     uint32_t set_id =
         refl.get_decoration(r.id, spv::DecorationDescriptorSet);
+    if (set_id == AUTOGEN_CIS_DESCRIPTOR_SET) {
+      // Auto-generated combined image/samplers aren't included in the layout.
+      continue;
+    }
     uint32_t binding_id = refl.get_decoration(r.id, spv::DecorationBinding);
     max_set_ = max_set_ < set_id ? set_id : max_set_;
     descriptor_set &set = sets_[set_id];

@@ -80,3 +80,5 @@ private:
   uint32_t max_set_ = 0u;
   uint32_t nres_ = 0u;
 };
+
+constexpr uint32_t AUTOGEN_CIS_DESCRIPTOR_SET = 9999u;
