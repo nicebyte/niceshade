@@ -2,4 +2,4 @@ build/*
 *.exe
 *.ilk
 *.pdb
-
+tests/output/*
