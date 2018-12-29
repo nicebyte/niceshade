@@ -138,6 +138,10 @@ void parse_techniques(const std::string &input_source,
       if (IS_IDENT(c)) {
         entry_point_name.push_back(c);
       } else if (IS_TAB_SPACE(c) || c == '\n') {
+        if (entry_point_name.empty()) {
+          report_technique_parser_error(line_num,
+                                        "entry point name cannot be empty");
+        }
         technique::entry_point ep {
           parameter_name == "vs"
               ? shaderc_vertex_shader
