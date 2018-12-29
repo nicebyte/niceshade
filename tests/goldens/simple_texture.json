@@ -16,12 +16,12 @@
       "descriptors": [
         {
           "binding": 2,
-          "type": 4,
+          "type": "SAMPLER",
           "stage_vis": 2
         },
         {
           "binding": 1,
-          "type": 3,
+          "type": "IMAGE",
           "stage_vis": 2
         }
       ]

@@ -22,6 +22,15 @@ SOFTWARE.
 #include <assert.h>
 #include <stdio.h>
 
+static const char *DESCRIPTOR_TYPE_NAMES[] = {
+  "UNIFORM_BUFFER",
+  "STORAGE_BUFFER",
+  "LOADSTORE_IMAGE",
+  "IMAGE",
+  "SAMPLER",
+  "COMBINED_IMAGE_SAMPLER"
+};
+
 void print_cis_map(const plmd_cis_map *m);
 
 int main(int argc, const char *argv[]) {
@@ -63,7 +72,7 @@ int main(int argc, const char *argv[]) {
       const plmd_descriptor *d = &(dsl->descriptors[di]);
       printf("        {\n");
       printf("          \"binding\": %d,\n", d->binding);
-      printf("          \"type\": %d,\n", d->type);
+      printf("          \"type\": \"%s\",\n", DESCRIPTOR_TYPE_NAMES[d->type]);
       printf("          \"stage_vis\": %d\n", d->stage_visibility_mask);
       printf("        }");
       if (di != dsl->ndescriptors - 1u) printf(",\n");
