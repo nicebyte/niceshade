@@ -52,9 +52,6 @@ Options:
   -O <path> - Folder to store output files in. Default is the current working
     directory.
   
-  -D <name>=<value> - add a preprocessor macro definition `name' with the value
-      `value' to all shaders generated from the given input file.
-
   -t <target> - Generate shaders for the given target.  Accepted values are:
       * gl430;
       * gles310, gles300;
@@ -113,7 +110,6 @@ int main(int argc, const char *argv[]) {
   // Process command line arguments.
   const std::string input_file_path { argv[1] }; // input file name.
   std::string out_folder = ".";
-  define_container global_defines;
   std::vector<target_info> targets;
   for (uint32_t o = 2u; o < (uint32_t)argc; o += 2u) { // process options.
     const std::string option_name { argv[o] };
@@ -122,14 +118,7 @@ int main(int argc, const char *argv[]) {
       exit(1);
     }
     const std::string option_value { argv[o + 1u] };
-    if ("-D" == option_name) { // Additional #define
-      size_t eq_idx = option_value.find_first_of('=');
-      const std::string name = option_value.substr(0, eq_idx);
-      const std::string value =
-          eq_idx != std::string::npos && eq_idx < option_value.size() - 1u
-              ? option_value.substr(eq_idx + 1u) : "";
-      global_defines.emplace_back(name, value);
-    } else if ("-t" == option_name) { // Target to generate code for.
+    if ("-t" == option_name) { // Target to generate code for.
       const auto *t = std::find_if(TARGET_MAP, TARGET_MAP + TARGET_COUNT,
                                    [&option_value](const auto &x) {
                                      return option_value == x.name;
@@ -169,7 +158,6 @@ int main(int argc, const char *argv[]) {
     for (const technique::entry_point ep : tech.entry_points) {
       // Set compile options.
       shaderc::CompileOptions shaderc_opts;
-      add_defines_from_container(shaderc_opts, global_defines);
       add_defines_from_container(shaderc_opts, tech.defines);
       shaderc_opts.SetAutoBindUniforms(true);
       shaderc_opts.SetAutoMapLocations(true);
