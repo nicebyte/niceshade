@@ -176,7 +176,9 @@ int main(int argc, const char *argv[]) {
                                   input_file_path.c_str(),
                                   ep.name.c_str(),
                                   shaderc_opts));
-      if (spv_results.back().GetNumErrors() > 0u) {
+
+      if (spv_results.back().GetCompilationStatus() !=
+          shaderc_compilation_status_success) {
         fprintf(stderr, "%s", spv_results.back().GetErrorMessage().c_str());
         exit(1);
       } 
