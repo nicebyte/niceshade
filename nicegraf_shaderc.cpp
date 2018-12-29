@@ -150,6 +150,11 @@ int main(int argc, const char *argv[]) {
   // Look for and parse technique directives in the code.
   std::vector<technique> techniques;
   parse_techniques(input_source, techniques);
+  if (techniques.size() == 0u) {
+    fprintf(stderr, "Input file does not appear to define any techniques. "
+                    "Define techniques with a special comment (`//T:').\n");
+    exit(1);
+  }
 
   // Obtain SPIR-V.
   std::vector<shaderc::SpvCompilationResult> spv_results;
