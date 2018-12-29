@@ -50,11 +50,11 @@ def main(argv):
       stdout_file.write_text(run_result.stdout)
       stderr_file.write_text(run_result.stderr)
     except subprocess.TimeoutExpired:
-      failed_run_results.append[test_case_name] = "Timeout exceeded"
+      failed_run_results[test_case_name] = "Timeout exceeded"
 
   if len(failed_run_results) > 0:
     LOG.critical("Some tests case runs failed")
-    for (test_case_name, error) in failed_run_results:
+    for test_case_name, error in failed_run_results.items():
       LOG.critical(test_case_name + ": " + error)
     sys.exit(1)
     
