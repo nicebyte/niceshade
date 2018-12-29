@@ -94,7 +94,7 @@ void parse_techniques(const std::string &input_source,
       }
       break;
     case  technique_parser_state::PARSING_NAME:
-      if (IS_IDENT(c)) {
+      if (IS_IDENT(c) || c == '-') {
         techniques.back().name.push_back(c);
       } else if (IS_TAB_SPACE(c)) {
         state = technique_parser_state::LOOKING_FOR_PARAMETER_NAME;
