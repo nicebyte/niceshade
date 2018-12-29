@@ -1,0 +1,4 @@
+shaderc: internal error: compilation succeeded but failed to optimize: According to the Vulkan spec BuiltIn FragCoord variable needs to be a 4-component 32-bit float vector. ID <31> (OpVariable) has 2 components.
+  %input_position = OpVariable %_ptr_Input_v2float Input
+
+
