@@ -39,52 +39,119 @@ typedef struct plmd plmd;
 #define PLMD_STAGE_VISIBILITY_VERTEX_BIT   (0x01)
 #define PLMD_STAGE_VISIBILITY_FRAGMENT_BIT (0x02)
 
+/**
+ * Pipeline metadata header.
+ */
 typedef struct plmd_header {
-  uint32_t magic_number;
-  uint32_t header_size;
-  uint32_t version_maj;
-  uint32_t version_min;
+  uint32_t magic_number; /**< must always be 0xdeadbeef */
+  uint32_t header_size; /**< size of the metadata header in bytes. */
+  uint32_t version_maj; /**< major version of the format in use. */
+  uint32_t version_min; /**< minor version of the format in use. */
+
+  /**
+   * Offset, in bytes, from the beginning of the file, at which the
+   * PIPELINE_LAYOUT record is stored.
+   */
   uint32_t pipeline_layout_offset;
+
+  /**
+   * Offset, in bytes, from the beginning of the file, at which a 
+   * SEPARATE_TO_COMBINED_MAP record is stored, which maps separate image
+   * bindings to the corresponding auto-generated combined image/sampler
+   * bindings.
+   */
   uint32_t image_to_cis_map_offset;
+
+  /**
+   * Offset, in bytes, from the beginning of the file, at which a
+   * SEPARATE_TO_COMBINED_MAP record is stored, which map separate sampler
+   * bindings to the corresponding auto-generated combined image/sampler
+   * bindings.
+   */
   uint32_t sampler_to_cis_map_offset;
+
+  /**
+   * Offset, in bytes, from the beginning of the file, at which the
+   * USER_METADATA record is stored.
+   */
   uint32_t user_metadata_offset;
 } plmd_header;
 
+/**
+ * Information about a descriptor.
+ */
 typedef struct plmd_descriptor {
-  uint32_t binding;
-  uint32_t type;
-  uint32_t stage_visibility_mask; 
+  uint32_t binding; /**< Binding within the set. */
+  uint32_t type; /**< Type of the descriptor (PLMD_DESC_...) */
+  uint32_t stage_visibility_mask; /**< Mask indicating which shader stages the
+                                       descriptor is used from. */
 } plmd_descriptor;
 
+/**
+ * Information about a descriptor set.
+ */
 typedef struct plmd_descriptor_set_layout {
-  uint32_t ndescriptors;
+  uint32_t ndescriptors; /**< Number of descriptors in the set. */
   plmd_descriptor descriptors[];
 } plmd_descriptor_set_layout;
 
+/**
+ * Information about a pipeline layout.
+ */
 typedef struct plmd_layout {
-  uint32_t ndescriptor_sets;
+  uint32_t ndescriptor_sets; /**< Number of descriptor sets.*/
   const plmd_descriptor_set_layout **set_layouts;
 } plmd_layout;
 
+/**
+ * A separate-to-combined map entry.
+ */
 typedef struct plmd_cis_map_entry {
+  /**
+   * Descriptor set of the separate image or sampler object.
+   */
   uint32_t separate_set_id;
+  /**
+   * Binding of the separate image or sampler object.
+   */
   uint32_t separate_binding_id;
+  /**
+   * Number of combined image/samplers that use this separate image or sampler.
+   */
   uint32_t ncombined_ids;
-  uint32_t combined_ids[];
+  uint32_t combined_ids[]; /**< IDs of the combined image/samplers. */
 } plmd_cis_map_entry;
 
+/**
+ * Some platforms do not have full separation between textures and samplers.
+ * For example, in OpenGL, in order to sample a texture with a particular
+ * sampler, both the texture and the sampler need to be bound to the same
+ * texture unit by the CPU-side code. This is in contrast to HLSL, which allows
+ * specifying the sampler to use directly from the shader code.
+ *
+ * To address this discrepancy, each unique texture-sampler pair used by the 
+ * source HLSL generates a "synthetic" combined texture/sampler in the output.
+ * Each separate texture and sampler is then mapped to a set of auto-generated 
+ * combined texture/samplers that it is used in.
+ */
 typedef struct plmd_cis_map {
-  uint32_t nentries;
+  uint32_t nentries; /**< Number of entries in the map. */
   const plmd_cis_map_entry **entries;
 } plmd_cis_map;
 
+/**
+ * A user-provided metadata entry.
+ */
 typedef struct plmd_user_entry {
   const char *key;
   const char *value;
 } plmd_user_entry;
 
+/**
+ * User-provided metadata.
+ */
 typedef struct plmd_user {
-  uint32_t nentries;
+  uint32_t nentries; /**< Number of entries. */
   plmd_user_entry *entries;
 } plmd_user;
 
