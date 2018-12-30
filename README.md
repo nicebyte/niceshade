@@ -23,11 +23,13 @@ This tool is powered by [shaderc](https://github.com/google/shaderc) and [SPIRV-
 * [Using Vulkan Features From HLSL](#vk-hlsl)
 * [Pipeline Metadata File Format](#metadata-format)
 
-## Project Status <a name="project-status"></a>
+<a name="project-status"></a>
+## Project Status 
 
 This project is under active development. Some features may change significantly.
 
-## Obtaining the Source Code and Building <a name="building"></a>
+<a name="building"></a>
+## Obtaining the Source Code and Building 
 
 You will need to have `git` and `cmake` installed on your system.  On Windows, building with compilers other than MSVC may not work.
 
@@ -44,7 +46,8 @@ cmake .. -Ax64
 ```
 This will generate project files specific to your system in the `build` folder. After building the generated project, the `nicegraf_shaderc` binary can be found in the repository's root folder.
 
-## Running <a name="running"></a>
+<a name="running"></a>
+## Running
 
 To transform an input HLSL file to platform-specific shaders, execute:
 
@@ -66,7 +69,8 @@ For example, the following line will produce OpenGL 4.3 and Metal 1.2 shaders fo
 
 `nicegraf_shaderc input.hlsl -O generated_shaders/ -t gl430 -t msl12`
 
-## Defining Techniques <a name="techniques"></a>
+<a name="techniques"></a>
+## Defining Techniques
 
 Techniques are defined using a special comment:
 
@@ -84,7 +88,8 @@ The following tag names are valid:
 
 A valid technique definition must at least specify an entry point for the vertex stage.
 
-## Pipeline Metadata <a name="pipeline-metadata"></a>
+<a name="pipeline-metadata"></a>
+## Pipeline Metadata
 
 For each technique defined in the input file, **nicegraf_shaderc** will produce a corresponding `.pipeline` file, which contains the following information:
 
@@ -94,7 +99,8 @@ For each technique defined in the input file, **nicegraf_shaderc** will produce 
 
 `.pipeline` files are binary. Code for parsing the binary format is provided in the `metadata_parser` subfolder of the source code repository. Alternatively, `.pipeline` files can be converted to human-readable JSON using the `display_metadata` utility, source code for which is provided in the `samples` subfolder of the repository. A detailed description of the metadata file format is provided [below](#metadata-format).
 
-## Using Vulkan features from HLSL <a name="vk-hlsl"></a>
+<a name="vk-hlsl"></a>
+## Using Vulkan features from HLSL
 
 You may choose to use the Vulkan binding model explicitly and assign descriptor sets and bindings like this:
 
@@ -111,7 +117,8 @@ You may use specialization constants as well:
 
 See [here](https://github.com/Microsoft/DirectXShaderCompiler/blob/master/docs/SPIR-V.rst) for more details.
 
-## Pipeline Metadata File Format <a name="metadata-format"></a>
+<a name="metadata-format"></a>
+## Pipeline Metadata File Format
 
 For each technique described in the input file, `nicegraf-shaderc` emits a file containing information that can be leveraged to simplify pipeline creation. This data includes:
 
