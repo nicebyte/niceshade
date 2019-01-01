@@ -5,6 +5,6 @@ layout(location = 0) out vec4 _entryPointOutput;
 
 void main()
 {
-    _entryPointOutput = gl_FragCoord;
+    _entryPointOutput = (gl_FragCoord * 0.5) + vec4(0.5);
 }
 
