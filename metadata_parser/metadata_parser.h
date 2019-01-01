@@ -29,20 +29,20 @@ extern "C" {
 
 typedef struct plmd plmd;
 
-#define PLMD_DESC_UNIFORM_BUFFER         (0x00)
-#define PLMD_DESC_STORAGE_BUFFER         (0x01)
-#define PLMD_DESC_LOADSTORE_IMAGE        (0x02)
-#define PLMD_DESC_IMAGE                  (0x03)
-#define PLMD_DESC_SAMPLER                (0x04)
-#define PLMD_DESC_COMBINED_IMAGE_SAMPLER (0x05)
+#define NGF_PLMD_DESC_UNIFORM_BUFFER         (0x00)
+#define NGF_PLMD_DESC_STORAGE_BUFFER         (0x01)
+#define NGF_PLMD_DESC_LOADSTORE_IMAGE        (0x02)
+#define NGF_PLMD_DESC_IMAGE                  (0x03)
+#define NGF_PLMD_DESC_SAMPLER                (0x04)
+#define NGF_PLMD_DESC_COMBINED_IMAGE_SAMPLER (0x05)
 
-#define PLMD_STAGE_VISIBILITY_VERTEX_BIT   (0x01)
-#define PLMD_STAGE_VISIBILITY_FRAGMENT_BIT (0x02)
+#define NGF_PLMD_STAGE_VISIBILITY_VERTEX_BIT   (0x01)
+#define NGF_PLMD_STAGE_VISIBILITY_FRAGMENT_BIT (0x02)
 
 /**
  * Pipeline metadata header.
  */
-typedef struct plmd_header {
+typedef struct ngf_plmd_header {
   uint32_t magic_number; /**< must always be 0xdeadbeef */
   uint32_t header_size; /**< size of the metadata header in bytes. */
   uint32_t version_maj; /**< major version of the format in use. */
@@ -75,38 +75,38 @@ typedef struct plmd_header {
    * USER_METADATA record is stored.
    */
   uint32_t user_metadata_offset;
-} plmd_header;
+} ngf_plmd_header;
 
 /**
  * Information about a descriptor.
  */
-typedef struct plmd_descriptor {
+typedef struct ngf_plmd_descriptor {
   uint32_t binding; /**< Binding within the set. */
-  uint32_t type; /**< Type of the descriptor (PLMD_DESC_...) */
+  uint32_t type; /**< Type of the descriptor (NGF_PLMD_DESC_...) */
   uint32_t stage_visibility_mask; /**< Mask indicating which shader stages the
                                        descriptor is used from. */
-} plmd_descriptor;
+} ngf_plmd_descriptor;
 
 /**
  * Information about a descriptor set.
  */
-typedef struct plmd_descriptor_set_layout {
+typedef struct ngf_plmd_descriptor_set_layout {
   uint32_t ndescriptors; /**< Number of descriptors in the set. */
-  plmd_descriptor descriptors[];
-} plmd_descriptor_set_layout;
+  ngf_plmd_descriptor descriptors[];
+} ngf_plmd_descriptor_set_layout;
 
 /**
  * Information about a pipeline layout.
  */
-typedef struct plmd_layout {
+typedef struct ngf_plmd_layout {
   uint32_t ndescriptor_sets; /**< Number of descriptor sets.*/
-  const plmd_descriptor_set_layout **set_layouts;
-} plmd_layout;
+  const ngf_plmd_descriptor_set_layout **set_layouts;
+} ngf_plmd_layout;
 
 /**
  * A separate-to-combined map entry.
  */
-typedef struct plmd_cis_map_entry {
+typedef struct ngf_plmd_cis_map_entry {
   /**
    * Descriptor set of the separate image or sampler object.
    */
@@ -120,7 +120,7 @@ typedef struct plmd_cis_map_entry {
    */
   uint32_t ncombined_ids;
   uint32_t combined_ids[]; /**< IDs of the combined image/samplers. */
-} plmd_cis_map_entry;
+} ngf_plmd_cis_map_entry;
 
 /**
  * Some platforms do not have full separation between textures and samplers.
@@ -134,49 +134,49 @@ typedef struct plmd_cis_map_entry {
  * Each separate texture and sampler is then mapped to a set of auto-generated 
  * combined texture/samplers that it is used in.
  */
-typedef struct plmd_cis_map {
+typedef struct ngf_plmd_cis_map {
   uint32_t nentries; /**< Number of entries in the map. */
-  const plmd_cis_map_entry **entries;
-} plmd_cis_map;
+  const ngf_plmd_cis_map_entry **entries;
+} ngf_plmd_cis_map;
 
 /**
  * A user-provided metadata entry.
  */
-typedef struct plmd_user_entry {
+typedef struct ngf_plmd_user_entry {
   const char *key;
   const char *value;
-} plmd_user_entry;
+} ngf_plmd_user_entry;
 
 /**
  * User-provided metadata.
  */
-typedef struct plmd_user {
+typedef struct ngf_plmd_user {
   uint32_t nentries; /**< Number of entries. */
-  plmd_user_entry *entries;
-} plmd_user;
+  ngf_plmd_user_entry *entries;
+} ngf_plmd_user;
 
-typedef enum plmd_error {
-  PLMD_ERROR_OK,
-  PLMD_ERROR_OUTOFMEM,
-  PLMD_ERROR_MAGIC_NUMBER_MISMATCH,
-  PLMD_ERROR_BUFFER_TOO_SMALL,
-  PLMD_ERROR_WEIRD_BUFFER_SIZE
-} plmd_error;
+typedef enum ngf_plmd_error {
+  NGF_PLMD_ERROR_OK,
+  NGF_PLMD_ERROR_OUTOFMEM,
+  NGF_PLMD_ERROR_MAGIC_NUMBER_MISMATCH,
+  NGF_PLMD_ERROR_BUFFER_TOO_SMALL,
+  NGF_PLMD_ERROR_WEIRD_BUFFER_SIZE
+} ngf_plmd_error;
 
-typedef struct plmd_alloc_callbacks {
+typedef struct ngf_plmd_alloc_callbacks {
   void* (*alloc)(size_t);
   void  (*free)(void*);
-} plmd_alloc_callbacks;
+} ngf_plmd_alloc_callbacks;
 
-plmd_error plmd_load(const void *buf, size_t buf_size,
-                             const plmd_alloc_callbacks *alloc_cb,
+ngf_plmd_error ngf_plmd_load(const void *buf, size_t buf_size,
+                             const ngf_plmd_alloc_callbacks *alloc_cb,
                              plmd **result);
-void plmd_destroy(plmd *m, const plmd_alloc_callbacks *alloc_cb);
-const plmd_layout* plmd_get_layout(const plmd *m);
-const plmd_cis_map* plmd_get_image_to_cis_map(const plmd *m);
-const plmd_cis_map* plmd_get_sampler_to_cis_map(const plmd *m);
-const plmd_user* plmd_get_user(const plmd *m);
-const plmd_header* plmd_get_header(const plmd *m);
+void ngf_plmd_destroy(plmd *m, const ngf_plmd_alloc_callbacks *alloc_cb);
+const ngf_plmd_layout* ngf_plmd_get_layout(const plmd *m);
+const ngf_plmd_cis_map* ngf_plmd_get_image_to_cis_map(const plmd *m);
+const ngf_plmd_cis_map* ngf_plmd_get_sampler_to_cis_map(const plmd *m);
+const ngf_plmd_user* ngf_plmd_get_user(const plmd *m);
+const ngf_plmd_header* ngf_plmd_get_header(const plmd *m);
 
 #if defined(__cplusplus)
 }

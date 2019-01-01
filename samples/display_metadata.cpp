@@ -31,7 +31,7 @@ static const char *DESCRIPTOR_TYPE_NAMES[] = {
   "COMBINED_IMAGE_SAMPLER"
 };
 
-void print_cis_map(const plmd_cis_map *m);
+void print_cis_map(const ngf_plmd_cis_map *m);
 
 int main(int argc, const char *argv[]) {
   if (argc <= 1) {
@@ -41,14 +41,14 @@ int main(int argc, const char *argv[]) {
   const char *file_name = argv[1];
   std::string buf = read_file(file_name);
   plmd *m;
-  plmd_error err = plmd_load(buf.data(), buf.size(), NULL, &m);
-  if (err != PLMD_ERROR_OK) {
+  ngf_plmd_error err = ngf_plmd_load(buf.data(), buf.size(), NULL, &m);
+  if (err != NGF_PLMD_ERROR_OK) {
     fprintf(stderr, "Error loading pipeline metadata: %d\n", err);
     exit(1);
   }
   printf("{\n");
   printf("\"header\": {\n");
-  const plmd_header *header = plmd_get_header(m);
+  const ngf_plmd_header *header = ngf_plmd_get_header(m);
   printf("  \"magic_number\": %u,\n", header->magic_number);
   printf("  \"header_size\": %d,\n", header->header_size);
   printf("  \"version_maj\": %d,\n", header->version_maj);
@@ -61,15 +61,15 @@ int main(int argc, const char *argv[]) {
   printf("  \"user_metadata_offset\": %d\n},\n", header->user_metadata_offset);
 
   printf("\"pipeline_layout\": {\n");
-  const plmd_layout *layout = plmd_get_layout(m);
+  const ngf_plmd_layout *layout = ngf_plmd_get_layout(m);
   printf("  \"descriptor_sets\": [\n");
   for (uint32_t s = 0u; s < layout->ndescriptor_sets; ++s) {
-    const plmd_descriptor_set_layout *dsl = layout->set_layouts[s];
+    const ngf_plmd_descriptor_set_layout *dsl = layout->set_layouts[s];
     printf("    {\n");
     printf("      \"set\": %d,\n", s);
     printf("      \"descriptors\": [\n");
     for (uint32_t di = 0u; di < dsl->ndescriptors; ++di) {
-      const plmd_descriptor *d = &(dsl->descriptors[di]);
+      const ngf_plmd_descriptor *d = &(dsl->descriptors[di]);
       printf("        {\n");
       printf("          \"binding\": %d,\n", d->binding);
       printf("          \"type\": \"%s\",\n", DESCRIPTOR_TYPE_NAMES[d->type]);
@@ -86,29 +86,29 @@ int main(int argc, const char *argv[]) {
   printf("},\n");
 
   printf("\"image_to_cis_map\": {\n");
-  print_cis_map(plmd_get_image_to_cis_map(m));
+  print_cis_map(ngf_plmd_get_image_to_cis_map(m));
   printf("},\n");
 
   printf("\"sampler_to_cis_map\": {\n");
-  print_cis_map(plmd_get_sampler_to_cis_map(m));
+  print_cis_map(ngf_plmd_get_sampler_to_cis_map(m));
   printf("},\n");
 
   printf("\"user_metadata\": {\n");
-  const plmd_user *user = plmd_get_user(m);
+  const ngf_plmd_user *user = ngf_plmd_get_user(m);
   for (uint32_t e = 0u; e < user->nentries; ++e) {
     printf("  \"%s\": \"%s\"", user->entries[e].key, user->entries[e].value);
     if (e != user->nentries - 1) printf(",");
     printf("\n");
   }
   printf("}\n}\n");
-  plmd_destroy(m, NULL);
+  ngf_plmd_destroy(m, NULL);
   return 0;
 }
 
-void print_cis_map(const plmd_cis_map *m) {
+void print_cis_map(const ngf_plmd_cis_map *m) {
   printf("  \"entries\": [\n");
   for (uint32_t e = 0u; e < m->nentries; ++e) {
-    const plmd_cis_map_entry *entry = m->entries[e];
+    const ngf_plmd_cis_map_entry *entry = m->entries[e];
     printf("    {\n");
     printf("      \"entry\": %d,\n", e);
     printf("      \"separate_set_id\": %d,\n", entry->separate_set_id);
