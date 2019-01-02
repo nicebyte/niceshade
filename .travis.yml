@@ -1,37 +1,49 @@
 language: cpp
-compiler:
-  -clang
-  -gcc
+sudo: required
 matrix:
   include:
-    # works on Precise and Trusty
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-   - os: linux
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-trusty-5.0
-          packages:
-            - clang-5.0
-      env:
-        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
-addons:
-  apt:
-    sources:
-      - george-edison55-precise-backports
-    packages:
-      - cmake-data
-      - cmake
+  - addons: &1
+      apt:
+        sources:
+        - george-edison55-precise-backports
+        - ubuntu-toolchain-r-test
+        - llvm-toolchain-precise-3.7
+        packages:
+        - cmake
+        - cmake-data
+        - ninja-build
+        - g++-4.9
+        - clang-3.7
+    compiler: clang
+    env: DEPLOY_BUILD=1 COMPILER_VERSION=3.7 BUILD_TYPE=Debug
+  - addons: *1
+    compiler: clang
+    env: COMPILER_VERSION=3.7 BUILD_TYPE=Release
+  - addons: &2
+      apt:
+        sources:
+        - george-edison55-precise-backports
+        - ubuntu-toolchain-r-test
+        packages:
+        - cmake
+        - cmake-data
+        - ninja-build
+        - g++-4.9
+    compiler: gcc
+    env: COMPILER_VERSION=4.9 BUILD_TYPE=Debug
+  - addons: *2
+    compiler: gcc
+    env: COMPILER_VERSION=4.9 BUILD_TYPE=Release
+  - addons: *1
+    compiler: clang
+    env: COMPILER_VERSION=3.7 BUILD_TYPE=Debug
 before_install:
-    - eval "${MATRIX_EVAL}"
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade; fi
+- if [ -n "$REPORT_COVERAGE" ]; then sudo apt-get update python; fi
+- if [ -n "$REPORT_COVERAGE" ]; then sudo apt-get install python-dev libffi-dev libssl-dev; fi
+- if [ -n "$REPORT_COVERAGE" ]; then sudo pip install --upgrade pip; fi
+- if [ -n "$REPORT_COVERAGE" ]; then CXX=g++ pip install --user requests[security]; fi
+- if [ -n "$REPORT_COVERAGE" ]; then CXX=g++ pip install --user cpp-coveralls; fi
 script:
-  cmake -Ax64
-  make -j8
+- cmake -Ax64
+- make -j8
