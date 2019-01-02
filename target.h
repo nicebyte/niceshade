@@ -39,9 +39,13 @@ struct target_info {
   target_platform_class platform; // Device types that the target API runs on.
 };
 
+struct named_target_info {
+  const char *name;
+  target_info target;
+};
+
 // Map of string identifiers to a target-specific information.
-static const struct { const char *name;
-                      target_info target; } TARGET_MAP[] = {
+static const struct named_target_info TARGET_MAP[] = {
   {
     "gl430",
     {

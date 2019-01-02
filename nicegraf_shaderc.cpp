@@ -120,7 +120,7 @@ int main(int argc, const char *argv[]) {
     const std::string option_value { argv[o + 1u] };
     if ("-t" == option_name) { // Target to generate code for.
       const auto *t = std::find_if(TARGET_MAP, TARGET_MAP + TARGET_COUNT,
-                                   [&option_value](const auto &x) {
+                                   [&option_value](const named_target_info &x) {
                                      return option_value == x.name;
                                    });
       if (t == TARGET_MAP + TARGET_COUNT) {
