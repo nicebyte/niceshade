@@ -1,4 +1,4 @@
-language: cpp
+language: generic
 sudo: required
 matrix:
   include:
@@ -12,6 +12,7 @@ matrix:
             - g++-7
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+install: export CXX="g++-7"
 script:
 - mkdir build
 - cd build
