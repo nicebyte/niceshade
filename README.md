@@ -1,4 +1,4 @@
-# nicegraf-shaderc
+# nicegraf-shaderc [![Build status](https://ci.appveyor.com/api/projects/status/ny9j8k6869artsrd?svg=true)](https://ci.appveyor.com/project/nicebyte/nicegraf-shaderc)
 
 **nicegraf-shaderc** is a command-line tool that transforms HLSL code into shaders for various graphics APIs. Presently, the following APIs can be targeted:
 
