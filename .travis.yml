@@ -45,5 +45,7 @@ before_install:
 - if [ -n "$REPORT_COVERAGE" ]; then CXX=g++ pip install --user requests[security]; fi
 - if [ -n "$REPORT_COVERAGE" ]; then CXX=g++ pip install --user cpp-coveralls; fi
 script:
-- cmake .
+- mkdir build
+- cd build
+- cmake ../
 - make -j8
