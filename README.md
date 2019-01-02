@@ -4,6 +4,20 @@
 
 # User Manual
 
+## Table of Contents
+
+* [Introduction](#intro)
+* [Project Status](#project-status)
+* [Obtaining the Source Code and Building](#building)
+* [Running](#running)
+* [Defining Techniques](#techniques)
+* [Pipeline Metadata](#pipeline-metadata)
+* [Using Vulkan Features From HLSL](#vk-hlsl)
+* [Pipeline Metadata File Format](#metadata-format)
+
+<a name="intro"></a>
+## Introduction
+
 **nicegraf-shaderc** is a command-line tool that transforms HLSL code into shaders for various graphics APIs. Presently, the following APIs can be targeted:
 
 * OpenGL 4.3
@@ -16,16 +30,6 @@ The input HLSL files may contain definitions of several entry points for differe
 In addition to generating shaders, the tool captures and writes out the information about resources (textures, buffers, etc.) used by each technique defined in the input file. This information can be used by the application for various purposes, such as streamlining Vulkan pipeline layout creation.
 
 This tool is powered by [shaderc](https://github.com/google/shaderc) and [SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross).
-
-## Table of Contents
-
-* [Project Status](#project-status)
-* [Obtaining the Source Code and Building](#building)
-* [Running](#running)
-* [Defining Techniques](#techniques)
-* [Pipeline Metadata](#pipeline-metadata)
-* [Using Vulkan Features From HLSL](#vk-hlsl)
-* [Pipeline Metadata File Format](#metadata-format)
 
 <a name="project-status"></a>
 ## Project Status 
