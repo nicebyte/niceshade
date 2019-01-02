@@ -21,6 +21,7 @@ SOFTWARE.
 #include "file_utils.h"
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 static const char *DESCRIPTOR_TYPE_NAMES[] = {
   "UNIFORM_BUFFER",
