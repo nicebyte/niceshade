@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.0.2)
+project(nicegraf_shaderc)
+
 if (WIN32)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
@@ -6,7 +8,6 @@ else()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 endif()
-project(nicegraf_shaderc)
 
 function(set_output_dir target dir)
   set_target_properties(${target} PROPERTIES
