@@ -42,7 +42,7 @@ public:
 
 private:
   FILE *f_;
-  plmd_header header_;
+  ngf_plmd_header header_;
   uint32_t *current_section_offset_ptr_;
-  uint32_t current_offset_ = sizeof(plmd_header);
+  uint32_t current_offset_ = sizeof(ngf_plmd_header);
 };
