@@ -41,9 +41,6 @@ set(NICEGRAF_SHADERC_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/shader_includer.cpp)
 
 add_executable(nicegraf_shaderc ${NICEGRAF_SHADERC_SOURCES})
-if(UNIX)
-set_target_properties(nicegraf_shaderc PROPERTIES COMPILE_FLAGS "-std=c++14")
-endif()
 target_include_directories(nicegraf_shaderc PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../library/include)
 target_link_libraries(nicegraf_shaderc
   shaderc spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl)
@@ -55,6 +52,10 @@ add_executable(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples/display_metada
 target_include_directories(display_metadata PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(display_metadata PRIVATE metadata_parser)
 set_output_dir(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples)
+if(UNIX)
+set_target_properties(nicegraf_shaderc PROPERTIES COMPILE_FLAGS "-std=c++14")
+set_target_properties(display_metadata PROPERTIES COMPILE_FLAGS "-std=c++14")
+endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_target_properties(shaderc  glslc glslc_exe install-headers 
