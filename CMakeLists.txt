@@ -5,7 +5,6 @@ if (WIN32)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
 else()
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 endif()
 
@@ -53,6 +52,10 @@ add_executable(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples/display_metada
 target_include_directories(display_metadata PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(display_metadata PRIVATE metadata_parser)
 set_output_dir(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples)
+if(UNIX)
+set_target_properties(nicegraf_shaderc PROPERTIES COMPILE_FLAGS "-std=c++14")
+set_target_properties(display_metadata PROPERTIES COMPILE_FLAGS "-std=c++14")
+endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_target_properties(shaderc  glslc glslc_exe install-headers 
