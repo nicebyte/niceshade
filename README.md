@@ -27,6 +27,40 @@
 
 The input HLSL files may contain definitions of several entry points for different shader stages. The entry points can be configured into a single rendering pipeline (with additional options, if desired) using a special directive. For each of these configurations (called *techniques*), the tool will generate platform-specific shaders.
 
+As an example, here is a shader that calculates the relative luminance of each pixel in an image. For demonstration purposes, it allows to optionally apply gamma correction to input and/or output.
+
+```cpp
+// The comments below are recognized by nicegraf-shaderc as technique definitions.
+//T: relative-luminance vs:VSMain ps:PSMain define:OUTPUT_NEEDS_GAMMA_CORRECTION=1 define:INPUT_NEEDS_GAMMA_CORRECTION=1
+//T: relative-luminance-srgb-texture vs:VSMain ps:PSMain define:OUTPUT_NEEDS_GAMMA_CORRECTION=1
+//T: relative-luminance-srgb-framebuffer vs:VSMain ps:PSMain define:INPUT_NEEDS_GAMMA_CORRECTION=1
+//T: relative-luminance-srgb-texture-and-framebuffer vs:VSMain ps:PSMain
+
+float4 VSMain(uint vid : SV_VertexID) : SV_POSITION { // vertex shader
+  const float2 fullscreen_triangle_verts[] = {
+    float2(-1.0, -1.0), float2(3.0, -1.0), float2(-1.0,  3.0)
+  };
+  return  float4(fullscreen_triangle_verts[vid % 3], 0.0, 1.0);
+}
+
+uniform Texture2D img;
+
+float4 PSMain(float4 frag_coord : SV_POSITION) : SV_TARGET { // pixel shader
+  const float gamma = 2.2;
+  uint img_width, img_height;
+  img.GetDimensions(img_width, img_height);
+  float3 color = img.Load(int3(int2(frag_coord.xy) % int2(img_width, img_height), 0)).rgb;
+#if defined(INPUT_NEEDS_GAMMA_CORRECTION)
+  color = pow(color, gamma);
+#endif
+  float relative_luminance = dot(float3(0.2126, 0.7152, 0.0722), color);
+#if defined(OUTPUT_NEEDS_GAMMA_CORRECTION)
+  relative_luminance = pow(relative_luminance, 1.0 / gamma);
+#endif
+  return float4(float3(relative_luminance), 1.0);
+}
+```
+
 In addition to generating shaders, the tool captures and writes out the information about resources (textures, buffers, etc.) used by each technique defined in the input file. This information can be used by the application for various purposes, such as streamlining Vulkan pipeline layout creation.
 
 This tool is powered by [shaderc](https://github.com/google/shaderc) and [SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross).
