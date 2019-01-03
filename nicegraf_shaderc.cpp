@@ -207,6 +207,7 @@ int main(int argc, const char *argv[]) {
                 (uint32_t)(spv_result.cend() - spv_result.cbegin()), t);
         spirv_cross::ShaderResources resources =
             compiler->get_shader_resources();
+        compiler->build_dummy_sampler_for_combined_images();
         compiler->build_combined_image_samplers();
         const std::vector<spirv_cross::CombinedImageSampler> &cis =
             compiler->get_combined_image_samplers();
