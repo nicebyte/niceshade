@@ -28,7 +28,8 @@ void pipeline_layout::add_resources(
   for (const auto &r : resources) {
     uint32_t set_id =
         refl.get_decoration(r.id, spv::DecorationDescriptorSet);
-    if (set_id == AUTOGEN_CIS_DESCRIPTOR_SET) {
+    if (set_id == AUTOGEN_CIS_DESCRIPTOR_SET ||
+        refl.get_name(r.id) == "SPIRV_Cross_DummySampler") {
       // Auto-generated combined image/samplers aren't included in the layout.
       continue;
     }
