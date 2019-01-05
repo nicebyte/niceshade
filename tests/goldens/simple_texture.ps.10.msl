@@ -13,7 +13,7 @@ struct PSMain_in
     float2 ps_in_texcoord [[user(locn0)]];
 };
 
-fragment PSMain_out PSMain(PSMain_in in [[stage_in]], texture2d<float> tex_samp [[texture(0)]], texture2d<float> tex [[texture(1)]], sampler tex_sampSmplr [[sampler(0)]], sampler samp [[sampler(2)]], float4 gl_FragCoord [[position]])
+fragment PSMain_out PSMain(PSMain_in in [[stage_in]], texture2d<float> tex [[texture(1)]], sampler samp [[sampler(2)]], float4 gl_FragCoord [[position]])
 {
     PSMain_out out = {};
     out._entryPointOutput = tex.sample(samp, in.ps_in_texcoord);
