@@ -23,7 +23,7 @@
 * OpenGL 4.3
 * OpenGL ES 3.1+
 * Metal 1.0+
-* SPIR-V
+* Vulkan 1.0+
 
 The input HLSL files may contain definitions of several entry points for different shader stages. The entry points can be configured into a single rendering pipeline (with additional options, if desired) using a special directive. For each of these configurations (called *techniques*), the tool will generate platform-specific shaders.
 
