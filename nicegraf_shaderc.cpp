@@ -112,7 +112,7 @@ int main(int argc, const char *argv[]) {
   // Process command line arguments.
   const std::string input_file_path { argv[1] }; // input file name.
   std::string out_folder = ".";
-  std::vector<target_info> targets;
+  std::vector<const target_info*> targets;
   for (uint32_t o = 2u; o < (uint32_t)argc; o += 2u) { // process options.
     const std::string option_name { argv[o] };
     if (o + 1u >= (uint32_t)argc) {
@@ -129,7 +129,7 @@ int main(int argc, const char *argv[]) {
         fprintf(stderr, "Unknown target \"%s\"\n", option_value.c_str());
         exit(1);
       }
-      targets.push_back(t->target);
+      targets.push_back(&(t->target));
     } else if ("-O" == option_name) { // Output folder.
       out_folder = option_value;
     } else {
@@ -137,6 +137,10 @@ int main(int argc, const char *argv[]) {
       exit(1);
     }
   }
+  std::sort(targets.begin(), targets.end(), [](const target_info *t1,
+                                               const target_info *t2) { 
+                                              return t1->api < t2->api;
+                                            });
 
   // Do a sanity check - no point in running with no targets.
   if (targets.empty()) {
@@ -189,7 +193,7 @@ int main(int argc, const char *argv[]) {
 
   // Generate output.
   bool generate_pipeline_metadata = true;
-  for (const target_info &t : targets) {
+  for (const target_info *target_info : targets) {
     uint32_t spv_idx = 0u;
     for (const technique &tech : techniques) {
       pipeline_layout res_layout;
@@ -202,11 +206,12 @@ int main(int argc, const char *argv[]) {
         std::string out_file_path =
             out_folder + PATH_SEPARATOR + tech.name + 
             (ep.kind == shaderc_vertex_shader ? ".vs." : ".ps.")
-            + t.file_ext;
+            + target_info->file_ext;
         std::unique_ptr<spirv_cross::Compiler> compiler =
             create_cross_compiler(
                 spv_result.cbegin(),
-                (uint32_t)(spv_result.cend() - spv_result.cbegin()), t);
+                (uint32_t)(spv_result.cend() - spv_result.cbegin()),
+                *target_info);
         spirv_cross::ShaderResources resources =
             compiler->get_shader_resources();
         const std::vector<spirv_cross::CombinedImageSampler> &cis =
@@ -251,7 +256,7 @@ int main(int argc, const char *argv[]) {
                   out_file_path.c_str());
           exit(1);
         }
-        if (t.api != target_api::VULKAN) {
+        if (target_info->api != target_api::VULKAN) {
           out = compiler->compile();
           fwrite(&out[0], sizeof(uint8_t), out.length(), out_file);
         } else {
