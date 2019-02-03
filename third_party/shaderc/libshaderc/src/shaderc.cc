@@ -68,6 +68,8 @@ EShLanguage GetForcedStage(shaderc_shader_kind kind) {
       return EShLangMissNV;
     case shaderc_glsl_intersection_shader:
       return EShLangIntersectNV;
+    case shaderc_glsl_callable_shader:
+      return EShLangCallableNV;
     case shaderc_glsl_task_shader:
       return EShLangTaskNV;
     case shaderc_glsl_mesh_shader:
@@ -87,6 +89,7 @@ EShLanguage GetForcedStage(shaderc_shader_kind kind) {
     case shaderc_glsl_default_closesthit_shader:
     case shaderc_glsl_default_miss_shader:
     case shaderc_glsl_default_intersection_shader:
+    case shaderc_glsl_default_callable_shader:
     case shaderc_glsl_default_task_shader:
     case shaderc_glsl_default_mesh_shader:
 #endif
@@ -153,6 +156,7 @@ class StageDeducer {
       case shaderc_glsl_closesthit_shader:
       case shaderc_glsl_miss_shader:
       case shaderc_glsl_intersection_shader:
+      case shaderc_glsl_callable_shader:
       case shaderc_glsl_task_shader:
       case shaderc_glsl_mesh_shader:
 #endif
@@ -180,6 +184,8 @@ class StageDeducer {
         return EShLangMissNV;
       case shaderc_glsl_default_intersection_shader:
         return EShLangIntersectNV;
+      case shaderc_glsl_default_callable_shader:
+        return EShLangCallableNV;
       case shaderc_glsl_default_task_shader:
         return EShLangTaskNV;
       case shaderc_glsl_default_mesh_shader:
@@ -286,6 +292,26 @@ shaderc_util::Compiler::TargetEnv GetCompilerTargetEnv(shaderc_target_env env) {
   }
 
   return shaderc_util::Compiler::TargetEnv::Vulkan;
+}
+
+shaderc_util::Compiler::TargetEnvVersion GetCompilerTargetEnvVersion(
+    uint32_t version_number) {
+  using namespace shaderc_util;
+
+  if (static_cast<uint32_t>(Compiler::TargetEnvVersion::Vulkan_1_0) ==
+      version_number) {
+    return Compiler::TargetEnvVersion::Vulkan_1_0;
+  }
+  if (static_cast<uint32_t>(Compiler::TargetEnvVersion::Vulkan_1_1) ==
+      version_number) {
+    return Compiler::TargetEnvVersion::Vulkan_1_1;
+  }
+  if (static_cast<uint32_t>(Compiler::TargetEnvVersion::OpenGL_4_5) ==
+      version_number) {
+    return Compiler::TargetEnvVersion::OpenGL_4_5;
+  }
+
+  return Compiler::TargetEnvVersion::Default;
 }
 
 // Returns the Compiler::Limit enum for the given shaderc_limit enum.
@@ -446,7 +472,8 @@ void shaderc_compile_options_set_target_env(shaderc_compile_options_t options,
                                             shaderc_target_env target,
                                             uint32_t version) {
   options->target_env = target;
-  options->compiler.SetTargetEnv(GetCompilerTargetEnv(target), version);
+  options->compiler.SetTargetEnv(GetCompilerTargetEnv(target),
+                                 GetCompilerTargetEnvVersion(version));
 }
 
 void shaderc_compile_options_set_warnings_as_errors(
@@ -646,8 +673,11 @@ shaderc_compilation_result_t shaderc_assemble_into_spv(
     std::string errors;
     const auto target_env = additional_options ? additional_options->target_env
                                                : shaderc_target_env_default;
+    const uint32_t target_env_version =
+        additional_options ? additional_options->target_env_version : 0;
     const bool assembling_succeeded = shaderc_util::SpirvToolsAssemble(
         GetCompilerTargetEnv(target_env),
+        GetCompilerTargetEnvVersion(target_env_version),
         {source_assembly, source_assembly + source_assembly_size},
         &assembling_output_data, &errors);
     result->num_errors = !assembling_succeeded;

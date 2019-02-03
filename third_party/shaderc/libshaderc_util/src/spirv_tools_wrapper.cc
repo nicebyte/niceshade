@@ -24,24 +24,37 @@ namespace shaderc_util {
 namespace {
 
 // Gets the corresponding target environment used in SPIRV-Tools.
-spv_target_env GetSpirvToolsTargetEnv(Compiler::TargetEnv env) {
+spv_target_env GetSpirvToolsTargetEnv(Compiler::TargetEnv env,
+                                      Compiler::TargetEnvVersion version) {
   switch (env) {
     case Compiler::TargetEnv::Vulkan:
-      return SPV_ENV_VULKAN_1_0;
+      switch (version) {
+        case Compiler::TargetEnvVersion::Default:
+          return SPV_ENV_VULKAN_1_0;
+        case Compiler::TargetEnvVersion::Vulkan_1_0:
+          return SPV_ENV_VULKAN_1_0;
+        case Compiler::TargetEnvVersion::Vulkan_1_1:
+          return SPV_ENV_VULKAN_1_1;
+        default:
+          break;
+      }
+      break;
     case Compiler::TargetEnv::OpenGL:
       return SPV_ENV_OPENGL_4_5;
-    case Compiler::TargetEnv::OpenGLCompat:
-      return SPV_ENV_OPENGL_4_5;  // TODO(antiagainst): is this correct?
+    case Compiler::TargetEnv::OpenGLCompat:  // Deprecated
+      return SPV_ENV_OPENGL_4_5;
   }
+  assert(false && "unexpected target environment or version");
   return SPV_ENV_VULKAN_1_0;
 }
 
 }  // anonymous namespace
 
 bool SpirvToolsDisassemble(Compiler::TargetEnv env,
+                           Compiler::TargetEnvVersion version,
                            const std::vector<uint32_t>& binary,
                            std::string* text_or_error) {
-  spvtools::SpirvTools tools(SPV_ENV_VULKAN_1_0);
+  spvtools::SpirvTools tools(GetSpirvToolsTargetEnv(env, version));
   std::ostringstream oss;
   tools.SetMessageConsumer([&oss](spv_message_level_t, const char*,
                                   const spv_position_t& position,
@@ -58,9 +71,12 @@ bool SpirvToolsDisassemble(Compiler::TargetEnv env,
   return success;
 }
 
-bool SpirvToolsAssemble(Compiler::TargetEnv env, const string_piece assembly,
-                        spv_binary* binary, std::string* errors) {
-  auto spvtools_context = spvContextCreate(GetSpirvToolsTargetEnv(env));
+bool SpirvToolsAssemble(Compiler::TargetEnv env,
+                        Compiler::TargetEnvVersion version,
+                        const string_piece assembly, spv_binary* binary,
+                        std::string* errors) {
+  auto spvtools_context =
+      spvContextCreate(GetSpirvToolsTargetEnv(env, version));
   spv_diagnostic spvtools_diagnostic = nullptr;
 
   *binary = nullptr;
@@ -84,6 +100,7 @@ bool SpirvToolsAssemble(Compiler::TargetEnv env, const string_piece assembly,
 }
 
 bool SpirvToolsOptimize(Compiler::TargetEnv env,
+                        Compiler::TargetEnvVersion version,
                         const std::vector<PassId>& enabled_passes,
                         std::vector<uint32_t>* binary, std::string* errors) {
   errors->clear();
@@ -94,7 +111,7 @@ bool SpirvToolsOptimize(Compiler::TargetEnv env,
     return true;
   }
 
-  spvtools::Optimizer optimizer(GetSpirvToolsTargetEnv(env));
+  spvtools::Optimizer optimizer(GetSpirvToolsTargetEnv(env, version));
   std::ostringstream oss;
   optimizer.SetMessageConsumer(
       [&oss](spv_message_level_t, const char*, const spv_position_t&,
