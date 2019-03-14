@@ -260,7 +260,6 @@ int main(int argc, const char *argv[]) {
               const descriptor &desc = r.second;
               const uint32_t native_binding =
                   num_descriptors_of_type[(int)desc.type]++;
-              printf("(%d %d) => %d\n", s, desc.slot, native_binding);
               compiler->set_decoration(desc.id, spv::DecorationBinding,
                                        native_binding);
             }
