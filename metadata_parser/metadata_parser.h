@@ -36,6 +36,7 @@ typedef struct plmd plmd;
 #define NGF_PLMD_DESC_IMAGE                  (0x03)
 #define NGF_PLMD_DESC_SAMPLER                (0x04)
 #define NGF_PLMD_DESC_COMBINED_IMAGE_SAMPLER (0x05)
+#define NGF_PLMD_DESC_NUM_TYPES              (0x06) /* add new types above */
 
 #define NGF_PLMD_STAGE_VISIBILITY_VERTEX_BIT   (0x01)
 #define NGF_PLMD_STAGE_VISIBILITY_FRAGMENT_BIT (0x02)

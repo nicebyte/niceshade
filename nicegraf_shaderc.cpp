@@ -199,7 +199,7 @@ int main(int argc, const char *argv[]) {
       pipeline_layout res_layout;
       separate_to_combined_map images_to_cis, samplers_to_cis;
       for (const technique::entry_point ep : tech.entry_points) {
-        
+        uint32_t num_descriptors_of_type[NGF_PLMD_DESC_NUM_TYPES] = {0u};
         const shaderc::SpvCompilationResult &spv_result =
             spv_results[spv_idx++];
         std::string out;
@@ -250,6 +250,22 @@ int main(int argc, const char *argv[]) {
                                          *compiler);
           }
         }
+        // Remap (set, binding) to (binding) for targets that don't
+        // natively support descriptor sets.
+        if (target_info->api == target_api::GL
+            /*|| target_info->api == target_api::METAL */) {
+          for (uint32_t s = 0; s < res_layout.set_count(); ++s) {
+            const descriptor_set_layout &set_layout = res_layout.set(s);
+            for (const auto &r : set_layout) {
+              const descriptor &desc = r.second;
+              const uint32_t native_binding =
+                  num_descriptors_of_type[(int)desc.type]++;
+              printf("(%d %d) => %d\n", s, desc.slot, native_binding);
+              compiler->set_decoration(desc.id, spv::DecorationBinding,
+                                       native_binding);
+            }
+          }
+        }
         FILE *out_file = fopen(out_file_path.c_str(), "wb");
         if (out_file == nullptr) {
           fprintf(stderr, "Failed to open output file %s\n",
@@ -276,7 +292,7 @@ int main(int argc, const char *argv[]) {
         metadata_file.start_new_record();
         metadata_file.write_field(res_layout.set_count());
         for (uint32_t set = 0u; set < res_layout.set_count(); ++set) {
-          const auto &ds = res_layout.set(set);
+          const descriptor_set_layout &ds = res_layout.set(set);
           metadata_file.write_field((uint32_t)ds.size());
           for (const auto &d : ds) {
             metadata_file.write_field(d.second.slot);
