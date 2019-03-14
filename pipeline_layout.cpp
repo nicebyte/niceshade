@@ -53,6 +53,7 @@ void pipeline_layout::add_resources(
                       binding_id, set_id);
       exit(1);
     }
+    desc.id = r.id;
     desc.slot = binding_id;
     desc.type = resource_type;
     desc.stage_mask |= smb;

@@ -45,6 +45,7 @@ enum stage_mask_bit {
 
 // Descriptor data.
 struct descriptor {
+  uint32_t id; // SPIR-V id.
   uint32_t slot; // A descriptor's binding within its set.
   descriptor_type type = descriptor_type::INVALID; // Type of resorce accessed.
   uint32_t stage_mask = 0u; // Which stages the descriptor is used from.
