@@ -21,10 +21,12 @@ SOFTWARE.
 #include <stdlib.h>
 #include <stdio.h>
 
-void pipeline_layout::add_resources(
+void pipeline_layout::process_resources(
     const std::vector<spirv_cross::Resource> &resources,
-    const spirv_cross::Compiler &refl, descriptor_type resource_type,
-    stage_mask_bit smb) {
+    descriptor_type resource_type,
+    stage_mask_bit smb,
+    bool do_remapping,
+    spirv_cross::Compiler &refl) {
   for (const auto &r : resources) {
     uint32_t set_id =
         refl.get_decoration(r.id, spv::DecorationDescriptorSet);
@@ -38,6 +40,14 @@ void pipeline_layout::add_resources(
     descriptor_set &set = sets_[set_id];
     set.slot = set_id;
     descriptor &desc = set.layout[binding_id];
+    if (desc.type == descriptor_type::INVALID) {
+      // This resource hasn't been encountered before.
+      desc.native_binding = num_descriptors_of_type_[(int)resource_type]++;
+      desc.slot = binding_id;
+      desc.type = resource_type;
+      desc.name = r.name;
+      nres_++;
+    }
     if (desc.type != descriptor_type::INVALID &&
         desc.type != resource_type) {
       fprintf(stderr, "Attempt to assign a descriptor of different type to "
@@ -53,12 +63,10 @@ void pipeline_layout::add_resources(
                       binding_id, set_id);
       exit(1);
     }
-    desc.id = r.id;
-    desc.slot = binding_id;
-    desc.type = resource_type;
+    if (do_remapping) {
+      refl.set_decoration(r.id, spv::DecorationBinding, desc.native_binding);
+    }
     desc.stage_mask |= smb;
-    desc.name = r.name;
-    nres_++;
   }
 }
 

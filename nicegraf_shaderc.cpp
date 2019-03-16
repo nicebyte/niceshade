@@ -199,7 +199,6 @@ int main(int argc, const char *argv[]) {
       pipeline_layout res_layout;
       separate_to_combined_map images_to_cis, samplers_to_cis;
       for (const technique::entry_point ep : tech.entry_points) {
-        uint32_t num_descriptors_of_type[NGF_PLMD_DESC_NUM_TYPES] = {0u};
         const shaderc::SpvCompilationResult &spv_result =
             spv_results[spv_idx++];
         std::string out;
@@ -227,21 +226,9 @@ int main(int argc, const char *argv[]) {
                                    spv::DecorationDescriptorSet,
                                    AUTOGEN_CIS_DESCRIPTOR_SET);
         }
-        if (generate_pipeline_metadata) {
-          stage_mask_bit smb =
-              ep.kind == shaderc_vertex_shader
-                           ? STAGE_MASK_VERTEX
-                           : STAGE_MASK_FRAGMENT;
-          res_layout.add_resources(resources.uniform_buffers, *compiler,
-                                   descriptor_type::UNIFORM_BUFFER, smb);
-          res_layout.add_resources(resources.storage_buffers, *compiler,
-                                   descriptor_type::STORAGE_BUFFER, smb);
-          res_layout.add_resources(resources.sampled_images, *compiler,
-                                   descriptor_type::TEXTURE_AND_SAMPLER, smb);
-          res_layout.add_resources(resources.separate_samplers, *compiler,
-                                   descriptor_type::SAMPLER, smb);
-          res_layout.add_resources(resources.separate_images, *compiler,
-                                   descriptor_type::TEXTURE, smb);
+        const bool do_remapping = target_info->api == target_api::GL
+                                  /*|| target_info->api == target_api::METAL */;
+        if (do_remapping || generate_pipeline_metadata) {
           for (const spirv_cross::CombinedImageSampler &cis:
                    compiler->get_combined_image_samplers()) {
             images_to_cis.add_resource(cis.image_id, cis.combined_id,
@@ -249,21 +236,25 @@ int main(int argc, const char *argv[]) {
             samplers_to_cis.add_resource(cis.sampler_id, cis.combined_id,
                                          *compiler);
           }
-        }
-        // Remap (set, binding) to (binding) for targets that don't
-        // natively support descriptor sets.
-        if (target_info->api == target_api::GL
-            /*|| target_info->api == target_api::METAL */) {
-          for (uint32_t s = 0; s < res_layout.set_count(); ++s) {
-            const descriptor_set_layout &set_layout = res_layout.set(s);
-            for (const auto &r : set_layout) {
-              const descriptor &desc = r.second;
-              const uint32_t native_binding =
-                  num_descriptors_of_type[(int)desc.type]++;
-              compiler->set_decoration(desc.id, spv::DecorationBinding,
-                                       native_binding);
-            }
-          }
+          const stage_mask_bit smb =
+              ep.kind == shaderc_vertex_shader
+                           ? STAGE_MASK_VERTEX
+                           : STAGE_MASK_FRAGMENT;
+          auto process_resources =
+            [smb, do_remapping, &compiler, &res_layout](
+              const std::vector<spirv_cross::Resource> &resources,
+              descriptor_type dtype) {
+              res_layout.process_resources(resources, dtype, smb,
+                                           do_remapping, *compiler);
+            };
+          process_resources(resources.uniform_buffers,
+                            descriptor_type::UNIFORM_BUFFER);
+          process_resources(resources.storage_buffers,
+                            descriptor_type::STORAGE_BUFFER);
+          process_resources(resources.separate_samplers,
+                            descriptor_type::SAMPLER);
+          process_resources(resources.separate_images,
+                            descriptor_type::TEXTURE);
         }
         FILE *out_file = fopen(out_file_path.c_str(), "wb");
         if (out_file == nullptr) {
