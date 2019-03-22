@@ -70,6 +70,11 @@ This tool is powered by [shaderc](https://github.com/google/shaderc) and [SPIRV-
 
 This project is under active development. Some features may change significantly.
 
+### Planned Features
+ * Generating a C header file mapping resource names to set/binding numbers;
+ * Adding support for hull, domain, geometry and compute shaders;
+ * Batching and parallel compilation to speed up builds.
+
 <a name="building"></a>
 ## Obtaining the Source Code and Building 
 
