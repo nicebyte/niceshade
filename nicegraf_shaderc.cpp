@@ -227,7 +227,7 @@ int main(int argc, const char *argv[]) {
                                    AUTOGEN_CIS_DESCRIPTOR_SET);
         }
         const bool do_remapping = target_info->api == target_api::GL
-                                  /*|| target_info->api == target_api::METAL */;
+                                  || target_info->api == target_api::METAL;
         if (do_remapping || generate_pipeline_metadata) {
           for (const spirv_cross::CombinedImageSampler &cis:
                    compiler->get_combined_image_samplers()) {
