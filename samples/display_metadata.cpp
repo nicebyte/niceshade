@@ -41,7 +41,7 @@ int main(int argc, const char *argv[]) {
   }
   const char *file_name = argv[1];
   std::string buf = read_file(file_name);
-  plmd *m;
+  ngf_plmd *m;
   ngf_plmd_error err = ngf_plmd_load(buf.data(), buf.size(), NULL, &m);
   if (err != NGF_PLMD_ERROR_OK) {
     fprintf(stderr, "Error loading pipeline metadata: %d\n", err);
