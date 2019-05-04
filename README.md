@@ -70,6 +70,11 @@ This tool is powered by [shaderc](https://github.com/google/shaderc) and [SPIRV-
 
 This project is under active development. Some features may change significantly.
 
+### Planned Features
+ * Generating a C header file mapping resource names to set/binding numbers;
+ * Adding support for hull, domain, geometry and compute shaders;
+ * Batching and parallel compilation to speed up builds.
+
 <a name="building"></a>
 ## Obtaining the Source Code and Building 
 
@@ -126,7 +131,7 @@ The following tag names are valid:
 * `vs` - the tag value specifies the entry point for the vertex shader stage;
 * `ps` - the tag value specifies the entry point for the pixel shader stage;
 * `define` - the tag value specifies an additional preprocessor definition;
-* `meta` - the tag value specifies an additional metadata entry.
+* `meta` - the tag value specifies an additional metadata entry. It should be a name-value pair separated by a `=` sign, i.e.: `meta:enable_depth_testing=1`. These values get stored as part of the pipeline metadata file (see below) and users are free to interpret them as they wish. 
 
 A valid technique definition must at least specify an entry point for the vertex stage.
 

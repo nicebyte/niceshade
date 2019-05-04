@@ -1,5 +1,6 @@
-build/*
+build*/*
 *.exe
+nicegraf_shaderc
 *.ilk
 *.pdb
 tests/output/*
