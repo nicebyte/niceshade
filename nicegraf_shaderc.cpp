@@ -164,12 +164,18 @@ int main(int argc, const char *argv[]) {
 
   // Obtain SPIR-V.
   std::vector<shaderc::SpvCompilationResult> spv_results;
+  const std::string kForceColumnMajorName = "force_column_major";
+  const std::string kForceColumnMajorValue = "row_major";
   shaderc::Compiler compiler;
   for (const technique &tech : techniques) {
     for (const technique::entry_point ep : tech.entry_points) {
       // Set compile options.
       shaderc::CompileOptions shaderc_opts;
       add_defines_from_container(shaderc_opts, tech.defines);
+      shaderc_opts.AddMacroDefinition(kForceColumnMajorName.c_str(),
+                                      kForceColumnMajorName.size(),
+                                      kForceColumnMajorValue.c_str(),
+                                      kForceColumnMajorValue.size());
       shaderc_opts.SetAutoBindUniforms(true);
       shaderc_opts.SetAutoMapLocations(true);
       shaderc_opts.SetSourceLanguage(shaderc_source_language_hlsl);
