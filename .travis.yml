@@ -18,3 +18,5 @@ script:
 - cd build
 - cmake ../
 - make -j8 VERBOSE=1
+- cd tests
+- python test_runner.py
