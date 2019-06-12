@@ -47,8 +47,8 @@ def main(argv):
         failed_run_results[test_case_name] = "Process was expected to exit with nonzero return code, but did not"
       stdout_file = out_dir / (test_case_name + '.stdout')
       stderr_file = out_dir / (test_case_name + '.stderr')
-      stdout_file.write_text(run_result.stdout)
-      stderr_file.write_text(run_result.stderr)
+      stdout_file.write_bytes(bytes(run_result.stdout, 'utf-8'))
+      stderr_file.write_bytes(bytes(run_result.stderr, 'utf-8'))
     except subprocess.TimeoutExpired:
       failed_run_results[test_case_name] = "Timeout exceeded"
 
@@ -64,7 +64,7 @@ def main(argv):
     try:
       result = subprocess.run(
         [str(jsonizer_binary), str(input_file)],
-        cwd = out_dir, stdout = open(str(json_file), "w"))
+        cwd = out_dir, stdout = open(str(json_file), "wb"))
       if result.returncode != 0:
         LOG.critical("Failed to convert to JSON")
         sys.exit(1)
