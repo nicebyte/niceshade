@@ -19,4 +19,4 @@ script:
 - cmake ../
 - make -j8 VERBOSE=1
 - cd ../tests
-- python test_runner.py
+- python3 test_runner.py
