@@ -22,6 +22,10 @@ SOFTWARE.
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#if defined(WIN32) || defined(WIN64)
+#include <io.h>
+#include <fcntl.h>
+#endif
 
 static const char *DESCRIPTOR_TYPE_NAMES[] = {
   "UNIFORM_BUFFER",
@@ -35,6 +39,9 @@ static const char *DESCRIPTOR_TYPE_NAMES[] = {
 void print_cis_map(const ngf_plmd_cis_map *m);
 
 int main(int argc, const char *argv[]) {
+#if defined(WIN32) || defined(WIN64)
+  _setmode(_fileno(stdout), _O_BINARY);
+#endif
   if (argc <= 1) {
     printf("Usage: display_metadata <file name>\n");
     exit(0);
