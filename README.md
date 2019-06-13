@@ -1,6 +1,7 @@
 <img src="https://github.com/nicebyte/nicegraf-shaderc/blob/master/nicegraf-shaderc.png?raw=true"/>
 
-[![Build status](https://ci.appveyor.com/api/projects/status/ny9j8k6869artsrd?svg=true)](https://ci.appveyor.com/project/nicebyte/nicegraf-shaderc) <img src="https://travis-ci.org/nicebyte/nicegraf-shaderc.svg?branch=master"/>
+[![Build status](https://ci.appveyor.com/api/projects/status/ny9j8k6869artsrd?svg=true)](https://ci.appveyor.com/project/nicebyte/nicegraf-shaderc)
+[![Build Status](https://travis-ci.org/nicebyte/nicegraf-shaderc.svg?branch=master)](https://travis-ci.org/nicebyte/nicegraf-shaderc)
 
 # User Manual
 
