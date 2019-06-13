@@ -1,11 +1,8 @@
 dist: xenial
-python:
-- "3.7"
 language: generic
 sudo: required
 matrix:
   include:
-    # works on Precise and Trusty
     - os: linux
       addons:
         apt:
@@ -15,6 +12,10 @@ matrix:
             - g++-7
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+before_install:
+  - sudo apt-get update
+  - apt-cache search python
+  - sudo apt-get install -y python3.6
 install: export CXX="g++-7"
 script:
 - mkdir build
@@ -22,4 +23,4 @@ script:
 - cmake ../
 - make -j8 VERBOSE=1
 - cd ../tests
-- python-3.7 test_runner.py
+- python3.6 test_runner.py
