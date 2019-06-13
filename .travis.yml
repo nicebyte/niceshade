@@ -15,7 +15,7 @@ matrix:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 before_install:
   - sudo apt-get update
-  - sudo apt-get install -y python-3.7
+  - sudo apt-get install -y python3.7
 install: export CXX="g++-7"
 script:
 - mkdir build
