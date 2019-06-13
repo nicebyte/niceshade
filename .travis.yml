@@ -22,4 +22,4 @@ script:
 - cmake ../
 - make -j8 VERBOSE=1
 - cd ../tests
-- python-3.7 test_runner.py
+- python3.7 test_runner.py
