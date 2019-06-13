@@ -1,4 +1,4 @@
-import os, sys, shutil, pathlib, logging, subprocess, filecmp, json
+import os, sys, shutil, pathlib, logging, subprocess, filecmp, json, platform
 
 def main(argv):
   logging.basicConfig(format='%(asctime)-15s %(message)s')
@@ -17,11 +17,12 @@ def main(argv):
   if not goldens.is_dir():
     LOG.critical("missing the golden folder")
     sys.exit(1)
-  compiler_binary = cwd / '..' / 'nicegraf_shaderc.exe'
+  exe_ext = '.exe' if platform.system() == 'Windows' else ''
+  compiler_binary = cwd / '..' / ('nicegraf_shaderc' + exe_ext)
   if not compiler_binary.is_file():
     LOG.critical("missing compiler binary")
     sys.exit(1)
-  jsonizer_binary = cwd / '..' / 'samples' / 'display_metadata.exe'
+  jsonizer_binary = cwd / '..' / 'samples' / ('display_metadata' + exe_ext)
   if not jsonizer_binary.is_file():
     LOG.critical("missing jsonizer binary")
     sys.exit(1)
