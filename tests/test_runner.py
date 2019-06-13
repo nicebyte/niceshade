@@ -31,7 +31,7 @@ def main(argv):
   out_dir = cwd / 'output'
   if out_dir.is_dir():
     shutil.rmtree(out_dir)
-  os.mkdir(out_dir)
+  out_dir.mkdir(parents=True)
   
   LOG.info("Running test cases")
   failed_run_results = {}
