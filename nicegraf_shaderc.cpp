@@ -1,25 +1,29 @@
 /**
-Copyright © 2018 nicegraf contributors
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the “Software”), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+ * Copyright (c) 2019 nicegraf contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy 
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
 
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "file_utils.h"
+#include "header_file_writer.h"
 #include "linear_dict.h"
 #include "pipeline_layout.h"
 #include "pipeline_metadata_file.h"
@@ -60,6 +64,10 @@ Options:
       * spv 
     If the option is encountered multiple times, shaders for all of the
     mentioned targets will be generated.
+
+  -h <path> - Path (relative to the output folder) for the generated
+      header file with descriptor binding and set IDs. If not specified, no
+      header file will be generated. 
 )RAW";
 
 // Create an instance of SPIRV-Cross compiler for a given target.
@@ -112,6 +120,7 @@ int main(int argc, const char *argv[]) {
   // Process command line arguments.
   const std::string input_file_path { argv[1] }; // input file name.
   std::string out_folder = ".";
+  std::string header_path = "";
   std::vector<const target_info*> targets;
   for (uint32_t o = 2u; o < (uint32_t)argc; o += 2u) { // process options.
     const std::string option_name { argv[o] };
@@ -132,22 +141,26 @@ int main(int argc, const char *argv[]) {
       targets.push_back(&(t->target));
     } else if ("-O" == option_name) { // Output folder.
       out_folder = option_value;
+    } else if ("-h" == option_name) {
+      header_path = option_value;
     } else {
       fprintf(stderr, "Unknown option: \"%s\"\n", option_name.c_str());
       exit(1);
     }
   }
-  std::sort(targets.begin(), targets.end(), [](const target_info *t1,
-                                               const target_info *t2) { 
-                                              return t1->api < t2->api;
-                                            });
-
   // Do a sanity check - no point in running with no targets.
   if (targets.empty()) {
     fprintf(stderr, "No target shader flavors specified!"
                     " Use -t to specify a target.\n");
     exit(1);
   }
+
+  // Make sure targets are always processed in the same order, no matter
+  // what order they're specified in.
+  std::sort(targets.begin(), targets.end(), [](const target_info *t1,
+                                               const target_info *t2) { 
+                                              return t1->api < t2->api;
+                                            });
 
   // Load the input file.
   std::string input_source = read_file(input_file_path.c_str());
@@ -195,6 +208,14 @@ int main(int argc, const char *argv[]) {
         exit(1);
       } 
     }
+  }
+
+  // Attempt to open header file.
+  const bool generate_header = !header_path.empty();
+  header_file_writer header_writer(out_folder, header_path);
+  if (!header_path.empty() && !header_writer.is_open()) {
+    fprintf(stderr, "Failed to open output file %s\n", header_writer.path());
+    exit(1);
   }
 
   // Generate output.
@@ -280,6 +301,7 @@ int main(int argc, const char *argv[]) {
 
       // Write out the .pipeline file for the current technique.
       if (generate_pipeline_metadata) {
+        header_writer.begin_technique(tech.name);
         std::string metadata_file_path =
             out_folder + PATH_SEPARATOR + tech.name + ".pipeline";
         pipeline_metadata_file metadata_file(metadata_file_path.c_str());
@@ -294,8 +316,10 @@ int main(int argc, const char *argv[]) {
             metadata_file.write_field(d.second.slot);
             metadata_file.write_field((uint32_t)d.second.type);
             metadata_file.write_field(d.second.stage_mask);
+            header_writer.write_descriptor(d.second, set);
           }
         }
+        header_writer.end_technique();
 
         // Write out separate-to-combined map records.
         metadata_file.start_new_record();
@@ -317,5 +341,6 @@ int main(int argc, const char *argv[]) {
     }
     generate_pipeline_metadata = false;
   }
+
   return 0;
 }

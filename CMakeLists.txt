@@ -24,6 +24,7 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/third_party/shaderc)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/third_party/SPIRV-Cross)
 
 set(NICEGRAF_SHADERC_SOURCES
+	${CMAKE_CURRENT_LIST_DIR}/header_file_writer.h
     ${CMAKE_CURRENT_LIST_DIR}/nicegraf_shaderc.cpp
     ${CMAKE_CURRENT_LIST_DIR}/technique_parser.h
     ${CMAKE_CURRENT_LIST_DIR}/technique_parser.cpp
