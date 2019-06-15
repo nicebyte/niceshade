@@ -12,6 +12,7 @@
 * [Obtaining the Source Code and Building](#building)
 * [Running](#running)
 * [Defining Techniques](#techniques)
+* [Generated Header File](#header-file)
 * [Pipeline Metadata](#pipeline-metadata)
 * [Using Vulkan Features From HLSL](#vk-hlsl)
 * [Pipeline Metadata File Format](#metadata-format)
@@ -72,7 +73,6 @@ This tool is powered by [shaderc](https://github.com/google/shaderc) and [SPIRV-
 This project is under active development. Some features may change significantly.
 
 ### Planned Features
- * Generating a C header file mapping resource names to set/binding numbers;
  * Adding support for hull, domain, geometry and compute shaders;
  * Batching and parallel compilation to speed up builds.
 
@@ -110,6 +110,11 @@ Valid command line options are:
       * `msl10`, `msl11`, `msl12`, `msl20` for Metal on macOS;
       * `msl10ios`, `msl11ios`, `msl12ios`, `msl20ios` for Metal on iOS;
       * `spv` for SPIR-V.
+ *  `-h <path>` - Path (relative to the output folder) for the generated
+      header file with descriptor binding and set numbers. If not specified, no
+      header file will be generated.
+ * `-n <identifier>` - Namespace for the generated shader file. If not specified,
+     global namespace is used.
 
 Shaders will be generated for each of the techniques specified in the input file and each of the targets specified in the command line options.
 
@@ -135,6 +140,67 @@ The following tag names are valid:
 * `meta` - the tag value specifies an additional metadata entry. It should be a name-value pair separated by a `=` sign, i.e.: `meta:enable_depth_testing=1`. These values get stored as part of the pipeline metadata file (see below) and users are free to interpret them as they wish. 
 
 A valid technique definition must at least specify an entry point for the vertex stage.
+
+<a name="header-file"></a>
+## Generated Header File
+
+Using the `-h` command line option, you may specify a special C++ header file to be generated as part of the shader compilation process. The said file shall contain named constants for all descriptor bindings and sets used by different techniques defined in the input. The constants for each technique are put into their own namespace, named after the technique (hyphens in tenchnique names are replaced by underscores to get valid C++ identifiers). Additionally, you may put the entire contents of the generated header into another namespace,
+specified by the `-n` command line option.
+
+Below is an example of an input file and the generated header it produces.
+
+Input file:
+```cpp
+//T: imgui ps:PSMain vs:VSMain
+
+struct ImGuiVSInput {
+  float2 position : ATTR0;
+  float2 uv : TEXCOORD0;
+  float4 color : COLOR0;
+};
+
+struct ImGuiPSInput {
+  float4 position : SV_POSITION;
+  float2 uv : TEXCOORD0;
+  float4 color : COLOR0;
+};
+
+cbuffer MatUniformBuffer : register(b0){
+  force_column_major float4x4 u_Projection;
+}
+
+[vk::binding(1, 0)] uniform Texture2D u_Texture;
+[vk::binding(2, 0)] uniform sampler u_Sampler;
+
+ImGuiPSInput VSMain(ImGuiVSInput input) {
+  ImGuiPSInput output = {
+    u_Projection * float4(input.position, 0.0, 1.0),
+    input.uv,
+    input.color
+  };
+  return output;
+}
+
+float4 PSMain(ImGuiPSInput input) : SV_TARGET {
+  return input.color * u_Texture.Sample(u_Sampler, input.uv);
+}
+```
+
+Generated header:
+```cpp
+/*auto-generated, do not edit*/
+#pragma once
+namespace shader_consts {
+namespace imgui {
+  static constexpr int u_Sampler_Binding = 2;
+  static constexpr int u_Sampler_Set = 0;
+  static constexpr int u_Texture_Binding = 1;
+  static constexpr int u_Texture_Set = 0;
+  static constexpr int MatUniformBuffer_Binding = 0;
+  static constexpr int MatUniformBuffer_Set = 0;
+}
+}
+```
 
 <a name="pipeline-metadata"></a>
 ## Pipeline Metadata
