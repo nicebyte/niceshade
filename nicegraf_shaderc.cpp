@@ -67,7 +67,10 @@ Options:
 
   -h <path> - Path (relative to the output folder) for the generated
       header file with descriptor binding and set IDs. If not specified, no
-      header file will be generated. 
+      header file will be generated.
+
+  -n <identifier> - Namespace for the generated shader file. If not specified,
+     global namespace is used.
 )RAW";
 
 // Create an instance of SPIRV-Cross compiler for a given target.
@@ -121,6 +124,7 @@ int main(int argc, const char *argv[]) {
   const std::string input_file_path { argv[1] }; // input file name.
   std::string out_folder = ".";
   std::string header_path = "";
+  std::string header_namespace = "";
   std::vector<const target_info*> targets;
   for (uint32_t o = 2u; o < (uint32_t)argc; o += 2u) { // process options.
     const std::string option_name { argv[o] };
@@ -143,6 +147,8 @@ int main(int argc, const char *argv[]) {
       out_folder = option_value;
     } else if ("-h" == option_name) {
       header_path = option_value;
+    } else if ("-n" == option_name) {
+      header_namespace = option_value;
     } else {
       fprintf(stderr, "Unknown option: \"%s\"\n", option_name.c_str());
       exit(1);
@@ -212,7 +218,7 @@ int main(int argc, const char *argv[]) {
 
   // Attempt to open header file.
   const bool generate_header = !header_path.empty();
-  header_file_writer header_writer(out_folder, header_path);
+  header_file_writer header_writer(out_folder, header_path, header_namespace);
   if (!header_path.empty() && !header_writer.is_open()) {
     fprintf(stderr, "Failed to open output file %s\n", header_writer.path());
     exit(1);

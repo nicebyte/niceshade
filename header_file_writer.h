@@ -30,16 +30,26 @@
 class header_file_writer {
 public:
   header_file_writer(const std::string &f,
-                     const std::string &p)
+                     const std::string &p,
+                     const std::string &n)
                      : path_(f + PATH_SEPARATOR + p),
+                       has_namespace_(!n.empty()),
                        file_(p.empty()
                                ? NULL
                                : fopen(path_.c_str(), "wb")) {
-    if (file_) fprintf(file_, "/*auto-generated, do not edit*/\n"
-                              "#pragma once\n");
+    if (file_) {
+      fprintf(file_, "/*auto-generated, do not edit*/\n"
+                     "#pragma once\n");
+      if (has_namespace_) fprintf(file_, "namespace %s {\n", n.c_str());
+    }
   
   }
-  ~header_file_writer() { if(file_) fclose(file_); }
+  ~header_file_writer() {
+    if(file_) {
+      if (has_namespace_) fprintf(file_, "}\n");
+      fclose(file_);
+    }
+   }
 
   void begin_technique(const std::string &name) {
     std::string ident = name;
@@ -67,5 +77,6 @@ public:
 
 private:
   std::string path_;
+  bool has_namespace_;
   FILE *file_ = NULL;
 };
