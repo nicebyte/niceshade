@@ -48,8 +48,8 @@ def main(argv):
         failed_run_results[test_case_name] = "Process was expected to exit with nonzero return code, but did not"
       stdout_file = out_dir / (test_case_name + '.stdout')
       stderr_file = out_dir / (test_case_name + '.stderr')
-      stdout_file.write_bytes(bytes(run_result.stdout, 'utf-8'))
-      stderr_file.write_bytes(bytes(run_result.stderr, 'utf-8'))
+      stdout_file.write_bytes(run_result.stdout)
+      stderr_file.write_bytes(run_result.stderr)
     except subprocess.TimeoutExpired:
       failed_run_results[test_case_name] = "Timeout exceeded"
 
