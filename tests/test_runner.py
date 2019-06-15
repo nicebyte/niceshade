@@ -66,7 +66,7 @@ def main(argv):
     try:
       result = subprocess.run(
         [str(jsonizer_binary), str(input_file)],
-        cwd = out_dir, stdout = open(str(json_file), "wb"))
+        cwd = str(out_dir), stdout = open(str(json_file), "wb"))
       if result.returncode != 0:
         LOG.critical("Failed to convert to JSON")
         sys.exit(1)
