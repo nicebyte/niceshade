@@ -41,15 +41,16 @@ def main(argv):
     try:
       run_result = subprocess.run(
           [str(compiler_binary), str(input_file) , "-t", "msl10", "-t", "gl430", "-O", str(out_dir)],
-          stdout = subprocess.PIPE, cwd = str(source_hlsl), timeout = 60, universal_newlines = True)
+          stdout = subprocess.PIPE, stderr = subprocess.PIPE, cwd = str(source_hlsl), timeout = 60, universal_newlines = True)
       if not should_fail and run_result.returncode != 0:
         failed_run_results[test_case_name] = "Process exited with nonzero exit code"
       if should_fail and run_result.returncode == 0:
         failed_run_results[test_case_name] = "Process was expected to exit with nonzero return code, but did not"
       stdout_file = out_dir / (test_case_name + '.stdout')
       stderr_file = out_dir / (test_case_name + '.stderr')
-      stdout_file.write_bytes(run_result.stdout)
-      stderr_file.write_bytes(run_result.stderr)
+      get_bytes = lambda x: x if (not isinstance(x, str)) else bytes(x, 'utf-8')
+      stdout_file.write_bytes(get_bytes(run_result.stdout))
+      stderr_file.write_bytes(get_bytes(run_result.stderr))
     except subprocess.TimeoutExpired:
       failed_run_results[test_case_name] = "Timeout exceeded"
 
