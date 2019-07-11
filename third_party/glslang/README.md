@@ -61,7 +61,7 @@ branch.
   (For MSVS: 2015 is recommended, 2013 is fully supported/tested, and 2010 support is attempted, but not tested.)
 * [CMake][cmake]: for generating compilation targets.
 * make: _Linux_, ninja is an alternative, if configured.
-* [Python 2.7][python]: for executing SPIRV-Tools scripts. (Optional if not using SPIRV-Tools.)
+* [Python 3.x][python]: for executing SPIRV-Tools scripts. (Optional if not using SPIRV-Tools and the 'External' subdirectory does not exist.)
 * [bison][bison]: _optional_, but needed when changing the grammar (glslang.y).
 * [googletest][googletest]: _optional_, but should use if making any changes to glslang.
 
@@ -126,6 +126,9 @@ cmake $SOURCE_DIR -DCMAKE_INSTALL_PREFIX="$(pwd)/install"
 ```
 
 The CMake GUI also works for Windows (version 3.4.1 tested).
+
+Also, consider using `git config --global core.fileMode false` (or with `--local`) on Windows
+to prevent the addition of execution permission on files.
 
 #### 4) Build and Install
 

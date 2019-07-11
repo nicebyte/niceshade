@@ -25,8 +25,6 @@ namespace {
 
 using ScalarReplacementTest = PassTest<::testing::Test>;
 
-// TODO(dneto): Add Effcee as required dependency, and make this unconditional.
-#ifdef SPIRV_EFFCEE
 TEST_F(ScalarReplacementTest, SimpleStruct) {
   const std::string text = R"(
 ;
@@ -1151,7 +1149,6 @@ TEST_F(ScalarReplacementTest, NoPartialAccesses2) {
 ; CHECK: OpVariable [[float_ptr]] Function
 ; CHECK: OpVariable [[float_ptr]] Function
 ; CHECK: OpVariable [[float_ptr]] Function
-; CHECK: OpVariable [[float_ptr]] Function
 ; CHECK-NOT: OpVariable
 ;
 OpCapability Shader
@@ -1404,6 +1401,42 @@ OpFunctionEnd
   SinglePassRunAndMatch<ScalarReplacementPass>(text, true);
 }
 
+TEST_F(ScalarReplacementTest, SpecConstantArray) {
+  const std::string text = R"(
+; CHECK: [[int:%\w+]] = OpTypeInt
+; CHECK: [[spec_const:%\w+]] = OpSpecConstant [[int]] 4
+; CHECK: [[spec_op:%\w+]] = OpSpecConstantOp [[int]] IAdd [[spec_const]] [[spec_const]]
+; CHECK: [[array1:%\w+]] = OpTypeArray [[int]] [[spec_const]]
+; CHECK: [[array2:%\w+]] = OpTypeArray [[int]] [[spec_op]]
+; CHECK: [[ptr_array1:%\w+]] = OpTypePointer Function [[array1]]
+; CHECK: [[ptr_array2:%\w+]] = OpTypePointer Function [[array2]]
+; CHECK: OpLabel
+; CHECK-NEXT: OpVariable [[ptr_array1]] Function
+; CHECK-NEXT: OpVariable [[ptr_array2]] Function
+; CHECK-NOT: OpVariable
+OpCapability Shader
+OpCapability Linkage
+OpMemoryModel Logical GLSL450
+%void = OpTypeVoid
+%void_fn = OpTypeFunction %void
+%int = OpTypeInt 32 0
+%spec_const = OpSpecConstant %int 4
+%spec_op = OpSpecConstantOp %int IAdd %spec_const %spec_const
+%array_1 = OpTypeArray %int %spec_const
+%array_2 = OpTypeArray %int %spec_op
+%ptr_array_1_Function = OpTypePointer Function %array_1
+%ptr_array_2_Function = OpTypePointer Function %array_2
+%func = OpFunction %void None %void_fn
+%1 = OpLabel
+%var_1 = OpVariable %ptr_array_1_Function Function
+%var_2 = OpVariable %ptr_array_2_Function Function
+OpReturn
+OpFunctionEnd
+)";
+
+  SinglePassRunAndMatch<ScalarReplacementPass>(text, true);
+}
+
 TEST_F(ScalarReplacementTest, CreateAmbiguousNullConstant2) {
   const std::string text = R"(
 ;
@@ -1448,7 +1481,6 @@ OpFunctionEnd
 
   SinglePassRunAndMatch<ScalarReplacementPass>(text, true);
 }
-#endif  // SPIRV_EFFCEE
 
 // Test that a struct of size 4 is not replaced when there is a limit of 2.
 TEST_F(ScalarReplacementTest, TestLimit) {
@@ -1520,6 +1552,109 @@ OpFunctionEnd
   auto result =
       SinglePassRunAndDisassemble<ScalarReplacementPass>(text, true, false, 0);
   EXPECT_EQ(Pass::Status::SuccessWithChange, std::get<1>(result));
+}
+
+TEST_F(ScalarReplacementTest, AmbigousPointer) {
+  const std::string text = R"(
+; CHECK: [[s1:%\w+]] = OpTypeStruct %uint
+; CHECK: [[s2:%\w+]] = OpTypeStruct %uint
+; CHECK: [[s3:%\w+]] = OpTypeStruct [[s2]]
+; CHECK: [[s3_const:%\w+]] = OpConstantComposite [[s3]]
+; CHECK: [[s2_ptr:%\w+]] = OpTypePointer Function [[s2]]
+; CHECK: OpCompositeExtract [[s2]] [[s3_const]]
+
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %2 "main"
+               OpExecutionMode %2 OriginUpperLeft
+               OpSource ESSL 310
+       %void = OpTypeVoid
+          %5 = OpTypeFunction %void
+       %uint = OpTypeInt 32 0
+  %_struct_7 = OpTypeStruct %uint
+  %_struct_8 = OpTypeStruct %uint
+  %_struct_9 = OpTypeStruct %_struct_8
+     %uint_1 = OpConstant %uint 1
+         %11 = OpConstantComposite %_struct_8 %uint_1
+         %12 = OpConstantComposite %_struct_9 %11
+%_ptr_Function__struct_9 = OpTypePointer Function %_struct_9
+%_ptr_Function__struct_7 = OpTypePointer Function %_struct_7
+          %2 = OpFunction %void None %5
+         %15 = OpLabel
+        %var = OpVariable %_ptr_Function__struct_9 Function
+               OpStore %var %12
+         %ld = OpLoad %_struct_9 %var
+         %ex = OpCompositeExtract %_struct_8 %ld 0
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  SinglePassRunAndMatch<ScalarReplacementPass>(text, true);
+}
+
+// Test that scalar replacement does not crash when there is an OpAccessChain
+// with no index.  If we choose to handle this case in the future, then the
+// result can change.
+TEST_F(ScalarReplacementTest, TestAccessChainWithNoIndexes) {
+  const std::string text = R"(
+               OpCapability Shader
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %1 "main"
+               OpExecutionMode %1 OriginLowerLeft
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+  %_struct_5 = OpTypeStruct %float
+%_ptr_Function__struct_5 = OpTypePointer Function %_struct_5
+          %1 = OpFunction %void None %3
+          %7 = OpLabel
+          %8 = OpVariable %_ptr_Function__struct_5 Function
+          %9 = OpAccessChain %_ptr_Function__struct_5 %8
+               OpReturn
+               OpFunctionEnd
+  )";
+
+  auto result =
+      SinglePassRunAndDisassemble<ScalarReplacementPass>(text, true, false);
+  EXPECT_EQ(Pass::Status::SuccessWithoutChange, std::get<1>(result));
+}
+
+// Test that id overflow is handled gracefully.
+TEST_F(ScalarReplacementTest, IdBoundOverflow) {
+  const std::string text = R"(
+OpCapability ImageQuery
+OpMemoryModel Logical GLSL450
+OpEntryPoint Fragment %4 "main"
+OpExecutionMode %4 OriginUpperLeft
+OpDecorate %4194302 DescriptorSet 1073495039
+%2 = OpTypeVoid
+%3 = OpTypeFunction %2
+%6 = OpTypeFloat 32
+%7 = OpTypeStruct %6 %6
+%557056 = OpTypeStruct %7
+%9 = OpTypePointer Function %7
+%18 = OpTypeFunction %7 %9
+%4 = OpFunction %2 Pure|Const %3
+%1836763 = OpLabel
+%4194302 = OpVariable %9 Function
+%10 = OpVariable %9 Function
+OpKill
+%4194301 = OpLabel
+%524296 = OpLoad %7 %4194302
+OpKill
+OpFunctionEnd
+  )";
+
+  SetAssembleOptions(SPV_TEXT_TO_BINARY_OPTION_PRESERVE_NUMERIC_IDS);
+
+  std::vector<Message> messages = {
+      {SPV_MSG_ERROR, "", 0, 0, "ID overflow. Try running compact-ids."},
+      {SPV_MSG_ERROR, "", 0, 0, "ID overflow. Try running compact-ids."}};
+  SetMessageConsumer(GetTestMessageConsumer(messages));
+  auto result =
+      SinglePassRunAndDisassemble<ScalarReplacementPass>(text, true, false);
+  EXPECT_EQ(Pass::Status::Failure, std::get<1>(result));
 }
 
 }  // namespace
