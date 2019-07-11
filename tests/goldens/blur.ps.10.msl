@@ -1,0 +1,41 @@
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+#ifndef SPIRV_CROSS_CONSTANT_ID_0
+#define SPIRV_CROSS_CONSTANT_ID_0 1u
+#endif
+constant uint kernelRadius = SPIRV_CROSS_CONSTANT_ID_0;
+
+struct BlurData
+{
+    float4 samples[63];
+};
+
+constant uint _38[7] = { 1u, 4u, 9u, 18u, 29u, 46u, 63u };
+
+struct PSMain_out
+{
+    float4 _entryPointOutput [[color(0)]];
+};
+
+struct PSMain_in
+{
+    float2 input_uv [[user(locn0)]];
+};
+
+fragment PSMain_out PSMain(PSMain_in in [[stage_in]], constant BlurData& _49 [[buffer(0)]], texture2d<float> tex [[texture(0)]], sampler bilinearSamp [[sampler(0)]], float4 gl_FragCoord [[position]])
+{
+    PSMain_out out = {};
+    float4 _146;
+    _146 = float4(0.0);
+    float4 _133;
+    for (uint _145 = 0u; _145 < _38[kernelRadius]; _146 = _133, _145++)
+    {
+        _133 = _146 + (tex.sample(bilinearSamp, (in.input_uv + _49.samples[_145].xy)) * _49.samples[_145].z);
+    }
+    out._entryPointOutput = _146;
+    return out;
+}
+
