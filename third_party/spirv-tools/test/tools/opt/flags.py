@@ -34,7 +34,7 @@ def empty_main_assembly():
 
 
 @inside_spirv_testsuite('SpirvOptBase')
-class TestAssemblyFileAsOnlyParameter(expect.ValidObjectFile1_3):
+class TestAssemblyFileAsOnlyParameter(expect.ValidObjectFile1_4):
   """Tests that spirv-opt accepts a SPIR-V object file."""
 
   shader = placeholder.FileSPIRVShader(empty_main_assembly(), '.spvasm')
@@ -52,7 +52,7 @@ class TestHelpFlag(expect.ReturnCodeIsZero, expect.StdoutMatch):
 
 
 @inside_spirv_testsuite('SpirvOptFlags')
-class TestValidPassFlags(expect.ValidObjectFile1_3,
+class TestValidPassFlags(expect.ValidObjectFile1_4,
                          expect.ExecutedListOfPasses):
   """Tests that spirv-opt accepts all valid optimization flags."""
 
@@ -129,12 +129,13 @@ class TestValidPassFlags(expect.ValidObjectFile1_3,
 
 
 @inside_spirv_testsuite('SpirvOptFlags')
-class TestPerformanceOptimizationPasses(expect.ValidObjectFile1_3,
+class TestPerformanceOptimizationPasses(expect.ValidObjectFile1_4,
                                         expect.ExecutedListOfPasses):
   """Tests that spirv-opt schedules all the passes triggered by -O."""
 
   flags = ['-O']
   expected_passes = [
+      'eliminate-dead-branches',
       'merge-return',
       'inline-entry-points-exhaustive',
       'eliminate-dead-code-aggressive',
@@ -175,12 +176,13 @@ class TestPerformanceOptimizationPasses(expect.ValidObjectFile1_3,
 
 
 @inside_spirv_testsuite('SpirvOptFlags')
-class TestSizeOptimizationPasses(expect.ValidObjectFile1_3,
+class TestSizeOptimizationPasses(expect.ValidObjectFile1_4,
                                  expect.ExecutedListOfPasses):
   """Tests that spirv-opt schedules all the passes triggered by -Os."""
 
   flags = ['-Os']
   expected_passes = [
+      'eliminate-dead-branches',
       'merge-return',
       'inline-entry-points-exhaustive',
       'eliminate-dead-code-aggressive',
@@ -213,7 +215,7 @@ class TestSizeOptimizationPasses(expect.ValidObjectFile1_3,
 
 
 @inside_spirv_testsuite('SpirvOptFlags')
-class TestLegalizationPasses(expect.ValidObjectFile1_3,
+class TestLegalizationPasses(expect.ValidObjectFile1_4,
                              expect.ExecutedListOfPasses):
   """Tests that spirv-opt schedules all the passes triggered by --legalize-hlsl.
   """
@@ -225,6 +227,7 @@ class TestLegalizationPasses(expect.ValidObjectFile1_3,
       'inline-entry-points-exhaustive',
       'eliminate-dead-functions',
       'private-to-local',
+      'fix-storage-class',
       'eliminate-local-single-block',
       'eliminate-local-single-store',
       'eliminate-dead-code-aggressive',
@@ -256,7 +259,7 @@ class TestScalarReplacementArgsNegative(expect.ErrorMessageSubstr):
   """Tests invalid arguments to --scalar-replacement."""
 
   spirv_args = ['--scalar-replacement=-10']
-  expected_error_substr = 'must have no arguments or a positive integer argument'
+  expected_error_substr = 'must have no arguments or a non-negative integer argument'
 
 
 @inside_spirv_testsuite('SpirvOptFlags')
@@ -264,7 +267,7 @@ class TestScalarReplacementArgsInvalidNumber(expect.ErrorMessageSubstr):
   """Tests invalid arguments to --scalar-replacement."""
 
   spirv_args = ['--scalar-replacement=a10f']
-  expected_error_substr = 'must have no arguments or a positive integer argument'
+  expected_error_substr = 'must have no arguments or a non-negative integer argument'
 
 
 @inside_spirv_testsuite('SpirvOptFlags')

@@ -50,7 +50,7 @@ Pass::Status LocalMultiStoreElimPass::ProcessImpl() {
   ProcessFunction pfn = [this](Function* fp) {
     return SSARewriter(this).RewriteFunctionIntoSSA(fp);
   };
-  bool modified = ProcessEntryPointCallTree(pfn, get_module());
+  bool modified = context()->ProcessEntryPointCallTree(pfn);
   return modified ? Status::SuccessWithChange : Status::SuccessWithoutChange;
 }
 
@@ -83,8 +83,7 @@ void LocalMultiStoreElimPass::InitExtensions() {
       "SPV_NV_geometry_shader_passthrough",
       "SPV_AMD_texture_gather_bias_lod",
       "SPV_KHR_storage_buffer_storage_class",
-      // SPV_KHR_variable_pointers
-      //   Currently do not support extended pointer expressions
+      "SPV_KHR_variable_pointers",
       "SPV_AMD_gpu_shader_int16",
       "SPV_KHR_post_depth_coverage",
       "SPV_KHR_shader_atomic_counter_ops",
@@ -96,6 +95,7 @@ void LocalMultiStoreElimPass::InitExtensions() {
       "SPV_AMD_gpu_shader_half_float_fetch",
       "SPV_GOOGLE_decorate_string",
       "SPV_GOOGLE_hlsl_functionality1",
+      "SPV_GOOGLE_user_type",
       "SPV_NV_shader_subgroup_partitioned",
       "SPV_EXT_descriptor_indexing",
       "SPV_NV_fragment_shader_barycentric",
@@ -103,7 +103,8 @@ void LocalMultiStoreElimPass::InitExtensions() {
       "SPV_NV_shader_image_footprint",
       "SPV_NV_shading_rate",
       "SPV_NV_mesh_shader",
-      "SPV_NVX_raytracing",
+      "SPV_NV_ray_tracing",
+      "SPV_EXT_fragment_invocation_density",
   });
 }
 

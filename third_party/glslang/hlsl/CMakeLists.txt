@@ -17,7 +17,7 @@ set(HEADERS
     hlslGrammar.h
     hlslParseables.h)
 
-PCH(SOURCES pch.cpp)
+glslang_pch(SOURCES pch.cpp)
 
 add_library(HLSL ${LIB_TYPE} ${SOURCES} ${HEADERS})
 set_property(TARGET HLSL PROPERTY FOLDER hlsl)
@@ -35,7 +35,8 @@ if(ENABLE_GLSLANG_INSTALL)
     if(BUILD_SHARED_LIBS)
         install(TARGETS HLSL
                 ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+                LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
     else()
         install(TARGETS HLSL
                 ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})

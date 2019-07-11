@@ -110,14 +110,26 @@ class Function {
                    bool run_on_debug_line_insts = false);
   void ForEachInst(const std::function<void(const Instruction*)>& f,
                    bool run_on_debug_line_insts = false) const;
+  bool WhileEachInst(const std::function<bool(Instruction*)>& f,
+                     bool run_on_debug_line_insts = false);
+  bool WhileEachInst(const std::function<bool(const Instruction*)>& f,
+                     bool run_on_debug_line_insts = false) const;
 
   // Runs the given function |f| on each parameter instruction in this function,
   // and optionally on debug line instructions that might precede them.
   void ForEachParam(const std::function<void(const Instruction*)>& f,
                     bool run_on_debug_line_insts = false) const;
+  void ForEachParam(const std::function<void(Instruction*)>& f,
+                    bool run_on_debug_line_insts = false);
 
   BasicBlock* InsertBasicBlockAfter(std::unique_ptr<BasicBlock>&& new_block,
                                     BasicBlock* position);
+
+  BasicBlock* InsertBasicBlockBefore(std::unique_ptr<BasicBlock>&& new_block,
+                                     BasicBlock* position);
+
+  // Return true if the function calls itself either directly or indirectly.
+  bool IsRecursive() const;
 
   // Pretty-prints all the basic blocks in this function into a std::string.
   //
