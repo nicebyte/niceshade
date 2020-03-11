@@ -22,6 +22,9 @@ SOFTWARE.
 void add_defines_from_container(shaderc::CompileOptions &options,
                                 const define_container &container) {
   for (const auto &name_value_pair : container) {
-    options.AddMacroDefinition(name_value_pair.first, name_value_pair.second);
+    if (!name_value_pair.second.empty())
+      options.AddMacroDefinition(name_value_pair.first, name_value_pair.second);
+    else
+      options.AddMacroDefinition(name_value_pair.first);
   }
 }
