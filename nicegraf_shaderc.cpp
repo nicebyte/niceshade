@@ -126,6 +126,8 @@ int main(int argc, const char *argv[]) {
   std::string header_path = "";
   std::string header_namespace = "";
   std::vector<const target_info*> targets;
+  define_container global_macro_definitions;
+
   for (uint32_t o = 2u; o < (uint32_t)argc; o += 2u) { // process options.
     const std::string option_name { argv[o] };
     if (o + 1u >= (uint32_t)argc) {
@@ -149,6 +151,12 @@ int main(int argc, const char *argv[]) {
       header_path = option_value;
     } else if ("-n" == option_name) {
       header_namespace = option_value;
+    } else if ("-D" == option_name) {
+        const size_t pos = option_value.find('=');
+        if (pos < option_value.size())
+          global_macro_definitions.emplace_back(option_value.substr(0, pos), option_value.substr(pos+1));
+        else
+          global_macro_definitions.emplace_back(option_value, std::string());
     } else {
       fprintf(stderr, "Unknown option: \"%s\"\n", option_name.c_str());
       exit(1);
@@ -191,10 +199,8 @@ int main(int argc, const char *argv[]) {
       // Set compile options.
       shaderc::CompileOptions shaderc_opts;
       add_defines_from_container(shaderc_opts, tech.defines);
-      shaderc_opts.AddMacroDefinition(kForceColumnMajorName.c_str(),
-                                      kForceColumnMajorName.size(),
-                                      kForceColumnMajorValue.c_str(),
-                                      kForceColumnMajorValue.size());
+      shaderc_opts.AddMacroDefinition(kForceColumnMajorName, kForceColumnMajorValue);
+      add_defines_from_container(shaderc_opts, global_macro_definitions);
       shaderc_opts.SetAutoBindUniforms(true);
       shaderc_opts.SetAutoMapLocations(true);
       shaderc_opts.SetSourceLanguage(shaderc_source_language_hlsl);
