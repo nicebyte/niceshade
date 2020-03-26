@@ -24,7 +24,9 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/third_party/shaderc)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/third_party/SPIRV-Cross)
 
 set(NICEGRAF_SHADERC_SOURCES
-	${CMAKE_CURRENT_LIST_DIR}/header_file_writer.h
+    ${CMAKE_CURRENT_LIST_DIR}/dxc_wrapper.h
+    ${CMAKE_CURRENT_LIST_DIR}/dxc_wrapper.cpp
+	  ${CMAKE_CURRENT_LIST_DIR}/header_file_writer.h
     ${CMAKE_CURRENT_LIST_DIR}/nicegraf_shaderc.cpp
     ${CMAKE_CURRENT_LIST_DIR}/technique_parser.h
     ${CMAKE_CURRENT_LIST_DIR}/technique_parser.cpp
@@ -42,7 +44,9 @@ set(NICEGRAF_SHADERC_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/shader_includer.cpp)
 
 add_executable(nicegraf_shaderc ${NICEGRAF_SHADERC_SOURCES})
-target_include_directories(nicegraf_shaderc PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../library/include)
+target_include_directories(nicegraf_shaderc PRIVATE 
+    ${CMAKE_CURRENT_LIST_DIR}/../library/include
+    ${CMAKE_CURRENT_LIST_DIR}/third_party/dxc)
 target_link_libraries(nicegraf_shaderc
   shaderc spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl)
 set_output_dir(nicegraf_shaderc ${CMAKE_CURRENT_LIST_DIR})
