@@ -22,8 +22,7 @@
 
 #include "dxc_wrapper.h"
 #include <string>
-#include <locale>
-#include <codecvt>
+#include <stdlib.h>
 #include <stdio.h>
 
 namespace {
@@ -31,9 +30,17 @@ namespace {
     "third_party/dxcompiler.dll",
     "dxcompiler.dll",
   };
+
   static constexpr size_t ndxc_lib_candidates_ =
       sizeof(dxc_lib_candidates) / sizeof(dxc_lib_candidates[0]);
+
+  std::wstring towstring(const char* src, size_t len) {
+    std::wstring ws(len + 1, '\0');
+    std::mbstowcs(ws.data(), src, len);
+    return ws;
+  }
 }
+
 DxcWrapper::DxcWrapper() : 
     dxcompiler_dll_(dxc_lib_candidates, ndxc_lib_candidates_) {
   if (dxcompiler_dll_.IsValid()) {
@@ -80,9 +87,11 @@ DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
   };
   const size_t args_count = sizeof(args)/sizeof(args[0]);
 
-  std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> wstr_conv;
-  const std::wstring winput_file_name = wstr_conv.from_bytes(input_file_name);
-  const std::wstring wentry_point_name = wstr_conv.from_bytes(entry_point.name.c_str());
+  const std::wstring winput_file_name =
+      towstring(input_file_name, strlen(input_file_name));
+  const std::wstring wentry_point_name =
+      towstring(entry_point.name.c_str(), entry_point.name.size());
+
   const LPCWSTR target_profile = [&entry_point]() {
     switch (entry_point.kind) {
     case shaderc_vertex_shader:
@@ -93,25 +102,27 @@ DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
       exit(1);
     }
   }();
-  auto dxc_result = ComPtr<IDxcOperationResult>([&](auto ptr) {
-    return compiler_instance_->Compile(
-        input_blob.get(),
-        winput_file_name.c_str(),
-        wentry_point_name.c_str(),
-        target_profile,
-        args,
-        args_count,
-        NULL,
-        0,
-        NULL,
-        ptr);
-  });
+  auto dxc_result =
+      ComPtr<IDxcOperationResult>([&](auto ptr) {
+        return compiler_instance_->Compile(
+            input_blob.get(),
+            winput_file_name.c_str(),
+            wentry_point_name.c_str(),
+            target_profile,
+            args,
+            args_count,
+            NULL,
+            0,
+            NULL,
+            ptr);
+      });
 
   Result result;
 
-  auto spirv_blob = ComPtr<IDxcBlob>([&](auto ptr) {
-    return dxc_result->GetResult(ptr);
-  });
+  auto spirv_blob =
+      ComPtr<IDxcBlob>([&](auto ptr) {
+        return dxc_result->GetResult(ptr);
+      });
 
   if (spirv_blob->GetBufferSize() > 0) {
     result.spirv_result =
@@ -122,9 +133,10 @@ DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
            spirv_blob->GetBufferSize());
   }
 
-  auto errmsg_blob = ComPtr<IDxcBlobEncoding>([&](auto ptr) {
-    return dxc_result->GetErrorBuffer(ptr);
-  });
+  auto errmsg_blob =
+      ComPtr<IDxcBlobEncoding>([&](auto ptr) {
+        return dxc_result->GetErrorBuffer(ptr);
+      });
 
   if (errmsg_blob->GetBufferSize() > 0) {
     result.error_message = std::string(errmsg_blob->GetBufferSize() + 1u,
