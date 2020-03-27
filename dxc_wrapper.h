@@ -42,11 +42,18 @@ class DxcWrapper {
     explicit ComPtr(T* ptr) : ptr_(ptr) {
       static_assert(std::is_base_of<IUnknown, T>);
     }
+    template <class F>
+    explicit ComPtr(F create_fn) {
+      static_assert(std::is_invocable_r<HRESULT, F, T**>::value);
+      const HRESULT create_result = create_fn(&ptr_);
+      if (create_result != S_OK)
+        exit(1);
+    }
     ComPtr(const ComPtr&) = delete;
     ComPtr(ComPtr &&other) { *this = std::move(other); }
     ~ComPtr() { release(); }
     ComPtr& operator=(const ComPtr &) = delete;
-    ComPtr& operator=(const ComPtr&& other) {
+    ComPtr& operator=(ComPtr&& other) noexcept {
       release();
       ptr_ = other.ptr_;
       other.ptr_ = nullptr;

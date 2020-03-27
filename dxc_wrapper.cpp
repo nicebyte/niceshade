@@ -44,20 +44,20 @@ DxcWrapper::DxcWrapper() :
   if (NULL == create_proc) {
     exit(1);
   }
+  
+  library_instance_ =
+    ComPtr<IDxcLibrary>([create_proc](auto ptr) {
+      return create_proc(CLSID_DxcLibrary,
+                         __uuidof(IDxcLibrary),
+                         (LPVOID*)ptr);
+    });
 
-  const HRESULT create_library_result =
-      create_proc(CLSID_DxcLibrary, __uuidof(IDxcLibrary),
-                  (LPVOID*)library_instance_.PtrToContent());
-  if (create_library_result != S_OK) {
-    exit(1);
-  }
-
-  const HRESULT create_compiler_result =
-      create_proc(CLSID_DxcCompiler, __uuidof(IDxcCompiler),
-                  (LPVOID*)compiler_instance_.PtrToContent());
-  if (create_compiler_result != S_OK) {
-    exit(1);
-  }
+  compiler_instance_ =
+    ComPtr<IDxcCompiler>([create_proc](auto ptr) {
+      return create_proc(CLSID_DxcCompiler,
+                         __uuidof(IDxcCompiler),
+                         (LPVOID*)ptr);
+    });
 }
 
 DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
@@ -66,17 +66,13 @@ DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
     const char* input_file_name,
     const technique::entry_point& entry_point,
     const define_container& global_macro_definitions) {
-  ComPtr<IDxcBlobEncoding> input_blob;
-
-  const HRESULT create_blob_result =
-    library_instance_->CreateBlobWithEncodingFromPinned(
+  auto input_blob = ComPtr<IDxcBlobEncoding>([&](auto ptr) {
+    return library_instance_->CreateBlobWithEncodingFromPinned(
         source,
         source_size,
         0,
-        input_blob.PtrToContent());
-  if (create_blob_result != S_OK) {
-    exit(1);
-  }
+        ptr);
+  });
 
   LPCWSTR args[] = {
     L"-spirv",
@@ -97,9 +93,8 @@ DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
       exit(1);
     }
   }();
-  ComPtr<IDxcOperationResult> dxc_result;
-  const HRESULT compile_result =
-    compiler_instance_->Compile(
+  auto dxc_result = ComPtr<IDxcOperationResult>([&](auto ptr) {
+    return compiler_instance_->Compile(
         input_blob.get(),
         winput_file_name.c_str(),
         wentry_point_name.c_str(),
@@ -109,15 +104,15 @@ DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
         NULL,
         0,
         NULL,
-        dxc_result.PtrToContent());
-  if (compile_result != S_OK) {
-    exit(1);
-  }
+        ptr);
+  });
 
   Result result;
 
-  ComPtr<IDxcBlob> spirv_blob;
-  dxc_result->GetResult(spirv_blob.PtrToContent());
+  auto spirv_blob = ComPtr<IDxcBlob>([&](auto ptr) {
+    return dxc_result->GetResult(ptr);
+  });
+
   if (spirv_blob->GetBufferSize() > 0) {
     result.spirv_result =
         std::vector<uint32_t>(spirv_blob->GetBufferSize() / sizeof(uint32_t),
@@ -127,8 +122,10 @@ DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
            spirv_blob->GetBufferSize());
   }
 
-  ComPtr<IDxcBlobEncoding> errmsg_blob;
-  dxc_result->GetErrorBuffer(errmsg_blob.PtrToContent());
+  auto errmsg_blob = ComPtr<IDxcBlobEncoding>([&](auto ptr) {
+    return dxc_result->GetErrorBuffer(ptr);
+  });
+
   if (errmsg_blob->GetBufferSize() > 0) {
     result.error_message = std::string(errmsg_blob->GetBufferSize() + 1u,
                                        '\0');
