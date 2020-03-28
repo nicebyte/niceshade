@@ -36,4 +36,5 @@ struct technique {
 };
 
 void parse_techniques(const std::string &input_source,
-                      std::vector<technique> &techniques);
+                      std::vector<technique> &techniques,
+                      const define_container &default_defines);
