@@ -114,9 +114,9 @@ DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
 
   const LPCWSTR target_profile = [&entry_point]() {
     switch (entry_point.kind) {
-    case shaderc_vertex_shader:
+    case shader_kind::vertex:
       return L"vs_6_0";
-    case shaderc_fragment_shader:
+    case shader_kind::fragment:
       return L"ps_6_0";
     default:
       exit(1);

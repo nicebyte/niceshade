@@ -149,8 +149,8 @@ void parse_techniques(const std::string &input_source,
         }
         technique::entry_point ep {
           parameter_name == "vs"
-              ? shaderc_vertex_shader
-              : shaderc_fragment_shader,
+              ? shader_kind::vertex
+              : shader_kind::fragment,
           entry_point_name
         };
         for (const auto &prev_ep : techniques.back().entry_points) {
