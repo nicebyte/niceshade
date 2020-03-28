@@ -27,7 +27,7 @@
 
 namespace {
   static const char* dxc_lib_candidates[] = {
-    "third_party/dxcompiler.dll",
+    "third_party/dxc/dxcompiler.dll",
     "dxcompiler.dll",
   };
 
