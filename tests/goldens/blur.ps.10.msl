@@ -8,34 +8,35 @@ using namespace metal;
 #endif
 constant uint kernelRadius = SPIRV_CROSS_CONSTANT_ID_0;
 
-struct BlurData
+struct type_BlurData
 {
     float4 samples[63];
 };
 
-constant uint _38[7] = { 1u, 4u, 9u, 18u, 29u, 46u, 63u };
+constant uint _47[7] = { 1u, 4u, 9u, 18u, 29u, 46u, 63u };
 
 struct PSMain_out
 {
-    float4 _entryPointOutput [[color(0)]];
+    float4 out_var_SV_TARGET [[color(0)]];
 };
 
 struct PSMain_in
 {
-    float2 input_uv [[user(locn0)]];
+    float2 in_var_ATTR0 [[user(locn0)]];
 };
 
-fragment PSMain_out PSMain(PSMain_in in [[stage_in]], constant BlurData& _49 [[buffer(0)]], texture2d<float> tex [[texture(0)]], sampler bilinearSamp [[sampler(0)]], float4 gl_FragCoord [[position]])
+fragment PSMain_out PSMain(PSMain_in in [[stage_in]], constant type_BlurData& BlurData [[buffer(0)]], texture2d<float> tex [[texture(0)]], sampler bilinearSamp [[sampler(0)]], float4 gl_FragCoord [[position]])
 {
     PSMain_out out = {};
-    float4 _146;
-    _146 = float4(0.0);
-    float4 _133;
-    for (uint _145 = 0u; _145 < _38[kernelRadius]; _146 = _133, _145++)
+    float4 _51;
+    _51 = float4(0.0);
+    for (uint _54 = 0u; _54 < _47[kernelRadius]; )
     {
-        _133 = _146 + (tex.sample(bilinearSamp, (in.input_uv + _49.samples[_145].xy)) * _49.samples[_145].z);
+        _51 += (tex.sample(bilinearSamp, (in.in_var_ATTR0 + BlurData.samples[_54].xy)) * BlurData.samples[_54].z);
+        _54++;
+        continue;
     }
-    out._entryPointOutput = _146;
+    out.out_var_SV_TARGET = _51;
     return out;
 }
 

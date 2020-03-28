@@ -2,11 +2,11 @@
 
 layout(binding = 0) uniform sampler2D tex_samp;
 
-layout(location = 0) in vec2 ps_in_texcoord;
-layout(location = 0) out vec4 _entryPointOutput;
+layout(location = 0) in vec2 in_var_ATTRIBUTE0;
+layout(location = 0) out vec4 out_var_SV_TARGET;
 
 void main()
 {
-    _entryPointOutput = texture(tex_samp, ps_in_texcoord);
+    out_var_SV_TARGET = texture(tex_samp, in_var_ATTRIBUTE0);
 }
 
