@@ -94,7 +94,9 @@ class DxcWrapper {
 public:
   struct Result {
     std::vector<uint32_t> spirv_result;
-    std::string error_message;
+    std::string diag_message;
+    bool HasData() const { return spirv_result.size() > 0; }
+    bool HasDiagMessage() const { return diag_message.size() > 0; }
   };
 
   DxcWrapper();
@@ -103,10 +105,11 @@ public:
                             size_t source_size,
                             const char *input_file_name,
                             const technique::entry_point &entry_point,
-                            const define_container &global_macro_definitions);
+                            const define_container &defines);
 
 private:
   DynamicLib dxcompiler_dll_;
   ComPtr<IDxcLibrary> library_instance_;
   ComPtr<IDxcCompiler> compiler_instance_;
+  ComPtr<IDxcIncludeHandler> include_handler_;
 };
