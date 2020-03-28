@@ -20,6 +20,7 @@
  * IN THE SOFTWARE.
  */
 
+#define _CRT_SECURE_NO_WARNINGS
 #include "dxc_wrapper.h"
 #include <string>
 #include <stdlib.h>
@@ -41,6 +42,7 @@ namespace {
   }
 }
 
+
 DxcWrapper::DxcWrapper() : 
     dxcompiler_dll_(dxc_lib_candidates, ndxc_lib_candidates_) {
   if (dxcompiler_dll_.IsValid()) {
@@ -53,18 +55,23 @@ DxcWrapper::DxcWrapper() :
   }
   
   library_instance_ =
-    ComPtr<IDxcLibrary>([create_proc](auto ptr) {
+    ComPtr<IDxcLibrary>([&](auto ptr) {
       return create_proc(CLSID_DxcLibrary,
                          __uuidof(IDxcLibrary),
                          (LPVOID*)ptr);
     });
 
   compiler_instance_ =
-    ComPtr<IDxcCompiler>([create_proc](auto ptr) {
+    ComPtr<IDxcCompiler>([&](auto ptr) {
       return create_proc(CLSID_DxcCompiler,
                          __uuidof(IDxcCompiler),
                          (LPVOID*)ptr);
     });
+
+    include_handler_ =
+        ComPtr<IDxcIncludeHandler>([&](auto ptr) {
+          return library_instance_->CreateIncludeHandler(ptr);
+        });
 }
 
 DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
@@ -72,17 +79,17 @@ DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
     size_t source_size,
     const char* input_file_name,
     const technique::entry_point& entry_point,
-    const define_container& global_macro_definitions) {
+    const define_container& defines) {
   auto input_blob = ComPtr<IDxcBlobEncoding>([&](auto ptr) {
     return library_instance_->CreateBlobWithEncodingFromPinned(
         source,
-        source_size,
+        (uint32_t)source_size,
         0,
         ptr);
   });
 
   LPCWSTR args[] = {
-    L"-spirv",
+    L"-spirv", // enable spir-v codegen.
     L"-Zpc",
   };
   const size_t args_count = sizeof(args)/sizeof(args[0]);
@@ -91,6 +98,19 @@ DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
       towstring(input_file_name, strlen(input_file_name));
   const std::wstring wentry_point_name =
       towstring(entry_point.name.c_str(), entry_point.name.size());
+
+  std::vector<std::pair<std::wstring, std::wstring>> wdefines;
+  std::vector<DxcDefine> dxc_defines;
+  for (const std::pair<std::string, std::string>& define : defines) {
+    wdefines.emplace_back(towstring(define.first.c_str(), define.first.size()),
+                          towstring(define.second.c_str(), define.second.size()));
+    const auto &wdefine = wdefines.back();
+    dxc_defines.emplace_back(DxcDefine { 
+                                 wdefine.first.c_str(),
+                                 wdefine.second.empty()
+                                     ? NULL
+                                     : wdefine.second.c_str() });
+  }
 
   const LPCWSTR target_profile = [&entry_point]() {
     switch (entry_point.kind) {
@@ -110,19 +130,17 @@ DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
             wentry_point_name.c_str(),
             target_profile,
             args,
-            args_count,
-            NULL,
-            0,
-            NULL,
+            (uint32_t)args_count,
+            dxc_defines.data(),
+            (uint32_t)dxc_defines.size(),
+            include_handler_.get(),
             ptr);
       });
 
   Result result;
 
   auto spirv_blob =
-      ComPtr<IDxcBlob>([&](auto ptr) {
-        return dxc_result->GetResult(ptr);
-      });
+      ComPtr<IDxcBlob>([&](auto ptr) { return dxc_result->GetResult(ptr); });
 
   if (spirv_blob->GetBufferSize() > 0) {
     result.spirv_result =
@@ -139,9 +157,9 @@ DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
       });
 
   if (errmsg_blob->GetBufferSize() > 0) {
-    result.error_message = std::string(errmsg_blob->GetBufferSize() + 1u,
+    result.diag_message = std::string(errmsg_blob->GetBufferSize() + 1u,
                                        '\0');
-    memcpy((void*)result.error_message.data(),
+    memcpy((void*)result.diag_message.data(),
             errmsg_blob->GetBufferPointer(),
             errmsg_blob->GetBufferSize());
   }
