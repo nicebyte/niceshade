@@ -42,44 +42,44 @@ namespace {
 }
 
 
-DxcWrapper::DxcWrapper() : 
+dxc_wrapper::dxc_wrapper() : 
     dxcompiler_dll_(dxc_lib_candidates, ndxc_lib_candidates_) {
   if (dxcompiler_dll_.IsValid()) {
     exit(1);
   }
   auto create_proc =
-      (DxcCreateInstanceProc)dxcompiler_dll_.GetProcAddress("DxcCreateInstance");
+      (DxcCreateInstanceProc)dxcompiler_dll_.get_proc_address("DxcCreateInstance");
   if (NULL == create_proc) {
     exit(1);
   }
   
   library_instance_ =
-    ComPtr<IDxcLibrary>([&](auto ptr) {
+    com_ptr<IDxcLibrary>([&](auto ptr) {
       return create_proc(CLSID_DxcLibrary,
                          __uuidof(IDxcLibrary),
                          (LPVOID*)ptr);
     });
 
   compiler_instance_ =
-    ComPtr<IDxcCompiler>([&](auto ptr) {
+    com_ptr<IDxcCompiler>([&](auto ptr) {
       return create_proc(CLSID_DxcCompiler,
                          __uuidof(IDxcCompiler),
                          (LPVOID*)ptr);
     });
 
     include_handler_ =
-        ComPtr<IDxcIncludeHandler>([&](auto ptr) {
+        com_ptr<IDxcIncludeHandler>([&](auto ptr) {
           return library_instance_->CreateIncludeHandler(ptr);
         });
 }
 
-DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
+dxc_wrapper::result dxc_wrapper::compile_hlsl2spv(
     const char* source,
     size_t source_size,
     const char* input_file_name,
     const technique::entry_point& entry_point,
     const define_container& defines) {
-  auto input_blob = ComPtr<IDxcBlobEncoding>([&](auto ptr) {
+  auto input_blob = com_ptr<IDxcBlobEncoding>([&](auto ptr) {
     return library_instance_->CreateBlobWithEncodingFromPinned(
         source,
         (uint32_t)source_size,
@@ -124,7 +124,7 @@ DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
     }
   }();
   auto dxc_result =
-      ComPtr<IDxcOperationResult>([&](auto ptr) {
+      com_ptr<IDxcOperationResult>([&](auto ptr) {
         return compiler_instance_->Compile(
             input_blob.get(),
             winput_file_name.c_str(),
@@ -138,10 +138,10 @@ DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
             ptr);
       });
 
-  Result result;
+  result result;
 
   auto spirv_blob =
-      ComPtr<IDxcBlob>([&](auto ptr) { return dxc_result->GetResult(ptr); });
+      com_ptr<IDxcBlob>([&](auto ptr) { return dxc_result->GetResult(ptr); });
 
   if (spirv_blob->GetBufferSize() > 0) {
     result.spirv_result =
@@ -153,7 +153,7 @@ DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
   }
 
   auto errmsg_blob =
-      ComPtr<IDxcBlobEncoding>([&](auto ptr) {
+      com_ptr<IDxcBlobEncoding>([&](auto ptr) {
         return dxc_result->GetErrorBuffer(ptr);
       });
 

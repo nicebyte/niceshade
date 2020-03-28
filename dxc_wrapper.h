@@ -34,26 +34,26 @@
 #include <variant>
 #include <type_traits>
 
-class DxcWrapper {
+class dxc_wrapper {
   template <class T>
-  class ComPtr {
+  class com_ptr {
   public:
-    ComPtr() = default;
-    explicit ComPtr(T* ptr) : ptr_(ptr) {
+    com_ptr() = default;
+    explicit com_ptr(T* ptr) : ptr_(ptr) {
       static_assert(std::is_base_of<IUnknown, T>);
     }
     template <class F>
-    explicit ComPtr(F create_fn) {
+    explicit com_ptr(F create_fn) {
       static_assert(std::is_invocable_r<HRESULT, F, T**>::value);
       const HRESULT create_result = create_fn(&ptr_);
       if (create_result != S_OK)
         exit(1);
     }
-    ComPtr(const ComPtr&) = delete;
-    ComPtr(ComPtr &&other) { *this = std::move(other); }
-    ~ComPtr() { release(); }
-    ComPtr& operator=(const ComPtr &) = delete;
-    ComPtr& operator=(ComPtr&& other) noexcept {
+    com_ptr(const com_ptr&) = delete;
+    com_ptr(com_ptr &&other) { *this = std::move(other); }
+    ~com_ptr() { release(); }
+    com_ptr& operator=(const com_ptr &) = delete;
+    com_ptr& operator=(com_ptr&& other) noexcept {
       release();
       ptr_ = other.ptr_;
       other.ptr_ = nullptr;
@@ -75,16 +75,16 @@ class DxcWrapper {
     T *ptr_ = nullptr;
   };
 
-  class DynamicLib {
+  class dynamic_lib {
   public:
-    DynamicLib() = default;
-    DynamicLib(const char **candidate_names, size_t nnames) {
+    dynamic_lib() = default;
+    dynamic_lib(const char **candidate_names, size_t nnames) {
       for (size_t i = 0; h_ == NULL && i < nnames; ++i)
         h_ = LoadLibraryA(candidate_names[i]);
     }
-    ~DynamicLib() { if(h_) FreeModule(h_); }
-    DynamicLib(const DynamicLib&) = delete;
-    DynamicLib& operator=(const DynamicLib&) = delete;
+    ~dynamic_lib() { if(h_) FreeModule(h_); }
+    dynamic_lib(const dynamic_lib&) = delete;
+    dynamic_lib& operator=(const dynamic_lib&) = delete;
     bool IsValid() const { return h_ == NULL; }
     LPVOID GetProcAddress(LPCSTR name) const { return ::GetProcAddress(h_, name); }
   private:
@@ -92,24 +92,24 @@ class DxcWrapper {
   };
 
 public:
-  struct Result {
+  struct result {
     std::vector<uint32_t> spirv_result;
     std::string diag_message;
     bool HasData() const { return spirv_result.size() > 0; }
     bool HasDiagMessage() const { return diag_message.size() > 0; }
   };
 
-  DxcWrapper();
+  dxc_wrapper();
 
-  Result CompileHlslToSpirv(const char *source,
-                            size_t source_size,
-                            const char *input_file_name,
-                            const technique::entry_point &entry_point,
-                            const define_container &defines);
+  result compile_hlsl2spv(const char *source,
+                          size_t source_size,
+                          const char *input_file_name,
+                          const technique::entry_point &entry_point,
+                          const define_container &defines);
 
 private:
-  DynamicLib dxcompiler_dll_;
-  ComPtr<IDxcLibrary> library_instance_;
-  ComPtr<IDxcCompiler> compiler_instance_;
-  ComPtr<IDxcIncludeHandler> include_handler_;
+  dynamic_lib dxcompiler_dll_;
+  com_ptr<IDxcLibrary> library_instance_;
+  com_ptr<IDxcCompiler> compiler_instance_;
+  com_ptr<IDxcIncludeHandler> include_handler_;
 };
