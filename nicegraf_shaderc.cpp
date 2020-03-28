@@ -30,7 +30,6 @@
 #include "pipeline_metadata_file.h"
 #include "separate_to_combined_map.h"
 #include "shader_defines.h"
-#include "shader_includer.h"
 #include "target.h"
 #include "technique_parser.h"
 #include "spirv_glsl.hpp"
@@ -235,7 +234,7 @@ int main(int argc, const char *argv[]) {
         std::string out;
         std::string out_file_path =
             out_folder + PATH_SEPARATOR + tech.name + 
-            (ep.kind == shaderc_vertex_shader ? ".vs." : ".ps.")
+            (ep.kind == shader_kind::vertex ? ".vs." : ".ps.")
             + target_info->file_ext;
         std::unique_ptr<spirv_cross::Compiler> compiler =
             create_cross_compiler(spv_result.data(),
@@ -267,7 +266,7 @@ int main(int argc, const char *argv[]) {
                                          *compiler);
           }
           const stage_mask_bit smb =
-              ep.kind == shaderc_vertex_shader
+              ep.kind == shader_kind::vertex
                            ? STAGE_MASK_VERTEX
                            : STAGE_MASK_FRAGMENT;
           auto process_resources =
