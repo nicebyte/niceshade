@@ -53,7 +53,8 @@ static void report_technique_parser_error(uint32_t line_num,
 }
 
 void parse_techniques(const std::string &input_source,
-                      std::vector<technique> &techniques) {
+                      std::vector<technique> &techniques,
+                      const define_container &default_defines) {
   uint32_t last_four_chars = 0u;
   uint32_t line_num = 1u;
   const uint32_t technique_prefix = 0x2f2f543a; // `//T:'
@@ -81,6 +82,10 @@ void parse_techniques(const std::string &input_source,
       if (last_four_chars == technique_prefix) {
         state = technique_parser_state::LOOKING_FOR_NAME;
         techniques.emplace_back();
+        technique &new_tech = techniques.back();
+        new_tech.defines.insert(new_tech.defines.end(),
+                                default_defines.begin(),
+                                default_defines.end());
         have_vertex_stage = false;
       }
       break;
