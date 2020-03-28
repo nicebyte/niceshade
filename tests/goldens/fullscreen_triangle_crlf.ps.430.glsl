@@ -1,10 +1,10 @@
 #version 430
 
-layout(location = 0) in vec2 ps_in_texcoord;
-layout(location = 0) out vec4 _entryPointOutput;
+layout(location = 0) in vec2 in_var_ATTRIBUTE0;
+layout(location = 0) out vec4 out_var_SV_TARGET;
 
 void main()
 {
-    _entryPointOutput = gl_FragCoord;
+    out_var_SV_TARGET = gl_FragCoord;
 }
 

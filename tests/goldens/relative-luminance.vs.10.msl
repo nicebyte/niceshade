@@ -3,7 +3,7 @@
 
 using namespace metal;
 
-constant float2 _22[3] = { float2(-1.0), float2(3.0, -1.0), float2(-1.0, 3.0) };
+constant float2 _23[3] = { float2(-1.0), float2(3.0, -1.0), float2(-1.0, 3.0) };
 
 struct VSMain_out
 {
@@ -13,7 +13,7 @@ struct VSMain_out
 vertex VSMain_out VSMain(uint gl_VertexIndex [[vertex_id]])
 {
     VSMain_out out = {};
-    out.gl_Position = float4(_22[gl_VertexIndex % 3u], 0.0, 1.0);
+    out.gl_Position = float4(_23[gl_VertexIndex % 3u], 0.0, 1.0);
     return out;
 }
 

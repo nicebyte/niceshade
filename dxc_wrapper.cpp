@@ -24,7 +24,6 @@
 #include "dxc_wrapper.h"
 #include <string>
 #include <stdlib.h>
-#include <stdio.h>
 
 namespace {
   static const char* dxc_lib_candidates[] = {
