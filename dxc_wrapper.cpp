@@ -101,6 +101,8 @@ DxcWrapper::Result DxcWrapper::CompileHlslToSpirv(
 
   std::vector<std::pair<std::wstring, std::wstring>> wdefines;
   std::vector<DxcDefine> dxc_defines;
+  wdefines.reserve(defines.size());
+  dxc_defines.reserve(defines.size());
   for (const std::pair<std::string, std::string>& define : defines) {
     wdefines.emplace_back(towstring(define.first.c_str(), define.first.size()),
                           towstring(define.second.c_str(), define.second.size()));

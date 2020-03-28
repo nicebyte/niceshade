@@ -129,8 +129,6 @@ int main(int argc, const char *argv[]) {
   std::vector<const target_info*> targets;
   define_container global_macro_definitions;
 
-  global_macro_definitions.emplace_back("force_column_major", "row_major");
-
   for (uint32_t o = 2u; o < (uint32_t)argc; o += 2u) { // process options.
     const std::string option_name { argv[o] };
     if (o + 1u >= (uint32_t)argc) {
