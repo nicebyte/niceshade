@@ -22,6 +22,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
+#include "dxc_wrapper.h"
 #include "file_utils.h"
 #include "header_file_writer.h"
 #include "linear_dict.h"
@@ -32,7 +33,6 @@
 #include "shader_includer.h"
 #include "target.h"
 #include "technique_parser.h"
-#include "shaderc/shaderc.hpp"
 #include "spirv_glsl.hpp"
 #include "spirv_msl.hpp"
 #include "spirv_reflect.hpp"
@@ -115,6 +115,8 @@ std::unique_ptr<spirv_cross::Compiler> create_cross_compiler(
 }
 
 int main(int argc, const char *argv[]) {
+  DxcWrapper dxcompiler;
+
   if (argc <= 1) { // Display help if invoked with no arguments.
     printf("%s\n", USAGE);
     exit(0);
@@ -127,6 +129,8 @@ int main(int argc, const char *argv[]) {
   std::string header_namespace = "";
   std::vector<const target_info*> targets;
   define_container global_macro_definitions;
+
+  global_macro_definitions.emplace_back("force_column_major", "row_major");
 
   for (uint32_t o = 2u; o < (uint32_t)argc; o += 2u) { // process options.
     const std::string option_name { argv[o] };
@@ -182,7 +186,7 @@ int main(int argc, const char *argv[]) {
 
   // Look for and parse technique directives in the code.
   std::vector<technique> techniques;
-  parse_techniques(input_source, techniques);
+  parse_techniques(input_source, techniques, global_macro_definitions);
   if (techniques.size() == 0u) {
     fprintf(stderr, "Input file does not appear to define any techniques. "
                     "Define techniques with a special comment (`//T:').\n");
@@ -190,35 +194,23 @@ int main(int argc, const char *argv[]) {
   }
 
   // Obtain SPIR-V.
-  std::vector<shaderc::SpvCompilationResult> spv_results;
-  const std::string kForceColumnMajorName = "force_column_major";
-  const std::string kForceColumnMajorValue = "row_major";
-  shaderc::Compiler compiler;
+  std::vector<DxcWrapper::Result> spv_results;
   for (const technique &tech : techniques) {
     for (const technique::entry_point ep : tech.entry_points) {
-      // Set compile options.
-      shaderc::CompileOptions shaderc_opts;
-      add_defines_from_container(shaderc_opts, tech.defines);
-      shaderc_opts.AddMacroDefinition(kForceColumnMajorName, kForceColumnMajorValue);
-      add_defines_from_container(shaderc_opts, global_macro_definitions);
-      shaderc_opts.SetAutoBindUniforms(true);
-      shaderc_opts.SetAutoMapLocations(true);
-      shaderc_opts.SetSourceLanguage(shaderc_source_language_hlsl);
-      shaderc_opts.SetIncluder(std::make_unique<includer>());
-      shaderc_opts.SetWarningsAsErrors();
       // Produce SPIR-V.
-      spv_results.emplace_back(
-        compiler.CompileGlslToSpv(input_source,
-                                  ep.kind,
-                                  input_file_path.c_str(),
-                                  ep.name.c_str(),
-                                  shaderc_opts));
-
-      if (spv_results.back().GetCompilationStatus() !=
-          shaderc_compilation_status_success) {
-        fprintf(stderr, "%s", spv_results.back().GetErrorMessage().c_str());
+      spv_results.emplace_back(dxcompiler.CompileHlslToSpirv(
+          input_source.c_str(),
+          input_source.size(),
+          input_file_path.c_str(),
+          ep,
+          tech.defines));
+      const DxcWrapper::Result &result = spv_results.back();
+      if (result.HasDiagMessage()) {
+        fprintf(stderr, "%s", result.diag_message.c_str());
+      }
+      if (!result.HasData()) {
         exit(1);
-      } 
+      }
     }
   }
 
@@ -238,18 +230,17 @@ int main(int argc, const char *argv[]) {
       pipeline_layout res_layout;
       separate_to_combined_map images_to_cis, samplers_to_cis;
       for (const technique::entry_point ep : tech.entry_points) {
-        const shaderc::SpvCompilationResult &spv_result =
-            spv_results[spv_idx++];
+        std::vector<uint32_t> &spv_result =
+            spv_results[spv_idx++].spirv_result;
         std::string out;
         std::string out_file_path =
             out_folder + PATH_SEPARATOR + tech.name + 
             (ep.kind == shaderc_vertex_shader ? ".vs." : ".ps.")
             + target_info->file_ext;
         std::unique_ptr<spirv_cross::Compiler> compiler =
-            create_cross_compiler(
-                spv_result.cbegin(),
-                (uint32_t)(spv_result.cend() - spv_result.cbegin()),
-                *target_info);
+            create_cross_compiler(spv_result.data(),
+                                  (uint32_t)spv_result.size(),
+                                  *target_info);
         spirv_cross::ShaderResources resources =
             compiler->get_shader_resources();
         const std::vector<spirv_cross::CombinedImageSampler> &cis =
@@ -305,8 +296,8 @@ int main(int argc, const char *argv[]) {
           out = compiler->compile();
           fwrite(&out[0], sizeof(uint8_t), out.length(), out_file);
         } else {
-          fwrite(spv_result.cbegin(), sizeof(uint32_t),
-                 spv_result.cend() - spv_result.cbegin(), out_file);
+          fwrite(spv_result.data(), sizeof(uint32_t),
+                 spv_result.size(), out_file);
         }
         fclose(out_file);
       }
