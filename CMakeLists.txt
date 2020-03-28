@@ -20,7 +20,6 @@ endfunction(set_output_dir)
 set(SHADERC_SKIP_TESTS "on")
 set(SPIRV_SKIP_TESTS "on")
 
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/third_party/shaderc)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/third_party/SPIRV-Cross)
 
 set(NICEGRAF_SHADERC_SOURCES
@@ -31,7 +30,6 @@ set(NICEGRAF_SHADERC_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/technique_parser.h
     ${CMAKE_CURRENT_LIST_DIR}/technique_parser.cpp
     ${CMAKE_CURRENT_LIST_DIR}/shader_defines.h
-    ${CMAKE_CURRENT_LIST_DIR}/shader_defines.cpp
     ${CMAKE_CURRENT_LIST_DIR}/file_utils.h 
     ${CMAKE_CURRENT_LIST_DIR}/file_utils.cpp
     ${CMAKE_CURRENT_LIST_DIR}/pipeline_layout.h
@@ -39,9 +37,7 @@ set(NICEGRAF_SHADERC_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/pipeline_metadata_file.h
     ${CMAKE_CURRENT_LIST_DIR}/pipeline_metadata_file.cpp
     ${CMAKE_CURRENT_LIST_DIR}/separate_to_combined_map.h
-    ${CMAKE_CURRENT_LIST_DIR}/separate_to_combined_map.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/shader_includer.h
-    ${CMAKE_CURRENT_LIST_DIR}/shader_includer.cpp)
+    ${CMAKE_CURRENT_LIST_DIR}/separate_to_combined_map.cpp)
 
 add_executable(nicegraf_shaderc ${NICEGRAF_SHADERC_SOURCES})
 set_property(TARGET nicegraf_shaderc PROPERTY CXX_STANDARD 17)
@@ -49,7 +45,7 @@ target_include_directories(nicegraf_shaderc PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/../library/include
     ${CMAKE_CURRENT_LIST_DIR}/third_party/dxc)
 target_link_libraries(nicegraf_shaderc
-  shaderc spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl)
+  spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl)
 set_output_dir(nicegraf_shaderc ${CMAKE_CURRENT_LIST_DIR})
 
 add_library(metadata_parser metadata_parser/metadata_parser.h metadata_parser/metadata_parser.c)
@@ -59,12 +55,7 @@ target_include_directories(display_metadata PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(display_metadata PRIVATE metadata_parser)
 set_output_dir(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set_target_properties(shaderc  glslc glslc_exe install-headers 
-                      shaderc_combined_genfile shaderc_shared shaderc_util shaderc-online-compile                      
-                      SPIRV-Headers-example SPIRV-Headers-example-1.1
-                      spirv-tools-pkg-config spirv-tools-shared-pkg-config
-                      PROPERTIES FOLDER shaderc)
-                      
-set_target_properties(spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl 
-                      add-copyright build-version check-copyright spirv-cross spirv-cross-cpp
-                      spirv-cross-hlsl spirv-cross-util testdata PROPERTIES FOLDER spirv-cross)
+                     
+#set_target_properties(spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl 
+#                      add-copyright build-version check-copyright spirv-cross spirv-cross-cpp
+#                      spirv-cross-hlsl spirv-cross-util testdata PROPERTIES FOLDER spirv-cross)
