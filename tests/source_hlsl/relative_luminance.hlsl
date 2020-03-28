@@ -24,5 +24,5 @@ float4 PSMain(float4 frag_coord : SV_POSITION) : SV_TARGET{
 #if defined(OUTPUT_NEEDS_GAMMA_CORRECTION)
   relative_luminance = pow(relative_luminance, 1.0 / gamma);
 #endif
-  return float4(float3(relative_luminance), 1.0);
+  return float4(float3(relative_luminance, relative_luminance, relative_luminance), 1.0);
 }

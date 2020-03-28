@@ -56,6 +56,5 @@ target_link_libraries(display_metadata PRIVATE metadata_parser)
 set_output_dir(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
                      
-#set_target_properties(spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl 
-#                      add-copyright build-version check-copyright spirv-cross spirv-cross-cpp
-#                      spirv-cross-hlsl spirv-cross-util testdata PROPERTIES FOLDER spirv-cross)
+set_target_properties(spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl 
+                      spirv-cross spirv-cross-cpp spirv-cross-hlsl spirv-cross-util PROPERTIES FOLDER spirv-cross)
