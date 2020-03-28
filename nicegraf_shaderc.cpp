@@ -114,7 +114,7 @@ std::unique_ptr<spirv_cross::Compiler> create_cross_compiler(
 }
 
 int main(int argc, const char *argv[]) {
-  DxcWrapper dxcompiler;
+  dxc_wrapper dxcompiler;
 
   if (argc <= 1) { // Display help if invoked with no arguments.
     printf("%s\n", USAGE);
@@ -191,17 +191,17 @@ int main(int argc, const char *argv[]) {
   }
 
   // Obtain SPIR-V.
-  std::vector<DxcWrapper::Result> spv_results;
+  std::vector<dxc_wrapper::result> spv_results;
   for (const technique &tech : techniques) {
     for (const technique::entry_point ep : tech.entry_points) {
       // Produce SPIR-V.
-      spv_results.emplace_back(dxcompiler.CompileHlslToSpirv(
+      spv_results.emplace_back(dxcompiler.compile_hlsl2spv(
           input_source.c_str(),
           input_source.size(),
           input_file_path.c_str(),
           ep,
           tech.defines));
-      const DxcWrapper::Result &result = spv_results.back();
+      const dxc_wrapper::result &result = spv_results.back();
       if (result.HasDiagMessage()) {
         fprintf(stderr, "%s", result.diag_message.c_str());
       }
