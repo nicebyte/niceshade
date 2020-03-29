@@ -22,9 +22,19 @@
 
 #pragma once
 
+#ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <unknwn.h>
+#define ModuleHandle HANDLE
+#else
+#include "WinAdapter.h"
+#include <dlfcn.h>
+#define LoadLibraryA(name) dlopen(name, RTLD_NOW)
+#define GetProcAddress(h, n) dlsym(h, n)
+#define FreeModule(h) dlclose(h)
+#define ModuleHandle void*
+#endif
 #include "dxcapi.h"
 #include "shader_defines.h"
 #include "technique_parser.h"
@@ -40,7 +50,7 @@ class dxc_wrapper {
   public:
     com_ptr() = default;
     explicit com_ptr(T* ptr) : ptr_(ptr) {
-      static_assert(std::is_base_of<IUnknown, T>);
+      static_assert(std::is_base_of<IUnknown, T>::value);
     }
     template <class F>
     explicit com_ptr(F create_fn) {
@@ -86,9 +96,9 @@ class dxc_wrapper {
     dynamic_lib(const dynamic_lib&) = delete;
     dynamic_lib& operator=(const dynamic_lib&) = delete;
     bool IsValid() const { return h_ == NULL; }
-    LPVOID get_proc_address(LPCSTR name) const { return ::GetProcAddress(h_, name); }
+    LPVOID get_proc_address(LPCSTR name) const { return GetProcAddress(h_, name); }
   private:
-    HMODULE h_ = NULL;
+    ModuleHandle h_ = NULL;
   };
 
 public:

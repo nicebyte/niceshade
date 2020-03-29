@@ -25,10 +25,17 @@
 #include <string>
 #include <stdlib.h>
 
+DEFINE_CROSS_PLATFORM_UUIDOF(IDxcLibrary)
+DEFINE_CROSS_PLATFORM_UUIDOF(IDxcCompiler)
+
 namespace {
   static const char* dxc_lib_candidates[] = {
     "third_party/dxc/dxcompiler.dll",
+    "../third_party/dxc/dxcompiler.dll",
     "dxcompiler.dll",
+    "third_party/dxc/libdxcompiler.so",
+    "../third_party/dxc/libdxcompiler.so",
+    "libdxcompiler.so"
   };
 
   static constexpr size_t ndxc_lib_candidates_ =
@@ -45,6 +52,7 @@ namespace {
 dxc_wrapper::dxc_wrapper() : 
     dxcompiler_dll_(dxc_lib_candidates, ndxc_lib_candidates_) {
   if (dxcompiler_dll_.IsValid()) {
+    fprintf(stderr, "dxcompiler library not loaded.\n");
     exit(1);
   }
   auto create_proc =

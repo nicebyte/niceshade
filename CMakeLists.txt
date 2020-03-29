@@ -46,6 +46,9 @@ target_include_directories(nicegraf_shaderc PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/third_party/dxc)
 target_link_libraries(nicegraf_shaderc
   spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl)
+if (NOT WIN32)
+  target_link_libraries(nicegraf_shaderc dl)
+endif()
 set_output_dir(nicegraf_shaderc ${CMAKE_CURRENT_LIST_DIR})
 
 add_library(metadata_parser metadata_parser/metadata_parser.h metadata_parser/metadata_parser.c)
