@@ -86,7 +86,7 @@ class dxc_wrapper {
     dynamic_lib(const dynamic_lib&) = delete;
     dynamic_lib& operator=(const dynamic_lib&) = delete;
     bool IsValid() const { return h_ == NULL; }
-    LPVOID GetProcAddress(LPCSTR name) const { return ::GetProcAddress(h_, name); }
+    LPVOID get_proc_address(LPCSTR name) const { return ::GetProcAddress(h_, name); }
   private:
     HMODULE h_ = NULL;
   };
