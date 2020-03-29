@@ -35,7 +35,10 @@ namespace {
     "dxcompiler.dll",
     "third_party/dxc/libdxcompiler.so",
     "../third_party/dxc/libdxcompiler.so",
-    "libdxcompiler.so"
+    "libdxcompiler.so",
+    "third_party/dxc/libdxcompiler.dylib",
+    "../third_party/dxc/libdxcompiler.dylib",
+    "libdxcompiler.dylib"
   };
 
   static constexpr size_t ndxc_lib_candidates_ =
