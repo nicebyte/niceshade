@@ -70,6 +70,9 @@ Options:
 
   -n <identifier> - Namespace for the generated shader file. If not specified,
      global namespace is used.
+
+  -D <name>=<value> - Add a preprocessor definition `name` with the value `value` to
+     techniques.
 )RAW";
 
 // Create an instance of SPIRV-Cross compiler for a given target.
