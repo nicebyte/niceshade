@@ -53,7 +53,8 @@ namespace {
 }
 
 
-dxc_wrapper::dxc_wrapper() : 
+dxc_wrapper::dxc_wrapper(const std::string &sm) :
+    shader_model_(towstring(sm.c_str(), sm.length())),
     dxcompiler_dll_(dxc_lib_candidates, ndxc_lib_candidates_) {
   if (dxcompiler_dll_.IsValid()) {
     fprintf(stderr, "dxcompiler library not loaded.\n");
