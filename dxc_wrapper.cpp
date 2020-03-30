@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2019 nicegraf contributors
+ * Copyright (c) 2020 nicegraf contributors
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
  * deal in the Software without restriction, including without limitation the
  * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
@@ -20,6 +20,7 @@
  * IN THE SOFTWARE.
  */
 
+
 #define _CRT_SECURE_NO_WARNINGS
 #include "dxc_wrapper.h"
 #include <string>
@@ -35,7 +36,10 @@ namespace {
     "dxcompiler.dll",
     "third_party/dxc/libdxcompiler.so",
     "../third_party/dxc/libdxcompiler.so",
-    "libdxcompiler.so"
+    "libdxcompiler.so",
+    "third_party/dxc/libdxcompiler.dylib",
+    "../third_party/dxc/libdxcompiler.dylib",
+    "libdxcompiler.dylib"
   };
 
   static constexpr size_t ndxc_lib_candidates_ =
@@ -49,7 +53,8 @@ namespace {
 }
 
 
-dxc_wrapper::dxc_wrapper() : 
+dxc_wrapper::dxc_wrapper(const std::string &sm) :
+    shader_model_(towstring(sm.c_str(), sm.length())),
     dxcompiler_dll_(dxc_lib_candidates, ndxc_lib_candidates_) {
   if (dxcompiler_dll_.IsValid()) {
     fprintf(stderr, "dxcompiler library not loaded.\n");
