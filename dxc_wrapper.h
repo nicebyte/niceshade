@@ -26,7 +26,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <unknwn.h>
-#define ModuleHandle HANDLE
+#define ModuleHandle HMODULE
 #else
 #include "WinAdapter.h"
 #include <dlfcn.h>
@@ -109,7 +109,7 @@ public:
     bool HasDiagMessage() const { return diag_message.size() > 0; }
   };
 
-  dxc_wrapper();
+  explicit dxc_wrapper(const std::string &sm);
 
   result compile_hlsl2spv(const char *source,
                           size_t source_size,
@@ -118,6 +118,7 @@ public:
                           const define_container &defines);
 
 private:
+  std::wstring shader_model_;
   dynamic_lib dxcompiler_dll_;
   com_ptr<IDxcLibrary> library_instance_;
   com_ptr<IDxcCompiler> compiler_instance_;

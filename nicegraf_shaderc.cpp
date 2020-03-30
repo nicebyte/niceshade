@@ -64,6 +64,9 @@ Options:
     If the option is encountered multiple times, shaders for all of the
     mentioned targets will be generated.
 
+  -m <version> - HLSL shader model version to use. Valid values are: 6_0, 6_1, 6_2, 6_3,
+   6_4, 6_5, 6_6. Default is 6_0.
+
   -h <path> - Path (relative to the output folder) for the generated
       header file with descriptor binding and set IDs. If not specified, no
       header file will be generated.
@@ -117,8 +120,6 @@ std::unique_ptr<spirv_cross::Compiler> create_cross_compiler(
 }
 
 int main(int argc, const char *argv[]) {
-  dxc_wrapper dxcompiler;
-
   if (argc <= 1) { // Display help if invoked with no arguments.
     printf("%s\n", USAGE);
     exit(0);
@@ -129,6 +130,7 @@ int main(int argc, const char *argv[]) {
   std::string out_folder = ".";
   std::string header_path = "";
   std::string header_namespace = "";
+  std::string shader_model = "6_0";
   std::vector<const target_info*> targets;
   define_container global_macro_definitions;
 
@@ -149,6 +151,21 @@ int main(int argc, const char *argv[]) {
         exit(1);
       }
       targets.push_back(&(t->target));
+    } else if ("-m" == option_name) {
+      shader_model = option_value;
+      if (shader_model.length() != 3) {
+          fprintf(stderr, "Invalid value for shader model: \"%s\"\n", shader_model.c_str());
+          exit(1);
+      } else {
+        const int sm_maj_ver = shader_model[0] - '0';
+        const int sm_min_ver = shader_model[2] - '0';
+        if (sm_maj_ver != 6 ||
+            sm_min_ver < 0 ||
+            sm_min_ver > 6) {
+            fprintf(stderr, "Unsupported shader model version: \"%s\"\n", shader_model.c_str());
+            exit(1);
+        }
+      }
     } else if ("-O" == option_name) { // Output folder.
       out_folder = option_value;
     } else if ("-h" == option_name) {
@@ -194,6 +211,7 @@ int main(int argc, const char *argv[]) {
   }
 
   // Obtain SPIR-V.
+  dxc_wrapper dxcompiler(shader_model);
   std::vector<dxc_wrapper::result> spv_results;
   for (const technique &tech : techniques) {
     for (const technique::entry_point ep : tech.entry_points) {
