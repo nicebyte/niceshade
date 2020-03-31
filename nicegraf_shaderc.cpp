@@ -85,7 +85,7 @@ int main(int argc, const char *argv[]) {
   }
 
   // Process command line arguments.
-  const std::string input_file_path { argv[1] }; // input file name.
+  const std::string input_file_path { argv[1] };
   std::string out_folder = ".";
   std::string header_path = "";
   std::string header_namespace = "";
@@ -93,7 +93,7 @@ int main(int argc, const char *argv[]) {
   std::vector<const target_info*> targets;
   define_container global_macro_definitions;
 
-  for (uint32_t o = 2u; o < (uint32_t)argc; o += 2u) { // process options.
+  for (uint32_t o = 2u; o < (uint32_t)argc; o += 2u) {
     const std::string option_name { argv[o] };
     if (o + 1u >= (uint32_t)argc) {
       fprintf(stderr, "Expected an option value after %s\n", argv[o]);
