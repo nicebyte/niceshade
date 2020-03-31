@@ -78,47 +78,6 @@ Options:
      techniques.
 )RAW";
 
-// Create an instance of SPIRV-Cross compiler for a given target.
-std::unique_ptr<spirv_cross::Compiler> create_cross_compiler(
-    const uint32_t *spv_data, uint32_t spv_data_size, const target_info &ti) {
-  switch(ti.api) {
-  case target_api::GL: {
-    auto spv_cross = std::make_unique<spirv_cross::CompilerGLSL>(
-       spv_data, spv_data_size);
-    spirv_cross::CompilerGLSL::Options opts;
-    opts.version = ti.version_maj * 100u + ti.version_min * 10u;
-    opts.separate_shader_objects = true;
-    opts.es = (ti.platform == target_platform_class::MOBILE);
-    spv_cross->set_common_options(opts);
-    spv_cross->build_dummy_sampler_for_combined_images();
-    spv_cross->build_combined_image_samplers();
-    return spv_cross;
-    break;
-  }
-  case target_api::VULKAN: {
-    auto spv_cross =
-        std::make_unique<spirv_cross::CompilerReflection>(spv_data,
-                                                          spv_data_size);
-    return spv_cross;
-    break;
-  }
-  case target_api::METAL: {
-    auto spv_cross = std::make_unique<spirv_cross::CompilerMSL>(spv_data,
-                                                                spv_data_size);
-    spirv_cross::CompilerMSL::Options opts;
-    opts.set_msl_version(ti.version_maj, ti.version_min);
-    const bool ios = ti.platform == target_platform_class::MOBILE;
-    opts.platform = ios ? spirv_cross::CompilerMSL::Options::iOS
-                        : spirv_cross::CompilerMSL::Options::macOS;
-    spv_cross->set_msl_options(opts);
-    return spv_cross;
-    break;
-  }
-  default: assert(false);
-  }
-  return nullptr;
-}
-
 int main(int argc, const char *argv[]) {
   if (argc <= 1) { // Display help if invoked with no arguments.
     printf("%s\n", USAGE);
@@ -255,45 +214,81 @@ int main(int argc, const char *argv[]) {
             out_folder + PATH_SEPARATOR + tech.name + 
             (ep.kind == shader_kind::vertex ? ".vs." : ".ps.")
             + target_info->file_ext;
-        std::unique_ptr<spirv_cross::Compiler> compiler =
-            create_cross_compiler(spv_result.data(),
-                                  (uint32_t)spv_result.size(),
-                                  *target_info);
+
+        // Create an instance of SPIRV-Cross compiler.
+        std::unique_ptr<spirv_cross::Compiler> spv_cross_compiler;
+        switch(target_info->api) {
+        case target_api::GL: {
+          auto gl_compiler = std::make_unique<spirv_cross::CompilerGLSL>(
+             spv_result.data(), spv_result.size());
+          spirv_cross::CompilerGLSL::Options opts;
+          opts.version = target_info->version_maj * 100u + target_info->version_min * 10u;
+          opts.separate_shader_objects = true;
+          opts.es = (target_info->platform == target_platform_class::MOBILE);
+          gl_compiler->set_common_options(opts);
+          gl_compiler->build_dummy_sampler_for_combined_images();
+          gl_compiler->build_combined_image_samplers();
+          spv_cross_compiler = std::move(gl_compiler);
+          break;
+        }
+        case target_api::VULKAN: {
+          spv_cross_compiler =
+              std::make_unique<spirv_cross::CompilerReflection>(spv_result.data(),
+                                                                spv_result.size());
+          break;
+        }
+        case target_api::METAL: {
+          auto msl_compiler = std::make_unique<spirv_cross::CompilerMSL>(spv_result.data(),
+                                                                      spv_result.size());
+          spirv_cross::CompilerMSL::Options opts;
+          opts.set_msl_version(target_info->version_maj, target_info->version_min);
+          const bool ios = target_info->platform == target_platform_class::MOBILE;
+          opts.platform = ios ? spirv_cross::CompilerMSL::Options::iOS
+                              : spirv_cross::CompilerMSL::Options::macOS;
+          msl_compiler->set_msl_options(opts);
+          spv_cross_compiler = std::move(msl_compiler);
+          break;
+        }
+        default: assert(false);
+        }
+
         spirv_cross::ShaderResources resources =
-            compiler->get_shader_resources();
+            spv_cross_compiler->get_shader_resources();
         const std::vector<spirv_cross::CombinedImageSampler> &cis =
-            compiler->get_combined_image_samplers();
+            spv_cross_compiler->get_combined_image_samplers();
         for (uint32_t cis_idx = 0u; cis_idx < cis.size(); ++cis_idx) {
           const spirv_cross::CombinedImageSampler &remap = cis[cis_idx];
-          compiler->set_name(remap.combined_id,
-                             compiler->get_name(remap.image_id) + "_" +
-                             compiler->get_name(remap.sampler_id));
-          compiler->set_decoration(remap.combined_id, spv::DecorationBinding,
-                                   cis_idx);
-          compiler->set_decoration(remap.combined_id,
-                                   spv::DecorationDescriptorSet,
-                                   AUTOGEN_CIS_DESCRIPTOR_SET);
+          spv_cross_compiler->set_name(
+              remap.combined_id,
+              spv_cross_compiler->get_name(remap.image_id) + "_" +
+              spv_cross_compiler->get_name(remap.sampler_id));
+          spv_cross_compiler->set_decoration(remap.combined_id,
+                                             spv::DecorationBinding,
+                                             cis_idx);
+          spv_cross_compiler->set_decoration(remap.combined_id,
+                                             spv::DecorationDescriptorSet,
+                                             AUTOGEN_CIS_DESCRIPTOR_SET);
         }
         const bool do_remapping = target_info->api == target_api::GL
                                   || target_info->api == target_api::METAL;
         if (do_remapping || generate_pipeline_metadata) {
           for (const spirv_cross::CombinedImageSampler &cis:
-                   compiler->get_combined_image_samplers()) {
+                   spv_cross_compiler->get_combined_image_samplers()) {
             images_to_cis.add_resource(cis.image_id, cis.combined_id,
-                                       *compiler);
+                                       *spv_cross_compiler);
             samplers_to_cis.add_resource(cis.sampler_id, cis.combined_id,
-                                         *compiler);
+                                         *spv_cross_compiler);
           }
           const stage_mask_bit smb =
               ep.kind == shader_kind::vertex
                            ? STAGE_MASK_VERTEX
                            : STAGE_MASK_FRAGMENT;
           auto process_resources =
-            [smb, do_remapping, &compiler, &res_layout](
+            [smb, do_remapping, &spv_cross_compiler, &res_layout](
               const std::vector<spirv_cross::Resource> &resources,
               descriptor_type dtype) {
               res_layout.process_resources(resources, dtype, smb,
-                                           do_remapping, *compiler);
+                                           do_remapping, *spv_cross_compiler);
             };
           process_resources(resources.uniform_buffers,
                             descriptor_type::UNIFORM_BUFFER);
@@ -311,7 +306,7 @@ int main(int argc, const char *argv[]) {
           exit(1);
         }
         if (target_info->api != target_api::VULKAN) {
-          out = compiler->compile();
+          out = spv_cross_compiler->compile();
           fwrite(&out[0], sizeof(uint8_t), out.length(), out_file);
         } else {
           fwrite(spv_result.data(), sizeof(uint32_t),
