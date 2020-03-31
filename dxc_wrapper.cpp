@@ -126,23 +126,23 @@ dxc_wrapper::result dxc_wrapper::compile_hlsl2spv(
                                      : wdefine.second.c_str() });
   }
 
-  const LPCWSTR target_profile = [&entry_point]() {
+  const std::wstring target_profile = [&entry_point]() {
     switch (entry_point.kind) {
     case shader_kind::vertex:
-      return L"vs_6_0";
+      return L"vs_";
     case shader_kind::fragment:
-      return L"ps_6_0";
+      return L"ps_";
     default:
       exit(1);
     }
-  }();
+  }() + shader_model_;
   auto dxc_result =
       com_ptr<IDxcOperationResult>([&](auto ptr) {
         return compiler_instance_->Compile(
             input_blob.get(),
             winput_file_name.c_str(),
             wentry_point_name.c_str(),
-            target_profile,
+            target_profile.c_str(),
             args,
             (uint32_t)args_count,
             dxc_defines.data(),
