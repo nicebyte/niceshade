@@ -64,10 +64,18 @@ public:
 
   void write_descriptor(const descriptor &d, uint32_t set_id) {
     if(file_) {
+      // HACK remove `type_` prefix inserted by DXC from uniform buffer
+      // names.
+      const bool is_ubo = 
+        d.type == descriptor_type::UNIFORM_BUFFER;
+      const char *descriptor_name =
+          is_ubo && d.name.substr(0, 5) == "type_" ? &d.name[5] : d.name.c_str();
+
       fprintf(file_,
               "  static constexpr int %s_Binding = %d;\n"
               "  static constexpr int %s_Set = %d;\n",
-              d.name.c_str(), d.slot, d.name.c_str(), set_id);
+              descriptor_name, d.slot,
+              descriptor_name, set_id);
     }
   }
   
