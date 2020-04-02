@@ -270,7 +270,7 @@ int main(int argc, const char *argv[]) {
 
         spirv_cross::ShaderResources resources =
             spv_cross_compiler->get_shader_resources();
-        const std::vector<spirv_cross::CombinedImageSampler> &cis =
+        const spirv_cross::SmallVector<spirv_cross::CombinedImageSampler> &cis =
             spv_cross_compiler->get_combined_image_samplers();
         for (uint32_t cis_idx = 0u; cis_idx < cis.size(); ++cis_idx) {
           const spirv_cross::CombinedImageSampler &remap = cis[cis_idx];
@@ -301,7 +301,7 @@ int main(int argc, const char *argv[]) {
                            : STAGE_MASK_FRAGMENT;
           auto process_resources =
             [smb, do_remapping, &spv_cross_compiler, &res_layout](
-              const std::vector<spirv_cross::Resource> &resources,
+              const spirv_cross::SmallVector<spirv_cross::Resource> &resources,
               descriptor_type dtype) {
               res_layout.process_resources(resources, dtype, smb,
                                            do_remapping, *spv_cross_compiler);

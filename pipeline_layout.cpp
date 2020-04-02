@@ -26,7 +26,7 @@
 #include <stdio.h>
 
 void pipeline_layout::process_resources(
-    const std::vector<spirv_cross::Resource> &resources,
+    const spirv_cross::SmallVector<spirv_cross::Resource> &resources,
     descriptor_type resource_type,
     stage_mask_bit smb,
     bool do_remapping,

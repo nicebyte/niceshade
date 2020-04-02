@@ -27,6 +27,8 @@
 #include <windows.h>
 #include <unknwn.h>
 #define ModuleHandle HMODULE
+#undef max
+#undef min
 #else
 #include "WinAdapter.h"
 #include <dlfcn.h>

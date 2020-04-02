@@ -66,7 +66,7 @@ public:
   // single binding, for targets that have no concept of descriptor
   // sets and use separate biniding spaces for each resource type (i.e. OpenGL
   // and Metal).
-  void process_resources(const std::vector<spirv_cross::Resource> &resources,
+  void process_resources(const spirv_cross::SmallVector<spirv_cross::Resource> &resources,
                          descriptor_type resource_type,
                          stage_mask_bit smb,
                          bool do_remapping,
