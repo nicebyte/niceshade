@@ -109,7 +109,7 @@ public:
     bool HasDiagMessage() const { return diag_message.size() > 0; }
   };
 
-  explicit dxc_wrapper(const std::string &sm);
+  dxc_wrapper(const std::string &sm, bool enable_spv_opt);
 
   result compile_hlsl2spv(const char *source,
                           size_t source_size,
@@ -119,6 +119,7 @@ public:
 
 private:
   std::wstring shader_model_;
+  bool enable_spv_opt_;
   dynamic_lib dxcompiler_dll_;
   com_ptr<IDxcLibrary> library_instance_;
   com_ptr<IDxcCompiler> compiler_instance_;
