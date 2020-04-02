@@ -53,8 +53,9 @@ namespace {
 }
 
 
-dxc_wrapper::dxc_wrapper(const std::string &sm) :
+dxc_wrapper::dxc_wrapper(const std::string &sm, bool enable_spv_opt) :
     shader_model_(towstring(sm.c_str(), sm.length())),
+    enable_spv_opt_(enable_spv_opt),
     dxcompiler_dll_(dxc_lib_candidates, ndxc_lib_candidates_) {
   if (dxcompiler_dll_.IsValid()) {
     fprintf(stderr, "dxcompiler library not loaded.\n");
@@ -103,6 +104,7 @@ dxc_wrapper::result dxc_wrapper::compile_hlsl2spv(
   LPCWSTR args[] = {
     L"-spirv", // enable spir-v codegen.
     L"-Zpc",
+    enable_spv_opt_ ? L"-O3" : L"-O0"
   };
   const size_t args_count = sizeof(args)/sizeof(args[0]);
 
