@@ -1,7 +1,48 @@
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#pragma clang diagnostic ignored "-Wmissing-braces"
+
 #include <metal_stdlib>
 #include <simd/simd.h>
 
 using namespace metal;
+
+template<typename T, size_t Num>
+struct spvUnsafeArray
+{
+    T elements[Num ? Num : 1];
+    
+    thread T& operator [] (size_t pos) thread
+    {
+        return elements[pos];
+    }
+    constexpr const thread T& operator [] (size_t pos) const thread
+    {
+        return elements[pos];
+    }
+    
+    device T& operator [] (size_t pos) device
+    {
+        return elements[pos];
+    }
+    constexpr const device T& operator [] (size_t pos) const device
+    {
+        return elements[pos];
+    }
+    
+    constexpr const constant T& operator [] (size_t pos) const constant
+    {
+        return elements[pos];
+    }
+    
+    threadgroup T& operator [] (size_t pos) threadgroup
+    {
+        return elements[pos];
+    }
+    constexpr const threadgroup T& operator [] (size_t pos) const threadgroup
+    {
+        return elements[pos];
+    }
+};
 
 #ifndef SPIRV_CROSS_CONSTANT_ID_0
 #define SPIRV_CROSS_CONSTANT_ID_0 1u
@@ -13,7 +54,7 @@ struct type_BlurData
     float4 samples[63];
 };
 
-constant uint _47[7] = { 1u, 4u, 9u, 18u, 29u, 46u, 63u };
+constant spvUnsafeArray<uint, 7> _47 = spvUnsafeArray<uint, 7>({ 1u, 4u, 9u, 18u, 29u, 46u, 63u });
 
 struct PSMain_out
 {
@@ -25,7 +66,7 @@ struct PSMain_in
     float2 in_var_ATTR0 [[user(locn0)]];
 };
 
-fragment PSMain_out PSMain(PSMain_in in [[stage_in]], constant type_BlurData& BlurData [[buffer(0)]], texture2d<float> tex [[texture(0)]], sampler bilinearSamp [[sampler(0)]], float4 gl_FragCoord [[position]])
+fragment PSMain_out PSMain(PSMain_in in [[stage_in]], constant type_BlurData& BlurData [[buffer(0)]], texture2d<float> tex [[texture(0)]], sampler bilinearSamp [[sampler(0)]])
 {
     PSMain_out out = {};
     float4 _51;
