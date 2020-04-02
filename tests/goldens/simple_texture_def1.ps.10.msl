@@ -13,7 +13,7 @@ struct PSMain_in
     float2 in_var_ATTRIBUTE0 [[user(locn0)]];
 };
 
-fragment PSMain_out PSMain(PSMain_in in [[stage_in]], texture2d<float> tex1 [[texture(0)]], sampler samp [[sampler(0)]], float4 gl_FragCoord [[position]])
+fragment PSMain_out PSMain(PSMain_in in [[stage_in]], texture2d<float> tex1 [[texture(0)]], sampler samp [[sampler(0)]])
 {
     PSMain_out out = {};
     out.out_var_SV_TARGET = tex1.sample(samp, (in.in_var_ATTRIBUTE0 * 1.0));
