@@ -5,15 +5,17 @@ using namespace metal;
 
 struct PSMain_out
 {
-    float4 _entryPointOutput [[color(0)]];
+    float4 out_var_SV_TARGET [[color(0)]];
 };
 
 fragment PSMain_out PSMain(texture2d<float> img [[texture(0)]], float4 gl_FragCoord [[position]])
 {
     PSMain_out out = {};
-    uint2 _102 = uint2(img.get_width(), img.get_height());
-    float _148 = pow(dot(float3(0.2125999927520751953125, 0.715200006961822509765625, 0.072200000286102294921875), pow(img.read(uint2(int3(int2(gl_FragCoord.xy) % int2(int(_102.x), int(_102.y)), 0).xy), 0).xyz, float3(2.2000000476837158203125))), 0.4545454680919647216796875);
-    out._entryPointOutput = float4(_148, _148, _148, 1.0);
+    uint2 _33 = uint2(img.get_width(), img.get_height());
+    int2 _37 = int2(gl_FragCoord.xy);
+    int2 _40 = int2(int(_33.x), int(_33.y));
+    float _50 = pow(dot(float3(0.2125999927520751953125, 0.715200006961822509765625, 0.072200000286102294921875), pow(img.read(uint2(int3(_37 - _40 * (_37 / _40), 0).xy), 0).xyz, float3(2.2000000476837158203125))), 0.454545438289642333984375);
+    out.out_var_SV_TARGET = float4(_50, _50, _50, 1.0);
     return out;
 }
 

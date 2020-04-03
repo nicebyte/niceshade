@@ -1,21 +1,25 @@
 /**
-Copyright © 2018 nicegraf contributors
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the “Software”), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-of the Software, and to permit persons to whom the Software is furnished to do
-so, subject to the following conditions:
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
+ * Copyright (c) 2020 nicegraf contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
 
 #include "technique_parser.h"
 
@@ -53,7 +57,8 @@ static void report_technique_parser_error(uint32_t line_num,
 }
 
 void parse_techniques(const std::string &input_source,
-                      std::vector<technique> &techniques) {
+                      std::vector<technique> &techniques,
+                      const define_container &default_defines) {
   uint32_t last_four_chars = 0u;
   uint32_t line_num = 1u;
   const uint32_t technique_prefix = 0x2f2f543a; // `//T:'
@@ -81,6 +86,10 @@ void parse_techniques(const std::string &input_source,
       if (last_four_chars == technique_prefix) {
         state = technique_parser_state::LOOKING_FOR_NAME;
         techniques.emplace_back();
+        technique &new_tech = techniques.back();
+        new_tech.defines.insert(new_tech.defines.end(),
+                                default_defines.begin(),
+                                default_defines.end());
         have_vertex_stage = false;
       }
       break;
@@ -144,8 +153,8 @@ void parse_techniques(const std::string &input_source,
         }
         technique::entry_point ep {
           parameter_name == "vs"
-              ? shaderc_vertex_shader
-              : shaderc_fragment_shader,
+              ? shader_kind::vertex
+              : shader_kind::fragment,
           entry_point_name
         };
         for (const auto &prev_ep : techniques.back().entry_points) {

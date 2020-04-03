@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 nicegraf contributors
+ * Copyright (c) 2020 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy 
  * of this software and associated documentation files (the "Software"), to
@@ -22,6 +22,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
+#include "dxc_wrapper.h"
 #include "file_utils.h"
 #include "header_file_writer.h"
 #include "linear_dict.h"
@@ -29,10 +30,8 @@
 #include "pipeline_metadata_file.h"
 #include "separate_to_combined_map.h"
 #include "shader_defines.h"
-#include "shader_includer.h"
 #include "target.h"
 #include "technique_parser.h"
-#include "shaderc/shaderc.hpp"
 #include "spirv_glsl.hpp"
 #include "spirv_msl.hpp"
 #include "spirv_reflect.hpp"
@@ -65,57 +64,26 @@ Options:
     If the option is encountered multiple times, shaders for all of the
     mentioned targets will be generated.
 
+  -o <level> - Set SPIR-V optimization level. `1` will apply the same optimizations as
+   `spirv-opt -O`. `0` will turn off all optimizations. The default value is `0`. SPIR-V
+   optimizations have an effect on the output for non-SPIR-V targets. Enabling them will
+   result in less readable output that doesn't match the input HLSL as closely. Using
+   code generated from optimized SPIR-V may result in performance wins on some platforms,
+   but, as always, measure.
+
+  -m <version> - HLSL shader model version to use. Valid values are: 6_0, 6_1, 6_2, 6_3,
+   6_4, 6_5, 6_6. Default is 6_0.
+
   -h <path> - Path (relative to the output folder) for the generated
       header file with descriptor binding and set IDs. If not specified, no
       header file will be generated.
 
   -n <identifier> - Namespace for the generated shader file. If not specified,
      global namespace is used.
-     
+    
   -D <name>=<value> - Add a preprocessor definition `name` with the value `value` to
      techniques.
 )RAW";
-
-// Create an instance of SPIRV-Cross compiler for a given target.
-std::unique_ptr<spirv_cross::Compiler> create_cross_compiler(
-    const uint32_t *spv_data, uint32_t spv_data_size, const target_info &ti) {
-  switch(ti.api) {
-  case target_api::GL: {
-    auto spv_cross = std::make_unique<spirv_cross::CompilerGLSL>(
-       spv_data, spv_data_size);
-    spirv_cross::CompilerGLSL::Options opts;
-    opts.version = ti.version_maj * 100u + ti.version_min * 10u;
-    opts.separate_shader_objects = true;
-    opts.es = (ti.platform == target_platform_class::MOBILE);
-    spv_cross->set_common_options(opts);
-    spv_cross->build_dummy_sampler_for_combined_images();
-    spv_cross->build_combined_image_samplers();
-    return spv_cross;
-    break;
-  }
-  case target_api::VULKAN: {
-    auto spv_cross =
-        std::make_unique<spirv_cross::CompilerReflection>(spv_data,
-                                                          spv_data_size);
-    return spv_cross;
-    break;
-  }
-  case target_api::METAL: {
-    auto spv_cross = std::make_unique<spirv_cross::CompilerMSL>(spv_data,
-                                                                spv_data_size);
-    spirv_cross::CompilerMSL::Options opts;
-    opts.set_msl_version(ti.version_maj, ti.version_min);
-    const bool ios = ti.platform == target_platform_class::MOBILE;
-    opts.platform = ios ? spirv_cross::CompilerMSL::Options::iOS
-                        : spirv_cross::CompilerMSL::Options::macOS;
-    spv_cross->set_msl_options(opts);
-    return spv_cross;
-    break;
-  }
-  default: assert(false);
-  }
-  return nullptr;
-}
 
 int main(int argc, const char *argv[]) {
   if (argc <= 1) { // Display help if invoked with no arguments.
@@ -124,14 +92,16 @@ int main(int argc, const char *argv[]) {
   }
 
   // Process command line arguments.
-  const std::string input_file_path { argv[1] }; // input file name.
+  const std::string input_file_path { argv[1] };
   std::string out_folder = ".";
   std::string header_path = "";
   std::string header_namespace = "";
+  std::string shader_model = "6_0";
   std::vector<const target_info*> targets;
   define_container global_macro_definitions;
+  bool enable_spv_opt = false;
 
-  for (uint32_t o = 2u; o < (uint32_t)argc; o += 2u) { // process options.
+  for (uint32_t o = 2u; o < (uint32_t)argc; o += 2u) {
     const std::string option_name { argv[o] };
     if (o + 1u >= (uint32_t)argc) {
       fprintf(stderr, "Expected an option value after %s\n", argv[o]);
@@ -148,8 +118,31 @@ int main(int argc, const char *argv[]) {
         exit(1);
       }
       targets.push_back(&(t->target));
+    } else if ("-m" == option_name) {
+      shader_model = option_value;
+      if (shader_model.length() != 3) {
+          fprintf(stderr, "Invalid value for shader model: \"%s\"\n", shader_model.c_str());
+          exit(1);
+      } else {
+        const int sm_maj_ver = shader_model[0] - '0';
+        const int sm_min_ver = shader_model[2] - '0';
+        if (sm_maj_ver != 6 ||
+            sm_min_ver < 0 ||
+            sm_min_ver > 6) {
+            fprintf(stderr, "Unsupported shader model version: \"%s\"\n", shader_model.c_str());
+            exit(1);
+        }
+      }
     } else if ("-O" == option_name) { // Output folder.
       out_folder = option_value;
+    } else if ("-o" == option_name) {
+      if (option_value == "0") enable_spv_opt = false;
+      else if (option_value == "1") enable_spv_opt = true;
+      else {
+        fprintf(stderr, "Unsupported SPIR-V optimization level \"%s\"\n",
+                option_value.c_str());
+        exit(1);
+      }
     } else if ("-h" == option_name) {
       header_path = option_value;
     } else if ("-n" == option_name) {
@@ -185,43 +178,33 @@ int main(int argc, const char *argv[]) {
 
   // Look for and parse technique directives in the code.
   std::vector<technique> techniques;
-  parse_techniques(input_source, techniques);
+  parse_techniques(input_source, techniques, global_macro_definitions);
   if (techniques.size() == 0u) {
     fprintf(stderr, "Input file does not appear to define any techniques. "
                     "Define techniques with a special comment (`//T:').\n");
     exit(1);
   }
-
+  const std::string exe_path(argv[0]);
+  const std::string exe_dir = exe_path.substr(0, exe_path.find_last_of("/\\"));
   // Obtain SPIR-V.
-  std::vector<shaderc::SpvCompilationResult> spv_results;
-  const std::string kForceColumnMajorName = "force_column_major";
-  const std::string kForceColumnMajorValue = "row_major";
-  shaderc::Compiler compiler;
+  dxc_wrapper dxcompiler(shader_model, enable_spv_opt, exe_dir);
+  std::vector<dxc_wrapper::result> spv_results;
   for (const technique &tech : techniques) {
     for (const technique::entry_point ep : tech.entry_points) {
-      // Set compile options.
-      shaderc::CompileOptions shaderc_opts;
-      add_defines_from_container(shaderc_opts, tech.defines);
-      shaderc_opts.AddMacroDefinition(kForceColumnMajorName, kForceColumnMajorValue);
-      add_defines_from_container(shaderc_opts, global_macro_definitions);
-      shaderc_opts.SetAutoBindUniforms(true);
-      shaderc_opts.SetAutoMapLocations(true);
-      shaderc_opts.SetSourceLanguage(shaderc_source_language_hlsl);
-      shaderc_opts.SetIncluder(std::make_unique<includer>());
-      shaderc_opts.SetWarningsAsErrors();
       // Produce SPIR-V.
-      spv_results.emplace_back(
-        compiler.CompileGlslToSpv(input_source,
-                                  ep.kind,
-                                  input_file_path.c_str(),
-                                  ep.name.c_str(),
-                                  shaderc_opts));
-
-      if (spv_results.back().GetCompilationStatus() !=
-          shaderc_compilation_status_success) {
-        fprintf(stderr, "%s", spv_results.back().GetErrorMessage().c_str());
+      spv_results.emplace_back(dxcompiler.compile_hlsl2spv(
+          input_source.c_str(),
+          input_source.size(),
+          input_file_path.c_str(),
+          ep,
+          tech.defines));
+      const dxc_wrapper::result &result = spv_results.back();
+      if (result.HasDiagMessage()) {
+        fprintf(stderr, "%s", result.diag_message.c_str());
+      }
+      if (!result.HasData()) {
         exit(1);
-      } 
+      }
     }
   }
 
@@ -241,53 +224,89 @@ int main(int argc, const char *argv[]) {
       pipeline_layout res_layout;
       separate_to_combined_map images_to_cis, samplers_to_cis;
       for (const technique::entry_point ep : tech.entry_points) {
-        const shaderc::SpvCompilationResult &spv_result =
-            spv_results[spv_idx++];
+        std::vector<uint32_t> &spv_result =
+            spv_results[spv_idx++].spirv_result;
         std::string out;
         std::string out_file_path =
             out_folder + PATH_SEPARATOR + tech.name + 
-            (ep.kind == shaderc_vertex_shader ? ".vs." : ".ps.")
+            (ep.kind == shader_kind::vertex ? ".vs." : ".ps.")
             + target_info->file_ext;
-        std::unique_ptr<spirv_cross::Compiler> compiler =
-            create_cross_compiler(
-                spv_result.cbegin(),
-                (uint32_t)(spv_result.cend() - spv_result.cbegin()),
-                *target_info);
+
+        // Create an instance of SPIRV-Cross compiler.
+        std::unique_ptr<spirv_cross::Compiler> spv_cross_compiler;
+        switch(target_info->api) {
+        case target_api::GL: {
+          auto gl_compiler = std::make_unique<spirv_cross::CompilerGLSL>(
+             spv_result.data(), spv_result.size());
+          spirv_cross::CompilerGLSL::Options opts;
+          opts.version = target_info->version_maj * 100u + target_info->version_min * 10u;
+          opts.separate_shader_objects = true;
+          opts.es = (target_info->platform == target_platform_class::MOBILE);
+          gl_compiler->set_common_options(opts);
+          gl_compiler->build_dummy_sampler_for_combined_images();
+          gl_compiler->build_combined_image_samplers();
+          spv_cross_compiler = std::move(gl_compiler);
+          break;
+        }
+        case target_api::VULKAN: {
+          spv_cross_compiler =
+              std::make_unique<spirv_cross::CompilerReflection>(spv_result.data(),
+                                                                spv_result.size());
+          break;
+        }
+        case target_api::METAL: {
+          auto msl_compiler = std::make_unique<spirv_cross::CompilerMSL>(spv_result.data(),
+                                                                      spv_result.size());
+          spirv_cross::CompilerMSL::Options opts;
+          opts.set_msl_version(target_info->version_maj, target_info->version_min);
+          const bool ios = target_info->platform == target_platform_class::MOBILE;
+          opts.platform = ios ? spirv_cross::CompilerMSL::Options::iOS
+                              : spirv_cross::CompilerMSL::Options::macOS;
+          opts.enable_decoration_binding = true;
+          msl_compiler->set_msl_options(opts);
+          spv_cross_compiler = std::move(msl_compiler);
+          break;
+        }
+        default: assert(false);
+        }
+
         spirv_cross::ShaderResources resources =
-            compiler->get_shader_resources();
-        const std::vector<spirv_cross::CombinedImageSampler> &cis =
-            compiler->get_combined_image_samplers();
+            spv_cross_compiler->get_shader_resources();
+        const spirv_cross::SmallVector<spirv_cross::CombinedImageSampler> &cis =
+            spv_cross_compiler->get_combined_image_samplers();
         for (uint32_t cis_idx = 0u; cis_idx < cis.size(); ++cis_idx) {
           const spirv_cross::CombinedImageSampler &remap = cis[cis_idx];
-          compiler->set_name(remap.combined_id,
-                             compiler->get_name(remap.image_id) + "_" +
-                             compiler->get_name(remap.sampler_id));
-          compiler->set_decoration(remap.combined_id, spv::DecorationBinding,
-                                   cis_idx);
-          compiler->set_decoration(remap.combined_id,
-                                   spv::DecorationDescriptorSet,
-                                   AUTOGEN_CIS_DESCRIPTOR_SET);
+          spv_cross_compiler->set_name(
+              remap.combined_id,
+              spv_cross_compiler->get_name(remap.image_id) + "_" +
+              spv_cross_compiler->get_name(remap.sampler_id));
+          spv_cross_compiler->set_decoration(remap.combined_id,
+                                             spv::DecorationBinding,
+                                             cis_idx);
+          spv_cross_compiler->set_decoration(remap.combined_id,
+                                             spv::DecorationDescriptorSet,
+                                             AUTOGEN_CIS_DESCRIPTOR_SET);
         }
         const bool do_remapping = target_info->api == target_api::GL
                                   || target_info->api == target_api::METAL;
         if (do_remapping || generate_pipeline_metadata) {
           for (const spirv_cross::CombinedImageSampler &cis:
-                   compiler->get_combined_image_samplers()) {
+                   spv_cross_compiler->get_combined_image_samplers()) {
             images_to_cis.add_resource(cis.image_id, cis.combined_id,
-                                       *compiler);
+                                       *spv_cross_compiler);
             samplers_to_cis.add_resource(cis.sampler_id, cis.combined_id,
-                                         *compiler);
+                                         *spv_cross_compiler);
           }
           const stage_mask_bit smb =
-              ep.kind == shaderc_vertex_shader
+              ep.kind == shader_kind::vertex
                            ? STAGE_MASK_VERTEX
                            : STAGE_MASK_FRAGMENT;
           auto process_resources =
-            [smb, do_remapping, &compiler, &res_layout](
-              const std::vector<spirv_cross::Resource> &resources,
+            [smb, do_remapping, &spv_cross_compiler, &res_layout](
+              const spirv_cross::SmallVector<spirv_cross::Resource> &resources,
               descriptor_type dtype) {
               res_layout.process_resources(resources, dtype, smb,
-                                           do_remapping, *compiler);
+                                           do_remapping, *spv_cross_compiler);
             };
           process_resources(resources.uniform_buffers,
                             descriptor_type::UNIFORM_BUFFER);
@@ -305,11 +324,11 @@ int main(int argc, const char *argv[]) {
           exit(1);
         }
         if (target_info->api != target_api::VULKAN) {
-          out = compiler->compile();
+          out = spv_cross_compiler->compile();
           fwrite(&out[0], sizeof(uint8_t), out.length(), out_file);
         } else {
-          fwrite(spv_result.cbegin(), sizeof(uint32_t),
-                 spv_result.cend() - spv_result.cbegin(), out_file);
+          fwrite(spv_result.data(), sizeof(uint32_t),
+                 spv_result.size(), out_file);
         }
         fclose(out_file);
       }

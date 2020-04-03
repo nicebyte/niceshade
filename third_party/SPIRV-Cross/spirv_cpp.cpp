@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 ARM Limited
+ * Copyright 2015-2020 Arm Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 #include "spirv_cpp.hpp"
 
 using namespace spv;
-using namespace spirv_cross;
+using namespace SPIRV_CROSS_NAMESPACE;
 using namespace std;
 
 void CompilerCPP::emit_buffer_block(const SPIRVariable &var)
@@ -306,9 +306,6 @@ void CompilerCPP::emit_resources()
 
 string CompilerCPP::compile()
 {
-	// Force a classic "C" locale, reverts when function returns
-	ClassicLocale classic_locale;
-
 	// Do not deal with ES-isms like precision, older extensions and such.
 	options.es = false;
 	options.version = 450;
@@ -320,10 +317,12 @@ string CompilerCPP::compile()
 	backend.basic_uint_type = "uint32_t";
 	backend.swizzle_is_function = true;
 	backend.shared_is_implied = true;
-	backend.flexible_member_array_supported = false;
+	backend.unsized_array_supported = false;
 	backend.explicit_struct_type = true;
 	backend.use_initializer_list = true;
 
+	fixup_type_alias();
+	reorder_type_alias();
 	build_function_control_flow_graphs_and_analyze();
 	update_active_builtins();
 
@@ -337,7 +336,7 @@ string CompilerCPP::compile()
 		reset();
 
 		// Move constructor for this type is broken on GCC 4.9 ...
-		buffer = unique_ptr<ostringstream>(new ostringstream());
+		buffer.reset();
 
 		emit_header();
 		emit_resources();
@@ -345,7 +344,7 @@ string CompilerCPP::compile()
 		emit_function(get<SPIRFunction>(ir.default_entry_point), Bitset());
 
 		pass_count++;
-	} while (force_recompile);
+	} while (is_forcing_recompilation());
 
 	// Match opening scope of emit_header().
 	end_scope_decl();
@@ -358,7 +357,7 @@ string CompilerCPP::compile()
 	// Entry point in CPP is always main() for the time being.
 	get_entry_point().name = "main";
 
-	return buffer->str();
+	return buffer.str();
 }
 
 void CompilerCPP::emit_c_linkage()
