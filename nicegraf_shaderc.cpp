@@ -184,9 +184,10 @@ int main(int argc, const char *argv[]) {
                     "Define techniques with a special comment (`//T:').\n");
     exit(1);
   }
-
+  const std::string exe_path(argv[0]);
+  const std::string exe_dir = exe_path.substr(0, exe_path.find_last_of("/\\"));
   // Obtain SPIR-V.
-  dxc_wrapper dxcompiler(shader_model, enable_spv_opt);
+  dxc_wrapper dxcompiler(shader_model, enable_spv_opt, exe_dir);
   std::vector<dxc_wrapper::result> spv_results;
   for (const technique &tech : techniques) {
     for (const technique::entry_point ep : tech.entry_points) {
