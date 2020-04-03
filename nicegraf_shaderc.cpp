@@ -261,6 +261,7 @@ int main(int argc, const char *argv[]) {
           const bool ios = target_info->platform == target_platform_class::MOBILE;
           opts.platform = ios ? spirv_cross::CompilerMSL::Options::iOS
                               : spirv_cross::CompilerMSL::Options::macOS;
+          opts.enable_decoration_binding = true;
           msl_compiler->set_msl_options(opts);
           spv_cross_compiler = std::move(msl_compiler);
           break;
