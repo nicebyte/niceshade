@@ -119,6 +119,9 @@ Valid command line options are:
  * `-D <name>=<value>` - Add a preprocessor definition `name` with the value `value` to
      techniques.
 
+  * `-D <name>=<value>` - Add a preprocessor definition `name` with the value `value` to
+     techniques.
+
 Shaders will be generated for each of the techniques specified in the input file and each of the targets specified in the command line options.
 
 For example, the following line will produce OpenGL 4.3 and Metal 1.2 shaders for each technique defined in `input.hlsl`, in the `generated_shaders/` subfolder:
