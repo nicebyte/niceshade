@@ -25,25 +25,33 @@
 #include "dxc_wrapper.h"
 #include <string>
 #include <stdlib.h>
+#include <string_view>
 
 DEFINE_CROSS_PLATFORM_UUIDOF(IDxcLibrary)
 DEFINE_CROSS_PLATFORM_UUIDOF(IDxcCompiler)
 
 namespace {
-  static const char* dxc_lib_candidates[] = {
-    "third_party/dxc/dxcompiler.dll",
-    "../third_party/dxc/dxcompiler.dll",
+  static constexpr std::string_view dxc_lib_filename_candidates[] = {
     "dxcompiler.dll",
-    "third_party/dxc/libdxcompiler.so",
-    "../third_party/dxc/libdxcompiler.so",
     "libdxcompiler.so",
-    "third_party/dxc/libdxcompiler.dylib",
-    "../third_party/dxc/libdxcompiler.dylib",
     "libdxcompiler.dylib"
   };
 
-  static constexpr size_t ndxc_lib_candidates_ =
-      sizeof(dxc_lib_candidates) / sizeof(dxc_lib_candidates[0]);
+  static constexpr std::string_view dxc_lib_dir_candidates[] = {
+    "third_party/dxc",
+    "../third_party/dxc"
+  };
+
+  static std::vector<std::string> get_dxc_lib_path_candidates(const std::string& exe_dir) {
+    std::vector<std::string> paths;
+    for (const auto& filename : dxc_lib_filename_candidates)
+      paths.emplace_back(exe_dir + "/" + std::string(filename));
+
+    for (const auto& dir_name : dxc_lib_dir_candidates)
+      for (const auto& filename : dxc_lib_filename_candidates)
+        paths.emplace_back(std::string(dir_name) + "/" + std::string(filename));
+    return paths;
+  }
 
   std::wstring towstring(const char* src, size_t len) {
     std::wstring ws(len + 1, '\0');
@@ -53,10 +61,10 @@ namespace {
 }
 
 
-dxc_wrapper::dxc_wrapper(const std::string &sm, bool enable_spv_opt) :
+dxc_wrapper::dxc_wrapper(const std::string &sm, bool enable_spv_opt, const std::string& exe_dir) :
     shader_model_(towstring(sm.c_str(), sm.length())),
     enable_spv_opt_(enable_spv_opt),
-    dxcompiler_dll_(dxc_lib_candidates, ndxc_lib_candidates_) {
+    dxcompiler_dll_(get_dxc_lib_path_candidates(exe_dir)) {
   if (dxcompiler_dll_.IsValid()) {
     fprintf(stderr, "dxcompiler library not loaded.\n");
     exit(1);
