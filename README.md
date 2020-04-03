@@ -59,13 +59,13 @@ float4 PSMain(float4 frag_coord : SV_POSITION) : SV_TARGET { // pixel shader
 #if defined(OUTPUT_NEEDS_GAMMA_CORRECTION)
   relative_luminance = pow(relative_luminance, 1.0 / gamma);
 #endif
-  return float4(float3(relative_luminance), 1.0);
+  return float4(float3(relative_luminance, relative_luminance, relative_luminance), 1.0);
 }
 ```
 
 In addition to generating shaders, the tool captures and writes out the information about resources (textures, buffers, etc.) used by each technique defined in the input file. This information can be used by the application for various purposes, such as streamlining Vulkan pipeline layout creation.
 
-This tool is powered by [shaderc](https://github.com/google/shaderc) and [SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross).
+This tool is powered by [Microsoft DirectXShaderCompiler](https://github.com/microsoft/DirectXShaderCompiler) and [SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross).
 
 <a name="project-status"></a>
 ## Project Status 
@@ -110,6 +110,12 @@ Valid command line options are:
       * `msl10`, `msl11`, `msl12`, `msl20` for Metal on macOS;
       * `msl10ios`, `msl11ios`, `msl12ios`, `msl20ios` for Metal on iOS;
       * `spv` for SPIR-V.
+ * `-o <level>` - Set SPIR-V optimization level. `1` will apply the same optimizations as
+   `spirv-opt -O`. `0` will turn off all optimizations. The default value is `0`. SPIR-V
+   optimizations have an effect on the output for non-SPIR-V targets. Enabling them will
+   result in less readable output that doesn't match the input HLSL as closely. Using
+   code generated from optimized SPIR-V may result in performance wins on some platforms,
+   but, as always, measure.
  * `-m <version>` - HLSL shader model version to use. Valid values are: 6_0, 6_1, 6_2, 6_3, 6_4, 6_5, 6_6. Default is 6_0.
  * `-h <path>` - Path (relative to the output folder) for the generated
       header file with descriptor binding and set numbers. If not specified, no
@@ -117,9 +123,6 @@ Valid command line options are:
  * `-n <identifier>` - Namespace for the generated shader file. If not specified,
      global namespace is used.
  * `-D <name>=<value>` - Add a preprocessor definition `name` with the value `value` to
-     techniques.
-
-  * `-D <name>=<value>` - Add a preprocessor definition `name` with the value `value` to
      techniques.
 
 Shaders will be generated for each of the techniques specified in the input file and each of the targets specified in the command line options.
@@ -172,15 +175,15 @@ struct ImGuiPSInput {
 };
 
 cbuffer MatUniformBuffer : register(b0){
-  force_column_major float4x4 u_Projection;
+  float4x4 u_Projection;
 }
 
-[vk::binding(1, 0)] uniform Texture2D u_Texture;
-[vk::binding(2, 0)] uniform sampler u_Sampler;
+[[vk::binding(1, 0)]] uniform Texture2D u_Texture;
+[[vk::binding(2, 0)]] uniform sampler u_Sampler;
 
 ImGuiPSInput VSMain(ImGuiVSInput input) {
   ImGuiPSInput output = {
-    u_Projection * float4(input.position, 0.0, 1.0),
+    mul(u_Projection, float4(input.position, 0.0, 1.0)),
     input.uv,
     input.color
   };
@@ -225,8 +228,8 @@ For each technique defined in the input file, **nicegraf_shaderc** will produce 
 You may choose to use the Vulkan binding model explicitly and assign descriptor sets and bindings like this:
 
 ```
-[vk::binding(1, 0)] uniform Texture2D tex; // assign tex to set 0 binding 1
-[vk::binding(2, 0)] uniform sampler samp;  // assign tex to set 0 binding 2
+[[vk::binding(1, 0)]] uniform Texture2D tex; // assign tex to set 0 binding 1
+[[vk::binding(2, 0)]] uniform sampler samp;  // assign tex to set 0 binding 2
 ```
 
 You may use specialization constants as well:
