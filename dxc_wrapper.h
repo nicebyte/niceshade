@@ -90,9 +90,9 @@ class dxc_wrapper {
   class dynamic_lib {
   public:
     dynamic_lib() = default;
-    dynamic_lib(const char **candidate_names, size_t nnames) {
-      for (size_t i = 0; h_ == NULL && i < nnames; ++i)
-        h_ = LoadLibraryA(candidate_names[i]);
+    dynamic_lib(const std::vector<std::string>& paths) {
+      for (size_t i = 0; h_ == NULL && i < paths.size(); ++i)
+        h_ = LoadLibraryA(paths[i].c_str());
     }
     ~dynamic_lib() { if(h_) FreeModule(h_); }
     dynamic_lib(const dynamic_lib&) = delete;
@@ -111,7 +111,7 @@ public:
     bool HasDiagMessage() const { return diag_message.size() > 0; }
   };
 
-  dxc_wrapper(const std::string &sm, bool enable_spv_opt);
+  dxc_wrapper(const std::string &sm, bool enable_spv_opt, const std::string& exe_dir);
 
   result compile_hlsl2spv(const char *source,
                           size_t source_size,
