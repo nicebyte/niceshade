@@ -1,19 +1,19 @@
 {
     "entryPoints" : [
         {
-            "name" : "main",
-            "mode" : "vert"
-        },
-        {
-            "name" : "main2",
+            "name" : "maim",
             "mode" : "vert"
         },
         {
             "name" : "main",
+            "mode" : "vert"
+        },
+        {
+            "name" : "maim",
             "mode" : "frag"
         },
         {
-            "name" : "main2",
+            "name" : "main",
             "mode" : "frag"
         }
     ],
@@ -34,6 +34,9 @@
                     "type" : "float",
                     "array" : [
                         1
+                    ],
+                    "array_size_is_literal" : [
+                        true
                     ]
                 },
                 {
@@ -41,6 +44,9 @@
                     "type" : "float",
                     "array" : [
                         1
+                    ],
+                    "array_size_is_literal" : [
+                        true
                     ]
                 }
             ]

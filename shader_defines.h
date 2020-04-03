@@ -17,7 +17,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "shaderc/shaderc.hpp"
 #include <string>
 #include <utility>
 #include <vector>
@@ -26,8 +25,3 @@ SOFTWARE.
 
 // Stores a sequence of preprocessor definitions.
 using define_container = std::vector<std::pair<std::string, std::string>>;
-
-// Adds the preprocessor definitions from the given container to the
-// shaderc compile options.
-void add_defines_from_container(shaderc::CompileOptions &options,
-                                const define_container &container);

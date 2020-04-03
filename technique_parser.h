@@ -19,14 +19,18 @@ SOFTWARE.
 #pragma once
 
 #include "shader_defines.h"
-#include "shaderc/shaderc.hpp"
 #include <string>
 #include <vector>
+
+enum class shader_kind {
+  vertex,
+  fragment
+};
 
 // Technique description.
 struct technique {
   struct entry_point {
-    shaderc_shader_kind kind;
+    shader_kind kind;
     std::string name;
   };
   std::string name;
@@ -36,4 +40,5 @@ struct technique {
 };
 
 void parse_techniques(const std::string &input_source,
-                      std::vector<technique> &techniques);
+                      std::vector<technique> &techniques,
+                      const define_container &default_defines);
