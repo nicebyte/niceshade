@@ -96,10 +96,11 @@ int main(int argc, const char *argv[]) {
   std::string out_folder = ".";
   std::string header_path = "";
   std::string header_namespace = "";
-  std::string shader_model = "6_0";
+  std::string shader_model = "6_2";
   std::vector<const target_info*> targets;
   define_container global_macro_definitions;
   bool enable_spv_opt = false;
+  bool enable_16bit_types = false;
 
   for (uint32_t o = 2u; o < (uint32_t)argc; o += 2u) {
     const std::string option_name { argv[o] };
@@ -143,6 +144,8 @@ int main(int argc, const char *argv[]) {
                 option_value.c_str());
         exit(1);
       }
+    } else if ("-enable-16bit-types" == option_name) {
+      if (option_value == "1") enable_16bit_types = true;
     } else if ("-h" == option_name) {
       header_path = option_value;
     } else if ("-n" == option_name) {
@@ -187,7 +190,7 @@ int main(int argc, const char *argv[]) {
   const std::string exe_path(argv[0]);
   const std::string exe_dir = exe_path.substr(0, exe_path.find_last_of("/\\"));
   // Obtain SPIR-V.
-  dxc_wrapper dxcompiler(shader_model, enable_spv_opt, exe_dir);
+  dxc_wrapper dxcompiler(shader_model, enable_spv_opt, enable_16bit_types, exe_dir);
   std::vector<dxc_wrapper::result> spv_results;
   for (const technique &tech : techniques) {
     for (const technique::entry_point ep : tech.entry_points) {
