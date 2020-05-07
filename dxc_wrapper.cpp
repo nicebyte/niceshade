@@ -61,9 +61,10 @@ namespace {
 }
 
 
-dxc_wrapper::dxc_wrapper(const std::string &sm, bool enable_spv_opt, const std::string& exe_dir) :
+dxc_wrapper::dxc_wrapper(const std::string &sm, bool enable_spv_opt, bool enable_16bit_types, const std::string& exe_dir) :
     shader_model_(towstring(sm.c_str(), sm.length())),
     enable_spv_opt_(enable_spv_opt),
+    enable_16bit_types_(enable_16bit_types),
     dxcompiler_dll_(get_dxc_lib_path_candidates(exe_dir)) {
   if (dxcompiler_dll_.IsValid()) {
     fprintf(stderr, "dxcompiler library not loaded.\n");
@@ -109,12 +110,13 @@ dxc_wrapper::result dxc_wrapper::compile_hlsl2spv(
         ptr);
   });
 
-  LPCWSTR args[] = {
+  std::vector<LPCWSTR> args{
     L"-spirv", // enable spir-v codegen.
     L"-Zpc",
     enable_spv_opt_ ? L"-O3" : L"-O0"
   };
-  const size_t args_count = sizeof(args)/sizeof(args[0]);
+
+  if (enable_16bit_types_) args.emplace_back(L"-enable-16bit-types");
 
   const std::wstring winput_file_name =
       towstring(input_file_name, strlen(input_file_name));
@@ -153,8 +155,8 @@ dxc_wrapper::result dxc_wrapper::compile_hlsl2spv(
             winput_file_name.c_str(),
             wentry_point_name.c_str(),
             target_profile.c_str(),
-            args,
-            (uint32_t)args_count,
+            args.data(),
+            (uint32_t)args.size(),
             dxc_defines.data(),
             (uint32_t)dxc_defines.size(),
             include_handler_.get(),
