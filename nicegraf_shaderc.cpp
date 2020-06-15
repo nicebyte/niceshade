@@ -245,7 +245,7 @@ int main(int argc, const char *argv[]) {
   // Attempt to open header file for writing.
   const bool generate_header = !header_path.empty();
   header_file_writer header_writer(out_folder, header_path, header_namespace);
-  if (!header_path.empty() && !header_writer.is_open()) {
+  if (generate_header && !header_writer.is_open()) {
     fprintf(stderr, "Failed to open output file %s\n", header_writer.path());
     exit(1);
   }
