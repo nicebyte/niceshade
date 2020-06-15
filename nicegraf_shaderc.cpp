@@ -89,6 +89,7 @@ int main(int argc, const char *argv[]) {
     exit(0);
   }
 
+#pragma region cmdline
   // Process command line options, stopping at double dash.
   // Everything after the double dash will be passed as-is to
   // Microsoft DirectX Shader Compiler.
@@ -179,7 +180,9 @@ int main(int argc, const char *argv[]) {
     // turned them off.
     dxc_options.emplace_back("-O0");
   }
+#pragma endregion cmd_line
 
+#pragma region pre_checks
   // Do a sanity check - no point in running with no targets.
   if (targets.empty()) {
     fprintf(stderr, "No target shader flavors specified!"
@@ -193,7 +196,9 @@ int main(int argc, const char *argv[]) {
                                                const target_info *t2) { 
                                               return t1->api < t2->api;
                                             });
+#pragma endregion pre_checks
 
+#pragma region load_input
   // Load the input file.
   std::string input_source = read_file(input_file_path.c_str());
   input_source.push_back('\n');
@@ -208,6 +213,9 @@ int main(int argc, const char *argv[]) {
   }
   const std::string exe_path(argv[0]);
   const std::string exe_dir = exe_path.substr(0, exe_path.find_last_of("/\\"));
+#pragma endregion load_input
+
+#pragma region gen_spv
   // Obtain SPIR-V.
   dxc_wrapper dxcompiler(shader_model, dxc_options, exe_dir);
   std::vector<dxc_wrapper::result> spv_results;
@@ -229,8 +237,12 @@ int main(int argc, const char *argv[]) {
       }
     }
   }
+#pragma endregion gen_spv
 
-  // Attempt to open header file.
+ #pragma region gen_output
+  // Generate output.
+
+  // Attempt to open header file for writing.
   const bool generate_header = !header_path.empty();
   header_file_writer header_writer(out_folder, header_path, header_namespace);
   if (!header_path.empty() && !header_writer.is_open()) {
@@ -238,7 +250,6 @@ int main(int argc, const char *argv[]) {
     exit(1);
   }
 
-  // Generate output.
   bool generate_pipeline_metadata = true;
   for (const target_info *target_info : targets) {
     uint32_t spv_idx = 0u;
@@ -397,6 +408,6 @@ int main(int argc, const char *argv[]) {
     }
     generate_pipeline_metadata = false;
   }
-
+#pragma endregion gen_output
   return 0;
 }
