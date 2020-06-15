@@ -61,21 +61,32 @@ namespace {
 }
 
 
-dxc_wrapper::dxc_wrapper(const std::string &sm, bool enable_spv_opt, bool enable_16bit_types, const std::string& exe_dir) :
+dxc_wrapper::dxc_wrapper(const std::string &sm,
+                         const std::vector<std::string> &dxc_params,
+                         const std::string& exe_dir) :
     shader_model_(towstring(sm.c_str(), sm.length())),
-    enable_spv_opt_(enable_spv_opt),
-    enable_16bit_types_(enable_16bit_types),
     dxcompiler_dll_(get_dxc_lib_path_candidates(exe_dir)) {
+  // Convert dxc parameters to wide string.
+  for (const std::string& dxc_param : dxc_params) {
+    wchar_t *wide_dxc_param = new wchar_t[dxc_param.size() + 1u];
+    std::mbstowcs(wide_dxc_param, dxc_param.c_str(), dxc_param.length() + 1u);
+    dxc_params_.emplace_back(wide_dxc_param);
+  }
+
+  // Verify that the dymamic library could be loaded.
   if (dxcompiler_dll_.IsValid()) {
     fprintf(stderr, "dxcompiler library not loaded.\n");
     exit(1);
   }
+
+  // Look up the function for creating an instance of the library.
   auto create_proc =
       (DxcCreateInstanceProc)dxcompiler_dll_.get_proc_address("DxcCreateInstance");
   if (NULL == create_proc) {
     exit(1);
   }
   
+  // Instantiate library, compiler and include handler.
   library_instance_ =
     com_ptr<IDxcLibrary>([&](auto ptr) {
       return create_proc(CLSID_DxcLibrary,
@@ -90,10 +101,10 @@ dxc_wrapper::dxc_wrapper(const std::string &sm, bool enable_spv_opt, bool enable
                          (LPVOID*)ptr);
     });
 
-    include_handler_ =
-        com_ptr<IDxcIncludeHandler>([&](auto ptr) {
-          return library_instance_->CreateIncludeHandler(ptr);
-        });
+  include_handler_ =
+    com_ptr<IDxcIncludeHandler>([&](auto ptr) {
+    return library_instance_->CreateIncludeHandler(ptr);
+      });
 }
 
 dxc_wrapper::result dxc_wrapper::compile_hlsl2spv(
@@ -109,14 +120,6 @@ dxc_wrapper::result dxc_wrapper::compile_hlsl2spv(
         0,
         ptr);
   });
-
-  std::vector<LPCWSTR> args{
-    L"-spirv", // enable spir-v codegen.
-    L"-Zpc",
-    enable_spv_opt_ ? L"-O3" : L"-O0"
-  };
-
-  if (enable_16bit_types_) args.emplace_back(L"-enable-16bit-types");
 
   const std::wstring winput_file_name =
       towstring(input_file_name, strlen(input_file_name));
@@ -149,14 +152,14 @@ dxc_wrapper::result dxc_wrapper::compile_hlsl2spv(
     }
   }() + shader_model_;
   auto dxc_result =
-      com_ptr<IDxcOperationResult>([&](auto ptr) {
+      com_ptr<IDxcOperationResult>([&, this](auto ptr) {
         return compiler_instance_->Compile(
             input_blob.get(),
             winput_file_name.c_str(),
             wentry_point_name.c_str(),
             target_profile.c_str(),
-            args.data(),
-            (uint32_t)args.size(),
+            dxc_params_.data(),
+            (uint32_t)dxc_params_.size(),
             dxc_defines.data(),
             (uint32_t)dxc_defines.size(),
             include_handler_.get(),

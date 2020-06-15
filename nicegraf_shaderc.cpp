@@ -46,9 +46,10 @@
 #include <vector>
 
 const char *USAGE = R"RAW(
-Usage: ngf_shaderc <input file name> [options]
+Usage: ngf_shaderc <input file name> [options] -- [dxc options]
 
-Compiles HLSL shaders for multiple different targets.
+A wrapper for Microsoft DirectX Shader Compiler and SPIRV-Cross that compiles
+HLSL shaders for multiple different targets.
 
 Options:
 
@@ -64,13 +65,6 @@ Options:
     If the option is encountered multiple times, shaders for all of the
     mentioned targets will be generated.
 
-  -o <level> - Set SPIR-V optimization level. `1` will apply the same optimizations as
-   `spirv-opt -O`. `0` will turn off all optimizations. The default value is `0`. SPIR-V
-   optimizations have an effect on the output for non-SPIR-V targets. Enabling them will
-   result in less readable output that doesn't match the input HLSL as closely. Using
-   code generated from optimized SPIR-V may result in performance wins on some platforms,
-   but, as always, measure.
-
   -m <version> - HLSL shader model version to use. Valid values are: 6_0, 6_1, 6_2, 6_3,
    6_4, 6_5, 6_6. Default is 6_0.
 
@@ -83,6 +77,10 @@ Options:
     
   -D <name>=<value> - Add a preprocessor definition `name` with the value `value` to
      techniques.
+
+   Everything following the double dash (`--`) is passed as-is to the
+   Microsoft DirectX Shader Compiler.
+
 )RAW";
 
 int main(int argc, const char *argv[]) {
@@ -91,7 +89,9 @@ int main(int argc, const char *argv[]) {
     exit(0);
   }
 
-  // Process command line arguments.
+  // Process command line options, stopping at double dash.
+  // Everything after the double dash will be passed as-is to
+  // Microsoft DirectX Shader Compiler.
   const std::string input_file_path { argv[1] };
   std::string out_folder = ".";
   std::string header_path = "";
@@ -99,16 +99,25 @@ int main(int argc, const char *argv[]) {
   std::string shader_model = "6_2";
   std::vector<const target_info*> targets;
   define_container global_macro_definitions;
-  bool enable_spv_opt = false;
-  bool enable_16bit_types = false;
+  size_t dxc_options_start = argc;
 
-  for (uint32_t o = 2u; o < (uint32_t)argc; o += 2u) {
+  for (size_t o = 2u;
+       o < (size_t)argc && dxc_options_start >= argc;
+       o += 2u) {
     const std::string option_name { argv[o] };
+    if (option_name == "--") {
+      dxc_options_start = o + 1u;
+      continue;
+    }
     if (o + 1u >= (uint32_t)argc) {
       fprintf(stderr, "Expected an option value after %s\n", argv[o]);
       exit(1);
     }
     const std::string option_value { argv[o + 1u] };
+    if (option_value == "--") {
+      fprintf(stderr, "Expected an option value after %s,\n", argv[o]);
+      exit(1);
+    }
     if ("-t" == option_name) { // Target to generate code for.
       const auto *t = std::find_if(TARGET_MAP, TARGET_MAP + TARGET_COUNT,
                                    [&option_value](const named_target_info &x) {
@@ -136,16 +145,6 @@ int main(int argc, const char *argv[]) {
       }
     } else if ("-O" == option_name) { // Output folder.
       out_folder = option_value;
-    } else if ("-o" == option_name) {
-      if (option_value == "0") enable_spv_opt = false;
-      else if (option_value == "1") enable_spv_opt = true;
-      else {
-        fprintf(stderr, "Unsupported SPIR-V optimization level \"%s\"\n",
-                option_value.c_str());
-        exit(1);
-      }
-    } else if ("-enable-16bit-types" == option_name) {
-      if (option_value == "1") enable_16bit_types = true;
     } else if ("-h" == option_name) {
       header_path = option_value;
     } else if ("-n" == option_name) {
@@ -161,6 +160,26 @@ int main(int argc, const char *argv[]) {
       exit(1);
     }
   }
+
+  // Build up parameters for the DirectX Shader Compiler.
+  std::vector<std::string> dxc_options = {
+    "-spirv",  // always enable spir-v codegen
+    "-Zpc"     // always forbid overriding explicit matrix orientation.
+  };
+  bool enable_spv_opt = false;
+  // Add the remaining dxc parameters from the command line.
+  for (size_t o = dxc_options_start; o < argc; ++o) {
+    dxc_options.emplace_back(argv[o]);
+    if (dxc_options.back() == "-O3") {
+      enable_spv_opt = true;
+    }
+  }
+  if (!enable_spv_opt) {
+    // Always enable SPIR-V optimization passes unless the user explicitly
+    // turned them off.
+    dxc_options.emplace_back("-O0");
+  }
+
   // Do a sanity check - no point in running with no targets.
   if (targets.empty()) {
     fprintf(stderr, "No target shader flavors specified!"
@@ -190,7 +209,7 @@ int main(int argc, const char *argv[]) {
   const std::string exe_path(argv[0]);
   const std::string exe_dir = exe_path.substr(0, exe_path.find_last_of("/\\"));
   // Obtain SPIR-V.
-  dxc_wrapper dxcompiler(shader_model, enable_spv_opt, enable_16bit_types, exe_dir);
+  dxc_wrapper dxcompiler(shader_model, dxc_options, exe_dir);
   std::vector<dxc_wrapper::result> spv_results;
   for (const technique &tech : techniques) {
     for (const technique::entry_point ep : tech.entry_points) {
