@@ -25,32 +25,26 @@
 #include "dxc_wrapper.h"
 #include <string>
 #include <stdlib.h>
-#include <string_view>
 
 DEFINE_CROSS_PLATFORM_UUIDOF(IDxcLibrary)
 DEFINE_CROSS_PLATFORM_UUIDOF(IDxcCompiler)
 
 namespace {
-  static constexpr std::string_view dxc_lib_filename_candidates[] = {
-    "dxcompiler.dll",
-    "libdxcompiler.so",
-    "libdxcompiler.dylib"
-  };
 
-  static constexpr std::string_view dxc_lib_dir_candidates[] = {
-    "third_party/dxc",
-    "../third_party/dxc"
-  };
+#if defined(_WIN64) || defined(_WIN32)
+  static const std::string dxc_lib_filename = "dxcompiler.dll";
+#elif defined(__APPLE__)
+  static const std::string dxc_lib_filename = "libdxcompiler.dylib";
+#else
+  static const std::string dxc_lib_filename = "libdxcompiler.so";
+#endif
 
   static std::vector<std::string> get_dxc_lib_path_candidates(const std::string& exe_dir) {
-    std::vector<std::string> paths;
-    for (const auto& filename : dxc_lib_filename_candidates)
-      paths.emplace_back(exe_dir + "/" + std::string(filename));
-
-    for (const auto& dir_name : dxc_lib_dir_candidates)
-      for (const auto& filename : dxc_lib_filename_candidates)
-        paths.emplace_back(std::string(dir_name) + "/" + std::string(filename));
-    return paths;
+    return {
+      exe_dir + "/" + dxc_lib_filename,
+      "third_party/dxc/" + dxc_lib_filename,
+      "../third_party/dxc/" + dxc_lib_filename
+    };
   }
 
   std::wstring towstring(const char* src, size_t len) {
