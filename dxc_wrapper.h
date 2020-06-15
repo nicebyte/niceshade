@@ -111,7 +111,9 @@ public:
     bool HasDiagMessage() const { return diag_message.size() > 0; }
   };
 
-  dxc_wrapper(const std::string &sm, bool enable_spv_opt, bool enable_16bit_types, const std::string& exe_dir);
+  dxc_wrapper(const std::string &sm, 
+              const std::vector<std::string> &dxc_params,
+              const std::string& exe_dir);
 
   result compile_hlsl2spv(const char *source,
                           size_t source_size,
@@ -121,10 +123,9 @@ public:
 
 private:
   std::wstring shader_model_;
-  bool enable_spv_opt_;
-  bool enable_16bit_types_;
   dynamic_lib dxcompiler_dll_;
   com_ptr<IDxcLibrary> library_instance_;
   com_ptr<IDxcCompiler> compiler_instance_;
   com_ptr<IDxcIncludeHandler> include_handler_;
+  std::vector<LPCWSTR> dxc_params_;
 };

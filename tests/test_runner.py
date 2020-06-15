@@ -40,7 +40,7 @@ def main(argv):
     should_fail = test_case_name.endswith("_FAIL")
     try:
       run_result = subprocess.run(
-          [str(compiler_binary), str(input_file) , "-o", "1", "-t", "msl10", "-t", "gl430", "-O", str(out_dir), "-h", str(input_file.name) + "_hdr.h"],
+          [str(compiler_binary), str(input_file) , "-t", "msl10", "-t", "gl430", "-O", str(out_dir), "-h", str(input_file.name) + "_hdr.h", "--", "-O3", "-Wno-ignored-attributes"],
           stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = 60, universal_newlines = True)
       if not should_fail and run_result.returncode != 0:
         failed_run_results[test_case_name] = "Process exited with nonzero exit code"
