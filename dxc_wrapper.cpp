@@ -42,8 +42,8 @@ namespace {
   static std::vector<std::string> get_dxc_lib_path_candidates(const std::string& exe_dir) {
     return {
       exe_dir + "/" + dxc_lib_filename,
-      "third_party/dxc/" + dxc_lib_filename,
-      "../third_party/dxc/" + dxc_lib_filename
+      exe_dir + "/third_party/dxc/" + dxc_lib_filename,
+      "/../third_party/dxc/" + dxc_lib_filename
     };
   }
 
