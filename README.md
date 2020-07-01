@@ -275,6 +275,7 @@ A `HEADER` record contains the following fields, in this exact order:
 * `header_size` - total size of the header record in bytes (including the `header_size` and `magic_number` fields);
 * `version_maj` - major version number of the metadata format in use;
 * `version_min` - minor version number of the metadata format in use;
+* `entrypoints_offset` - offset, in bytes, from the beginning of the file, at which the `ENTRYPOINTS` record is stored;
 * `pipeline_layout_offset` - offset, in bytes, from the beginning of the file, at which the `PIPELINE_LAYOUT` record is stored;
 * `image_to_cis_map_offset` - offset, in bytes, from the beginning of the file, at which a `SEPARATE_TO_COMBINED_MAP` record is stored, which maps separate *image* bindings to the corresponding auto-generated combined image/sampler bindings;
 * `sampler_to_cis_map_offset` - offset, in bytes, from the beginning of the file, at which a `SEPARATE_TO_COMBINED_MAP` record is stored, which maps separate *sampler* bindings to the corresponding auto-generated combined image/sampler bindings;
