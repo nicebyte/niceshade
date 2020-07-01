@@ -258,6 +258,7 @@ A pipeline metadata file (referred to simply as "file" henceforth) is broken int
 A record's type is defined by its layout. The following types of records are defined:
 
 * `HEADER`;
+* `ENTRYPOINTS`;
 * `PIPELINE_LAYOUT`;
 * `SEPARATE_TO_COMBINED_MAP`;
 * `USER_METADATA`.
@@ -278,6 +279,14 @@ A `HEADER` record contains the following fields, in this exact order:
 * `image_to_cis_map_offset` - offset, in bytes, from the beginning of the file, at which a `SEPARATE_TO_COMBINED_MAP` record is stored, which maps separate *image* bindings to the corresponding auto-generated combined image/sampler bindings;
 * `sampler_to_cis_map_offset` - offset, in bytes, from the beginning of the file, at which a `SEPARATE_TO_COMBINED_MAP` record is stored, which maps separate *sampler* bindings to the corresponding auto-generated combined image/sampler bindings;
 * `user_metadata_offset` - offset, in bytes, from the beginning of the file, at which the `USER_METADATA` record is stored;
+
+### The `ENTRYPOINTS` Record Type
+
+This record type provides the names of entry points for individual shader stages involved in the technique.
+
+The first field in this record, `num_entrypoints`, contains the number of entrypoints, one per shader stage. It is followed by a sequence of `num_entrypoints` entrypoint descriptions.
+
+An entrypoint description consists of a field, `type` which indicates the type of the shader stage the entrypoint is for (`0` for vertex shader, `1` for fragment shader), and a raw byte block containing a null-terminated entrypoint name.
 
 ### The `PIPELINE_LAYOUT` Record Type
 
