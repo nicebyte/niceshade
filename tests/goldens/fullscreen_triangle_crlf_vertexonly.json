@@ -1,13 +1,18 @@
 {
 "header": {
   "magic_number": 3735928559,
-  "header_size": 32,
+  "header_size": 36,
   "version_maj": 0,
   "version_min": 1,
-  "pipeline_layout_offset": 32,
-  "image_to_cis_map_offset": 40,
-  "sampler_to_cis_map_offset": 44,
-  "user_metadata_offset": 48
+  "entrypoints_offset": 36,
+  "pipeline_layout_offset": 60,
+  "image_to_cis_map_offset": 68,
+  "sampler_to_cis_map_offset": 72,
+  "user_metadata_offset": 76
+},
+"entrypoints": { 
+  "vertex": "VSMain",
+  "fragment": "(null)"
 },
 "pipeline_layout": {
   "descriptor_sets": [

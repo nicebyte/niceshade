@@ -51,6 +51,12 @@ typedef struct ngf_plmd_header {
   uint32_t version_min; /**< minor version of the format in use. */
 
   /**
+   * Offset, in bytes, from the beginning of the file, at which
+   * the ENTRYPOINTS record is stored.
+   */
+  uint32_t entrypoints_offset;
+
+  /**
    * Offset, in bytes, from the beginning of the file, at which the
    * PIPELINE_LAYOUT record is stored.
    */
@@ -63,7 +69,7 @@ typedef struct ngf_plmd_header {
    * bindings.
    */
   uint32_t image_to_cis_map_offset;
-
+  
   /**
    * Offset, in bytes, from the beginning of the file, at which a
    * SEPARATE_TO_COMBINED_MAP record is stored, which map separate sampler
@@ -78,6 +84,11 @@ typedef struct ngf_plmd_header {
    */
   uint32_t user_metadata_offset;
 } ngf_plmd_header;
+
+typedef struct ngf_plmd_entrypoints {
+  const char *vert_shader_entrypoint;
+  const char *frag_shader_entrypoint;
+} ngf_plmd_entrypoints;
 
 /**
  * Information about a descriptor.
@@ -162,7 +173,8 @@ typedef enum ngf_plmd_error {
   NGF_PLMD_ERROR_OUTOFMEM,
   NGF_PLMD_ERROR_MAGIC_NUMBER_MISMATCH,
   NGF_PLMD_ERROR_BUFFER_TOO_SMALL,
-  NGF_PLMD_ERROR_WEIRD_BUFFER_SIZE
+  NGF_PLMD_ERROR_WEIRD_BUFFER_SIZE,
+  NGF_PLMD_ERROR_INVALID_SHADER_STAGE
 } ngf_plmd_error;
 
 typedef struct ngf_plmd_alloc_callbacks {
@@ -178,6 +190,7 @@ const ngf_plmd_layout* ngf_plmd_get_layout(const ngf_plmd *m);
 const ngf_plmd_cis_map* ngf_plmd_get_image_to_cis_map(const ngf_plmd *m);
 const ngf_plmd_cis_map* ngf_plmd_get_sampler_to_cis_map(const ngf_plmd *m);
 const ngf_plmd_user* ngf_plmd_get_user(const ngf_plmd *m);
+const ngf_plmd_entrypoints* ngf_plmd_get_entrypoints(const ngf_plmd *m);
 const ngf_plmd_header* ngf_plmd_get_header(const ngf_plmd *m);
 
 #if defined(__cplusplus)
