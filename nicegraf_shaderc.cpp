@@ -373,6 +373,15 @@ int main(int argc, const char *argv[]) {
             out_folder + PATH_SEPARATOR + tech.name + ".pipeline";
         pipeline_metadata_file metadata_file(metadata_file_path.c_str());
 
+        // Write out the entrypoints section.
+        metadata_file.start_new_record();
+        metadata_file.write_field(tech.entry_points.size());
+        for (const technique::entry_point& ep : tech.entry_points) {
+          metadata_file.write_field((uint32_t)ep.kind);
+          metadata_file.write_raw_bytes(ep.name.c_str(),
+                                        ep.name.length() + 1u);
+        }
+
         // Write out the pipeline layout record.
         metadata_file.start_new_record();
         metadata_file.write_field(res_layout.set_count());

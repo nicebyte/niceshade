@@ -18,6 +18,7 @@ static const ngf_plmd_alloc_callbacks stdlib_alloc = {
 struct ngf_plmd {
   uint8_t *raw_data;
   const ngf_plmd_header *header;
+  ngf_plmd_entrypoints entrypoints;
   ngf_plmd_layout layout;
   ngf_plmd_cis_map images_to_cis_map;
   ngf_plmd_cis_map samplers_to_cis_map;
@@ -113,12 +114,33 @@ ngf_plmd_error ngf_plmd_load(const void *buf, size_t buf_size,
   }
 
   // Sanity-check offsets in the header.
-  if (header->pipeline_layout_offset >= buf_size ||
+  if (header->entrypoints_offset >= buf_size ||
+      header->pipeline_layout_offset >= buf_size ||
       header->image_to_cis_map_offset >= buf_size ||
       header->sampler_to_cis_map_offset >= buf_size ||
       header->user_metadata_offset >= buf_size) {
     err = NGF_PLMD_ERROR_BUFFER_TOO_SMALL;
     goto ngf_plmd_load_cleanup;
+  }
+
+  // Process the entrypoints record.
+  const uint8_t *entrypoints_ptr =
+      &meta->raw_data[header->entrypoints_offset];
+  const uint32_t nentrypoints = *(const uint32_t*)entrypoints_ptr;
+  entrypoints_ptr += sizeof(uint32_t);
+  for (uint32_t ep = 0u; ep < nentrypoints; ++ep) {
+    const uint32_t kind = *(const uint32_t*)entrypoints_ptr;
+    entrypoints_ptr += 2u * sizeof(uint32_t);
+    const uint32_t size = *(const uint32_t*)entrypoints_ptr;
+    entrypoints_ptr += sizeof(uint32_t);
+    const char *name = entrypoints_ptr;
+    entrypoints_ptr += size * sizeof(uint32_t);
+    if (kind == 0) meta->entrypoints.vert_shader_entrypoint = name;
+    else if (kind == 1) meta->entrypoints.frag_shader_entrypoint = name;
+    else {
+      err = NGF_PLMD_ERROR_INVALID_SHADER_STAGE;
+      goto ngf_plmd_load_cleanup;
+    }
   }
 
   // Process the pipeline layout record.
@@ -219,4 +241,8 @@ const ngf_plmd_user* ngf_plmd_get_user(const ngf_plmd *m) {
 
 const ngf_plmd_header* ngf_plmd_get_header(const ngf_plmd *m) {
   return m->header;
+}
+
+const ngf_plmd_entrypoints* ngf_plmd_get_entrypoints(const ngf_plmd* m) {
+  return &m->entrypoints;
 }

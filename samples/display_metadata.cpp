@@ -61,13 +61,18 @@ int main(int argc, const char *argv[]) {
   printf("  \"header_size\": %d,\n", header->header_size);
   printf("  \"version_maj\": %d,\n", header->version_maj);
   printf("  \"version_min\": %d,\n", header->version_min);
+  printf("  \"entrypoints_offset\": %d,\n", header->entrypoints_offset);
   printf("  \"pipeline_layout_offset\": %d,\n", header->pipeline_layout_offset);
   printf("  \"image_to_cis_map_offset\": %d,\n",
          header->image_to_cis_map_offset);
   printf("  \"sampler_to_cis_map_offset\": %d,\n",
          header->sampler_to_cis_map_offset);
   printf("  \"user_metadata_offset\": %d\n},\n", header->user_metadata_offset);
-
+  printf("\"entrypoints\": { \n");
+  const ngf_plmd_entrypoints *eps = ngf_plmd_get_entrypoints(m);
+  printf("  \"vertex\": \"%s\",\n", eps->vert_shader_entrypoint);
+  printf("  \"fragment\": \"%s\"\n", eps->frag_shader_entrypoint);
+  printf("},\n");
   printf("\"pipeline_layout\": {\n");
   const ngf_plmd_layout *layout = ngf_plmd_get_layout(m);
   printf("  \"descriptor_sets\": [\n");

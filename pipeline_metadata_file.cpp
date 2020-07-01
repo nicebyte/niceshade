@@ -40,7 +40,7 @@ pipeline_metadata_file::pipeline_metadata_file(const char *file_path) {
     exit(1);
   }
   fwrite(&header_, sizeof(header_), 1u, f_); // write placeholder header.
-  current_section_offset_ptr_ = &header_.pipeline_layout_offset;
+  current_section_offset_ptr_ = &header_.entrypoints_offset;
 }
 
 void pipeline_metadata_file::start_new_record() {
