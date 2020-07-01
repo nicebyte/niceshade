@@ -1,3 +1,25 @@
+/**
+ * Copyright (c) 2020 nicegraf contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy 
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
 #include "metadata_parser.h"
 
 #include <assert.h>
@@ -10,10 +32,20 @@
   #include <arpa/inet.h>
 #endif
 
+#ifdef _MSC_VER
+#pragma warning(push)
+ // address of dllimport is not static, identity not guaranteed
+#pragma warning(disable:4232)
+#endif
+
 static const ngf_plmd_alloc_callbacks stdlib_alloc = {
   .alloc = malloc,
   .free = free
 };
+
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
 
 struct ngf_plmd {
   uint8_t *raw_data;
@@ -133,7 +165,7 @@ ngf_plmd_error ngf_plmd_load(const void *buf, size_t buf_size,
     entrypoints_ptr += 2u * sizeof(uint32_t);
     const uint32_t size = *(const uint32_t*)entrypoints_ptr;
     entrypoints_ptr += sizeof(uint32_t);
-    const char *name = entrypoints_ptr;
+    const char *name = (const char*)entrypoints_ptr;
     entrypoints_ptr += size * sizeof(uint32_t);
     if (kind == 0) meta->entrypoints.vert_shader_entrypoint = name;
     else if (kind == 1) meta->entrypoints.frag_shader_entrypoint = name;
