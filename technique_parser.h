@@ -19,6 +19,7 @@ SOFTWARE.
 #pragma once
 
 #include "shader_defines.h"
+
 #include <string>
 #include <vector>
 
@@ -32,6 +33,7 @@ struct technique {
   struct entry_point {
     shader_kind kind;
     std::string name;
+    std::vector<uint32_t> spirv_code;
   };
   std::string name;
   define_container defines;

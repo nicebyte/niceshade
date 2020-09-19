@@ -63,7 +63,8 @@ Options:
       * msl10ios, msl11ios, msl12ios, msl20ios;
       * spv 
     If the option is encountered multiple times, shaders for all of the
-    mentioned targets will be generated.
+    mentioned targets will be generated. At least one occurence of this option is
+    required.
 
   -m <version> - HLSL shader model version to use. Valid values are: 6_0, 6_1, 6_2, 6_3,
    6_4, 6_5, 6_6. Default is 6_0.
@@ -218,23 +219,22 @@ int main(int argc, const char *argv[]) {
 #pragma region gen_spv
   // Obtain SPIR-V.
   dxc_wrapper dxcompiler(shader_model, dxc_options, exe_dir);
-  std::vector<dxc_wrapper::result> spv_results;
-  for (const technique &tech : techniques) {
-    for (const technique::entry_point ep : tech.entry_points) {
+  for (technique &tech : techniques) {
+    for (technique::entry_point &ep : tech.entry_points) {
       // Produce SPIR-V.
-      spv_results.emplace_back(dxcompiler.compile_hlsl2spv(
+      dxc_wrapper::result result = dxcompiler.compile_hlsl2spv(
           input_source.c_str(),
           input_source.size(),
           input_file_path.c_str(),
           ep,
-          tech.defines));
-      const dxc_wrapper::result &result = spv_results.back();
+          tech.defines);
       if (result.HasDiagMessage()) {
         fprintf(stderr, "%s", result.diag_message.c_str());
       }
       if (!result.HasData()) {
         exit(1);
       }
+      ep.spirv_code = std::move(result.spirv_code);
     }
   }
 #pragma endregion gen_spv
@@ -250,27 +250,24 @@ int main(int argc, const char *argv[]) {
     exit(1);
   }
 
-  bool generate_pipeline_metadata = true;
-  for (const target_info *target_info : targets) {
-    uint32_t spv_idx = 0u;
-    for (const technique &tech : techniques) {
-      pipeline_layout res_layout;
-      separate_to_combined_map images_to_cis, samplers_to_cis;
-      for (const technique::entry_point ep : tech.entry_points) {
-        std::vector<uint32_t> &spv_result =
-            spv_results[spv_idx++].spirv_result;
+  for (const technique& tech : techniques) {
+    pipeline_layout res_layout;
+    separate_to_combined_map images_to_cis, samplers_to_cis;
+    for (const technique::entry_point& ep : tech.entry_points) {
+      const std::vector<uint32_t>& spv_code = ep.spirv_code;
+      for (const target_info* target_info : targets) {
         std::string out;
         std::string out_file_path =
-            out_folder + PATH_SEPARATOR + tech.name + 
-            (ep.kind == shader_kind::vertex ? ".vs." : ".ps.")
-            + target_info->file_ext;
+          out_folder + PATH_SEPARATOR + tech.name +
+          (ep.kind == shader_kind::vertex ? ".vs." : ".ps.")
+          + target_info->file_ext;
 
         // Create an instance of SPIRV-Cross compiler.
         std::unique_ptr<spirv_cross::Compiler> spv_cross_compiler;
-        switch(target_info->api) {
+        switch (target_info->api) {
         case target_api::GL: {
           auto gl_compiler = std::make_unique<spirv_cross::CompilerGLSL>(
-             spv_result.data(), spv_result.size());
+            spv_code.data(), spv_code.size());
           spirv_cross::CompilerGLSL::Options opts;
           opts.version = target_info->version_maj * 100u + target_info->version_min * 10u;
           opts.separate_shader_objects = true;
@@ -283,18 +280,18 @@ int main(int argc, const char *argv[]) {
         }
         case target_api::VULKAN: {
           spv_cross_compiler =
-              std::make_unique<spirv_cross::CompilerReflection>(spv_result.data(),
-                                                                spv_result.size());
+            std::make_unique<spirv_cross::CompilerReflection>(spv_code.data(),
+              spv_code.size());
           break;
         }
         case target_api::METAL: {
-          auto msl_compiler = std::make_unique<spirv_cross::CompilerMSL>(spv_result.data(),
-                                                                      spv_result.size());
+          auto msl_compiler = std::make_unique<spirv_cross::CompilerMSL>(spv_code.data(),
+            spv_code.size());
           spirv_cross::CompilerMSL::Options opts;
           opts.set_msl_version(target_info->version_maj, target_info->version_min);
           const bool ios = target_info->platform == target_platform_class::MOBILE;
           opts.platform = ios ? spirv_cross::CompilerMSL::Options::iOS
-                              : spirv_cross::CompilerMSL::Options::macOS;
+            : spirv_cross::CompilerMSL::Options::macOS;
           opts.enable_decoration_binding = true;
           msl_compiler->set_msl_options(opts);
           spv_cross_compiler = std::move(msl_compiler);
@@ -304,118 +301,113 @@ int main(int argc, const char *argv[]) {
         }
 
         spirv_cross::ShaderResources resources =
-            spv_cross_compiler->get_shader_resources();
-        const spirv_cross::SmallVector<spirv_cross::CombinedImageSampler> &cis =
-            spv_cross_compiler->get_combined_image_samplers();
+          spv_cross_compiler->get_shader_resources();
+        const spirv_cross::SmallVector<spirv_cross::CombinedImageSampler>& cis =
+          spv_cross_compiler->get_combined_image_samplers();
         for (uint32_t cis_idx = 0u; cis_idx < cis.size(); ++cis_idx) {
-          const spirv_cross::CombinedImageSampler &remap = cis[cis_idx];
+          const spirv_cross::CombinedImageSampler& remap = cis[cis_idx];
           spv_cross_compiler->set_name(
-              remap.combined_id,
-              spv_cross_compiler->get_name(remap.image_id) + "_" +
-              spv_cross_compiler->get_name(remap.sampler_id));
+            remap.combined_id,
+            spv_cross_compiler->get_name(remap.image_id) + "_" +
+            spv_cross_compiler->get_name(remap.sampler_id));
           spv_cross_compiler->set_decoration(remap.combined_id,
-                                             spv::DecorationBinding,
-                                             cis_idx);
+            spv::DecorationBinding,
+            cis_idx);
           spv_cross_compiler->set_decoration(remap.combined_id,
-                                             spv::DecorationDescriptorSet,
-                                             AUTOGEN_CIS_DESCRIPTOR_SET);
+            spv::DecorationDescriptorSet,
+            AUTOGEN_CIS_DESCRIPTOR_SET);
         }
         const bool do_remapping = target_info->api == target_api::GL
-                                  || target_info->api == target_api::METAL;
-        if (do_remapping || generate_pipeline_metadata) {
-          for (const spirv_cross::CombinedImageSampler &cis:
-                   spv_cross_compiler->get_combined_image_samplers()) {
-            images_to_cis.add_resource(cis.image_id, cis.combined_id,
-                                       *spv_cross_compiler);
-            samplers_to_cis.add_resource(cis.sampler_id, cis.combined_id,
-                                         *spv_cross_compiler);
-          }
-          const stage_mask_bit smb =
-              ep.kind == shader_kind::vertex
-                           ? STAGE_MASK_VERTEX
-                           : STAGE_MASK_FRAGMENT;
-          auto process_resources =
-            [smb, do_remapping, &spv_cross_compiler, &res_layout](
-              const spirv_cross::SmallVector<spirv_cross::Resource> &resources,
-              descriptor_type dtype) {
-              res_layout.process_resources(resources, dtype, smb,
-                                           do_remapping, *spv_cross_compiler);
-            };
-          process_resources(resources.uniform_buffers,
-                            descriptor_type::UNIFORM_BUFFER);
-          process_resources(resources.storage_buffers,
-                            descriptor_type::STORAGE_BUFFER);
-          process_resources(resources.separate_samplers,
-                            descriptor_type::SAMPLER);
-          process_resources(resources.separate_images,
-                            descriptor_type::TEXTURE);
+          || target_info->api == target_api::METAL;
+        for (const spirv_cross::CombinedImageSampler& cis :
+          spv_cross_compiler->get_combined_image_samplers()) {
+          images_to_cis.add_resource(cis.image_id, cis.combined_id,
+            *spv_cross_compiler);
+          samplers_to_cis.add_resource(cis.sampler_id, cis.combined_id,
+            *spv_cross_compiler);
         }
-        FILE *out_file = fopen(out_file_path.c_str(), "wb");
+        const stage_mask_bit smb =
+          ep.kind == shader_kind::vertex
+          ? STAGE_MASK_VERTEX
+          : STAGE_MASK_FRAGMENT;
+        auto process_resources =
+          [smb, do_remapping, &spv_cross_compiler, &res_layout](
+            const spirv_cross::SmallVector<spirv_cross::Resource>& resources,
+            descriptor_type dtype) {
+              res_layout.process_resources(resources, dtype, smb,
+                do_remapping, *spv_cross_compiler);
+        };
+        process_resources(resources.uniform_buffers,
+          descriptor_type::UNIFORM_BUFFER);
+        process_resources(resources.storage_buffers,
+          descriptor_type::STORAGE_BUFFER);
+        process_resources(resources.separate_samplers,
+          descriptor_type::SAMPLER);
+        process_resources(resources.separate_images,
+          descriptor_type::TEXTURE);
+        FILE* out_file = fopen(out_file_path.c_str(), "wb");
         if (out_file == nullptr) {
           fprintf(stderr, "Failed to open output file %s\n",
-                  out_file_path.c_str());
+            out_file_path.c_str());
           exit(1);
         }
         if (target_info->api != target_api::VULKAN) {
           out = spv_cross_compiler->compile();
           fwrite(&out[0], sizeof(uint8_t), out.length(), out_file);
-        } else {
-          fwrite(spv_result.data(), sizeof(uint32_t),
-                 spv_result.size(), out_file);
+        }
+        else {
+          fwrite(spv_code.data(), sizeof(uint32_t),
+            spv_code.size(), out_file);
         }
         fclose(out_file);
       }
+    }
+    // Write out the .pipeline file for the current technique.
+    std::string metadata_file_path =
+      out_folder + PATH_SEPARATOR + tech.name + ".pipeline";
+    pipeline_metadata_file metadata_file(metadata_file_path.c_str());
+    header_writer.begin_technique(tech.name);
 
-      // Write out the .pipeline file for the current technique.
-      if (generate_pipeline_metadata) {
-        header_writer.begin_technique(tech.name);
-        std::string metadata_file_path =
-            out_folder + PATH_SEPARATOR + tech.name + ".pipeline";
-        pipeline_metadata_file metadata_file(metadata_file_path.c_str());
+    // Write out the entrypoints section.
+    metadata_file.start_new_record();
+    metadata_file.write_field(tech.entry_points.size());
+    for (const technique::entry_point& ep : tech.entry_points) {
+      metadata_file.write_field((uint32_t)ep.kind);
+      metadata_file.write_raw_bytes(ep.name.c_str(),
+        ep.name.length() + 1u);
+    }
 
-        // Write out the entrypoints section.
-        metadata_file.start_new_record();
-        metadata_file.write_field(tech.entry_points.size());
-        for (const technique::entry_point& ep : tech.entry_points) {
-          metadata_file.write_field((uint32_t)ep.kind);
-          metadata_file.write_raw_bytes(ep.name.c_str(),
-                                        ep.name.length() + 1u);
-        }
-
-        // Write out the pipeline layout record.
-        metadata_file.start_new_record();
-        metadata_file.write_field(res_layout.set_count());
-        for (uint32_t set = 0u; set < res_layout.set_count(); ++set) {
-          const descriptor_set_layout &ds = res_layout.set(set);
-          metadata_file.write_field((uint32_t)ds.size());
-          for (const auto &d : ds) {
-            metadata_file.write_field(d.second.slot);
-            metadata_file.write_field((uint32_t)d.second.type);
-            metadata_file.write_field(d.second.stage_mask);
-            header_writer.write_descriptor(d.second, set);
-          }
-        }
-        header_writer.end_technique();
-
-        // Write out separate-to-combined map records.
-        metadata_file.start_new_record();
-        images_to_cis.serialize(metadata_file);
-        metadata_file.start_new_record();
-        samplers_to_cis.serialize(metadata_file);
-
-        // Write out user metadata record.
-        metadata_file.start_new_record();
-        metadata_file.write_field((uint32_t)tech.additional_metadata.size());
-        for (const auto &nameval : tech.additional_metadata) {
-          metadata_file.write_raw_bytes(nameval.first.c_str(),
-                                        nameval.first.size() + 1u);
-          metadata_file.write_raw_bytes(nameval.second.c_str(),
-                                        nameval.second.size() + 1u);
-        }
-        metadata_file.finalize();
+    // Write out the pipeline layout record.
+    metadata_file.start_new_record();
+    metadata_file.write_field(res_layout.set_count());
+    for (uint32_t set = 0u; set < res_layout.set_count(); ++set) {
+      const descriptor_set_layout& ds = res_layout.set(set);
+      metadata_file.write_field((uint32_t)ds.size());
+      for (const auto& d : ds) {
+        metadata_file.write_field(d.second.slot);
+        metadata_file.write_field((uint32_t)d.second.type);
+        metadata_file.write_field(d.second.stage_mask);
+        header_writer.write_descriptor(d.second, set);
       }
     }
-    generate_pipeline_metadata = false;
+    header_writer.end_technique();
+
+    // Write out separate-to-combined map records.
+    metadata_file.start_new_record();
+    images_to_cis.serialize(metadata_file);
+    metadata_file.start_new_record();
+    samplers_to_cis.serialize(metadata_file);
+
+    // Write out user metadata record.
+    metadata_file.start_new_record();
+    metadata_file.write_field((uint32_t)tech.additional_metadata.size());
+    for (const auto& nameval : tech.additional_metadata) {
+      metadata_file.write_raw_bytes(nameval.first.c_str(),
+        nameval.first.size() + 1u);
+      metadata_file.write_raw_bytes(nameval.second.c_str(),
+        nameval.second.size() + 1u);
+    }
+    metadata_file.finalize();
   }
 #pragma endregion gen_output
   return 0;
