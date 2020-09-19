@@ -25,20 +25,26 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+namespace {
+
+bool should_process_resource(uint32_t id,
+                             const spirv_cross::Compiler& compiler) {
+  return compiler.get_decoration(id,
+                                 spv::DecorationDescriptorSet) != AUTOGEN_CIS_DESCRIPTOR_SET &&
+         compiler.get_name(id) != "SPIRV_Cross_DummySampler";
+}
+
+}
+
 void pipeline_layout::process_resources(
     const spirv_cross::SmallVector<spirv_cross::Resource> &resources,
     descriptor_type resource_type,
     stage_mask_bit smb,
-    bool do_remapping,
-    spirv_cross::Compiler &refl) {
+    const spirv_cross::Compiler &refl) {
   for (const auto &r : resources) {
+    if (!should_process_resource(r.id, refl)) { continue; }
     uint32_t set_id =
         refl.get_decoration(r.id, spv::DecorationDescriptorSet);
-    if (set_id == AUTOGEN_CIS_DESCRIPTOR_SET ||
-        refl.get_name(r.id) == "SPIRV_Cross_DummySampler") {
-      // Auto-generated combined image/samplers aren't included in the layout.
-      continue;
-    }
     uint32_t binding_id = refl.get_decoration(r.id, spv::DecorationBinding);
     max_set_ = max_set_ < set_id ? set_id : max_set_;
     descriptor_set &set = sets_[set_id];
@@ -46,7 +52,6 @@ void pipeline_layout::process_resources(
     descriptor &desc = set.layout[binding_id];
     if (desc.type == descriptor_type::INVALID) {
       // This resource hasn't been encountered before.
-      desc.native_binding = num_descriptors_of_type_[(int)resource_type]++;
       desc.slot = binding_id;
       desc.type = resource_type;
       desc.name = r.name;
@@ -67,11 +72,41 @@ void pipeline_layout::process_resources(
                       binding_id, set_id);
       exit(1);
     }
-    if (do_remapping) {
-      refl.set_decoration(r.id, spv::DecorationBinding, desc.native_binding);
-    }
     desc.stage_mask |= smb;
   }
+}
+
+void pipeline_layout::remap_resources(spirv_cross::Compiler& compiler) const {
+  uint32_t num_descriptors_of_type[NGF_PLMD_DESC_NUM_TYPES] = {0u};
+  std::unordered_map<uint32_t, std::unordered_map<uint32_t, uint32_t>> native_binding_map;
+
+  for (const auto &set_id_and_layout : sets_) {
+    for (const auto &binding_id_and_descriptor : set_id_and_layout.second.layout) {
+      const uint32_t native_binding = (num_descriptors_of_type[(int)binding_id_and_descriptor.second.type])++;
+      native_binding_map[set_id_and_layout.first][binding_id_and_descriptor.first] = native_binding;
+    }
+  }
+
+  auto do_remap = [&](const spirv_cross::SmallVector<spirv_cross::Resource>& res) {
+    for (const spirv_cross::Resource r : res) {
+      const uint32_t set = compiler.get_decoration(r.id, spv::DecorationDescriptorSet);
+      if (!should_process_resource(r.id, compiler)) { continue; }
+      const uint32_t binding = compiler.get_decoration(r.id, spv::DecorationBinding);
+      const auto &native_bindings = native_binding_map[set];
+      auto it = native_bindings.find(binding);
+      if (it == native_bindings.end()) {
+        fprintf(stderr, "internal error");
+        exit(1);
+      }
+      compiler.set_decoration(r.id, spv::DecorationBinding, it->second);
+    }
+  };
+
+  spirv_cross::ShaderResources resources = compiler.get_shader_resources();
+  do_remap(resources.uniform_buffers);
+  do_remap(resources.storage_buffers);
+  do_remap(resources.separate_samplers);
+  do_remap(resources.separate_images);
 }
 
 const descriptor_set_layout& pipeline_layout::set(uint32_t set_id) const {

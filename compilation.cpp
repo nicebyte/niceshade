@@ -85,7 +85,7 @@ void compilation::add_resources_to_pipeline_layout(pipeline_layout& layout) cons
       const spirv_cross::SmallVector<spirv_cross::Resource>& resources,
       descriptor_type dtype) {
         layout.process_resources(resources, dtype, smb,
-                                 false, *spv_cross_compiler_);
+                                 *spv_cross_compiler_);
   };
  
   spirv_cross::ShaderResources resources =
@@ -104,7 +104,7 @@ void compilation::add_resources_to_pipeline_layout(pipeline_layout& layout) cons
 void compilation::run(const std::string &out_file_path) {
   const std::string full_out_file_path =
     out_file_path + 
-    (shader_kind() == shader_kind::vertex ? ".vs." : ".ps.") +
+    (kind_ == shader_kind::vertex ? ".vs." : ".ps.") +
     target_info_.file_ext;
 
   FILE* out_file =
@@ -126,5 +126,12 @@ void compilation::run(const std::string &out_file_path) {
            original_spirv_.size(), out_file);
   }
   fclose(out_file);
+}
+
+void compilation::remap_resources(const pipeline_layout& layout) {
+  if (target_info_.api == target_api::GL ||
+      target_info_.api == target_api::METAL) {
+    layout.remap_resources(*spv_cross_compiler_.get());
+  }
 }
 
