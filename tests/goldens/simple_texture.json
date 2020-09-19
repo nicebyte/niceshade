@@ -20,13 +20,13 @@
       "set": 0,
       "descriptors": [
         {
-          "binding": 2,
-          "type": "SAMPLER",
+          "binding": 1,
+          "type": "IMAGE",
           "stage_vis": 2
         },
         {
-          "binding": 1,
-          "type": "IMAGE",
+          "binding": 2,
+          "type": "SAMPLER",
           "stage_vis": 2
         }
       ]

@@ -25,13 +25,13 @@
           "stage_vis": 2
         },
         {
-          "binding": 3,
-          "type": "SAMPLER",
+          "binding": 2,
+          "type": "IMAGE",
           "stage_vis": 2
         },
         {
-          "binding": 2,
-          "type": "IMAGE",
+          "binding": 3,
+          "type": "SAMPLER",
           "stage_vis": 2
         }
       ]
