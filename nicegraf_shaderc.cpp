@@ -32,9 +32,8 @@
 #include "shader_defines.h"
 #include "target.h"
 #include "technique_parser.h"
-#include "spirv_glsl.hpp"
-#include "spirv_msl.hpp"
 #include "spirv_reflect.hpp"
+#include "compilation.h"
 
 #include <ctype.h>
 #include <memory>
@@ -253,115 +252,23 @@ int main(int argc, const char *argv[]) {
   for (const technique& tech : techniques) {
     pipeline_layout res_layout;
     separate_to_combined_map images_to_cis, samplers_to_cis;
+    std::vector<compilation> compilations;
+    
     for (const technique::entry_point& ep : tech.entry_points) {
       const std::vector<uint32_t>& spv_code = ep.spirv_code;
       for (const target_info* target_info : targets) {
-        std::string out;
-        std::string out_file_path =
-          out_folder + PATH_SEPARATOR + tech.name +
-          (ep.kind == shader_kind::vertex ? ".vs." : ".ps.")
-          + target_info->file_ext;
-
-        // Create an instance of SPIRV-Cross compiler.
-        std::unique_ptr<spirv_cross::Compiler> spv_cross_compiler;
-        switch (target_info->api) {
-        case target_api::GL: {
-          auto gl_compiler = std::make_unique<spirv_cross::CompilerGLSL>(
-            spv_code.data(), spv_code.size());
-          spirv_cross::CompilerGLSL::Options opts;
-          opts.version = target_info->version_maj * 100u + target_info->version_min * 10u;
-          opts.separate_shader_objects = true;
-          opts.es = (target_info->platform == target_platform_class::MOBILE);
-          gl_compiler->set_common_options(opts);
-          gl_compiler->build_dummy_sampler_for_combined_images();
-          gl_compiler->build_combined_image_samplers();
-          spv_cross_compiler = std::move(gl_compiler);
-          break;
-        }
-        case target_api::VULKAN: {
-          spv_cross_compiler =
-            std::make_unique<spirv_cross::CompilerReflection>(spv_code.data(),
-              spv_code.size());
-          break;
-        }
-        case target_api::METAL: {
-          auto msl_compiler = std::make_unique<spirv_cross::CompilerMSL>(spv_code.data(),
-            spv_code.size());
-          spirv_cross::CompilerMSL::Options opts;
-          opts.set_msl_version(target_info->version_maj, target_info->version_min);
-          const bool ios = target_info->platform == target_platform_class::MOBILE;
-          opts.platform = ios ? spirv_cross::CompilerMSL::Options::iOS
-            : spirv_cross::CompilerMSL::Options::macOS;
-          opts.enable_decoration_binding = true;
-          msl_compiler->set_msl_options(opts);
-          spv_cross_compiler = std::move(msl_compiler);
-          break;
-        }
-        default: assert(false);
-        }
-
-        spirv_cross::ShaderResources resources =
-          spv_cross_compiler->get_shader_resources();
-        const spirv_cross::SmallVector<spirv_cross::CombinedImageSampler>& cis =
-          spv_cross_compiler->get_combined_image_samplers();
-        for (uint32_t cis_idx = 0u; cis_idx < cis.size(); ++cis_idx) {
-          const spirv_cross::CombinedImageSampler& remap = cis[cis_idx];
-          spv_cross_compiler->set_name(
-            remap.combined_id,
-            spv_cross_compiler->get_name(remap.image_id) + "_" +
-            spv_cross_compiler->get_name(remap.sampler_id));
-          spv_cross_compiler->set_decoration(remap.combined_id,
-            spv::DecorationBinding,
-            cis_idx);
-          spv_cross_compiler->set_decoration(remap.combined_id,
-            spv::DecorationDescriptorSet,
-            AUTOGEN_CIS_DESCRIPTOR_SET);
-        }
-        const bool do_remapping = target_info->api == target_api::GL
-          || target_info->api == target_api::METAL;
-        for (const spirv_cross::CombinedImageSampler& cis :
-          spv_cross_compiler->get_combined_image_samplers()) {
-          images_to_cis.add_resource(cis.image_id, cis.combined_id,
-            *spv_cross_compiler);
-          samplers_to_cis.add_resource(cis.sampler_id, cis.combined_id,
-            *spv_cross_compiler);
-        }
-        const stage_mask_bit smb =
-          ep.kind == shader_kind::vertex
-          ? STAGE_MASK_VERTEX
-          : STAGE_MASK_FRAGMENT;
-        auto process_resources =
-          [smb, do_remapping, &spv_cross_compiler, &res_layout](
-            const spirv_cross::SmallVector<spirv_cross::Resource>& resources,
-            descriptor_type dtype) {
-              res_layout.process_resources(resources, dtype, smb,
-                do_remapping, *spv_cross_compiler);
-        };
-        process_resources(resources.uniform_buffers,
-          descriptor_type::UNIFORM_BUFFER);
-        process_resources(resources.storage_buffers,
-          descriptor_type::STORAGE_BUFFER);
-        process_resources(resources.separate_samplers,
-          descriptor_type::SAMPLER);
-        process_resources(resources.separate_images,
-          descriptor_type::TEXTURE);
-        FILE* out_file = fopen(out_file_path.c_str(), "wb");
-        if (out_file == nullptr) {
-          fprintf(stderr, "Failed to open output file %s\n",
-            out_file_path.c_str());
-          exit(1);
-        }
-        if (target_info->api != target_api::VULKAN) {
-          out = spv_cross_compiler->compile();
-          fwrite(&out[0], sizeof(uint8_t), out.length(), out_file);
-        }
-        else {
-          fwrite(spv_code.data(), sizeof(uint32_t),
-            spv_code.size(), out_file);
-        }
-        fclose(out_file);
+        compilations.emplace_back(ep.kind, spv_code, *target_info);
+        compilations.back().add_cis_to_map(images_to_cis, samplers_to_cis);
+        compilations.back().add_resources_to_pipeline_layout(res_layout);
       }
     }
+
+    for (compilation &c : compilations) {
+      std::string out_file_path = out_folder + PATH_SEPARATOR + tech.name;
+      c.run(out_file_path.c_str());
+      // TODO: remap bindings here
+    }
+
     // Write out the .pipeline file for the current technique.
     std::string metadata_file_path =
       out_folder + PATH_SEPARATOR + tech.name + ".pipeline";
