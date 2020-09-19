@@ -105,9 +105,9 @@ class dxc_wrapper {
 
 public:
   struct result {
-    std::vector<uint32_t> spirv_result;
+    std::vector<uint32_t> spirv_code;
     std::string diag_message;
-    bool HasData() const { return spirv_result.size() > 0; }
+    bool HasData() const { return spirv_code.size() > 0; }
     bool HasDiagMessage() const { return diag_message.size() > 0; }
   };
 
