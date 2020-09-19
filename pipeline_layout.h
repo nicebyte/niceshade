@@ -1,5 +1,5 @@
 /**
-Copyright © 2018 nicegraf contributors
+Copyright © 2020 nicegraf contributors
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the “Software”), to deal in
 the Software without restriction, including without limitation the rights to
@@ -20,11 +20,11 @@ SOFTWARE.
 #pragma once
 
 #include "metadata_parser/metadata_parser.h"
-#include "linear_dict.h"
 #include "spirv_reflect.hpp"
 #include <stdint.h>
 #include <string>
 #include <vector>
+#include <map>
 
 // Indicates the type of resource accessed by a programmable shader stage.
 enum class descriptor_type {
@@ -49,11 +49,9 @@ struct descriptor {
   descriptor_type type = descriptor_type::INVALID; // Type of resorce accessed.
   uint32_t stage_mask = 0u; // Which stages the descriptor is used from.
   std::string name; // The name used to refer to it in the source code.
-  uint32_t native_binding; // Binding id for targets that don't have concept
-                           // of descriptor sets.
 };
 
-using descriptor_set_layout = linear_dict<uint32_t, descriptor>;
+using descriptor_set_layout = std::map<uint32_t, descriptor>;
 
 // Stores information about shader resources accessed by a technique.
 class pipeline_layout {
@@ -62,15 +60,10 @@ public:
   // `resources' is a vector of spv-cross resources which are to be added.
   // `resource_type' indicates the type, and `smb' indicates which pipeline
   // stage the resources are used at.
-  // If `do_remapping' is true, then (set, binding) will be mapped to a
-  // single binding, for targets that have no concept of descriptor
-  // sets and use separate biniding spaces for each resource type (i.e. OpenGL
-  // and Metal).
   void process_resources(const spirv_cross::SmallVector<spirv_cross::Resource> &resources,
                          descriptor_type resource_type,
                          stage_mask_bit smb,
-                         bool do_remapping,
-                         spirv_cross::Compiler &refl);
+                         const spirv_cross::Compiler &refl);
 
   // Returns the total number of descriptor sets in the layout.
   uint32_t set_count() const { return max_set_ + 1; }
@@ -82,17 +75,20 @@ public:
   // Returns the layout of the n-th descriptor set.
   const descriptor_set_layout& set(uint32_t set_id) const;
 
+
+  // Map (set, binding) to a single binding, for targets that have no concept of
+  // descriptor sets and use separate biniding spaces for each resource type
+  // (i.e. OpenGL and Metal).
+  void remap_resources(spirv_cross::Compiler &compiler) const;
+
 private:
   struct descriptor_set {
     uint32_t slot = 0u;
     descriptor_set_layout layout;
   };
-  linear_dict<uint32_t, descriptor_set> sets_;
+  std::map<uint32_t, descriptor_set> sets_;
   uint32_t max_set_ = 0u; // Max set number encountered.
   uint32_t nres_ = 0u; // Total number of resources.
-
-  // Counts for resources of each type.
-  uint32_t num_descriptors_of_type_[NGF_PLMD_DESC_NUM_TYPES] = {0u};
 };
 
 constexpr uint32_t AUTOGEN_CIS_DESCRIPTOR_SET = 9999u;

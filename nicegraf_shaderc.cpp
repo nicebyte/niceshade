@@ -265,8 +265,8 @@ int main(int argc, const char *argv[]) {
 
     for (compilation &c : compilations) {
       std::string out_file_path = out_folder + PATH_SEPARATOR + tech.name;
+      c.remap_resources(res_layout);
       c.run(out_file_path.c_str());
-      // TODO: remap bindings here
     }
 
     // Write out the .pipeline file for the current technique.

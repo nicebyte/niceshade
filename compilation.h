@@ -43,6 +43,7 @@ public:
   void add_cis_to_map(separate_to_combined_map &image_map,
                       separate_to_combined_map &sampler_map) const;
   void run(const std::string &out_file_path);
+  void remap_resources(const pipeline_layout &layout);
   shader_kind kind() const { return kind_; }
 
 private:
