@@ -23,6 +23,8 @@ set(SPIRV_SKIP_TESTS "on")
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/third_party/SPIRV-Cross)
 
 set(NICEGRAF_SHADERC_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/compilation.h
+    ${CMAKE_CURRENT_LIST_DIR}/compilation.cpp
     ${CMAKE_CURRENT_LIST_DIR}/dxc_wrapper.h
     ${CMAKE_CURRENT_LIST_DIR}/dxc_wrapper.cpp
 	  ${CMAKE_CURRENT_LIST_DIR}/header_file_writer.h
