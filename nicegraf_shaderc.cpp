@@ -167,19 +167,9 @@ int main(int argc, const char *argv[]) {
     "-spirv",  // always enable spir-v codegen
     "-Zpc"     // always forbid overriding explicit matrix orientation.
   };
-  bool enable_spv_opt = false;
   // Add the remaining dxc parameters from the command line.
-  for (size_t o = dxc_options_start; o < argc; ++o) {
+  for (size_t o = dxc_options_start; o < argc; ++o)
     dxc_options.emplace_back(argv[o]);
-    if (dxc_options.back() == "-O3") {
-      enable_spv_opt = true;
-    }
-  }
-  if (!enable_spv_opt) {
-    // Always enable SPIR-V optimization passes unless the user explicitly
-    // turned them off.
-    dxc_options.emplace_back("-O0");
-  }
 #pragma endregion cmd_line
 
 #pragma region pre_checks
@@ -277,7 +267,7 @@ int main(int argc, const char *argv[]) {
 
     // Write out the entrypoints section.
     metadata_file.start_new_record();
-    metadata_file.write_field(tech.entry_points.size());
+    metadata_file.write_field((uint32_t)tech.entry_points.size());
     for (const technique::entry_point& ep : tech.entry_points) {
       metadata_file.write_field((uint32_t)ep.kind);
       metadata_file.write_raw_bytes(ep.name.c_str(),
