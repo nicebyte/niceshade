@@ -165,7 +165,7 @@ dxc_wrapper::result dxc_wrapper::compile_hlsl2spv(
   auto spirv_blob =
       com_ptr<IDxcBlob>([&](auto ptr) { return dxc_result->GetResult(ptr); });
 
-  if (spirv_blob->GetBufferSize() > 0) {
+  if (spirv_blob.get() != nullptr && spirv_blob->GetBufferSize() > 0) {
     result.spirv_code =
         std::vector<uint32_t>(spirv_blob->GetBufferSize() / sizeof(uint32_t),
                               0u);
