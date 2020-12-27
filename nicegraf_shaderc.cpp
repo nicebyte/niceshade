@@ -66,14 +66,14 @@ Options:
     required.
 
   -m <version> - HLSL shader model version to use. Valid values are: 6_0, 6_1, 6_2, 6_3,
-   6_4, 6_5, 6_6. Default is 6_0.
+   6_4, 6_5, 6_6. Default is 6_2.
 
   -h <path> - Path (relative to the output folder) for the generated
       header file with descriptor binding and set IDs. If not specified, no
       header file will be generated.
 
   -n <identifier> - Namespace for the generated shader file. If not specified,
-     global namespace is used.
+     the global namespace is used.
     
   -D <name>=<value> - Add a preprocessor definition `name` with the value `value` to
      techniques.
