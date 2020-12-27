@@ -36,8 +36,8 @@
 class compilation {
 public:
   compilation(shader_kind kind,
-                 const std::vector<uint32_t> &spirv_code,
-                 const target_info &target_info);
+              const std::vector<uint32_t> &spirv_code,
+              const target_info &target_info);
 
   void add_resources_to_pipeline_layout(pipeline_layout &layout) const;
   void add_cis_to_map(separate_to_combined_map &image_map,
