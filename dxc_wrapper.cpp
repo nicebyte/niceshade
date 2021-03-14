@@ -26,9 +26,6 @@
 #include <string>
 #include <stdlib.h>
 
-DEFINE_CROSS_PLATFORM_UUIDOF(IDxcLibrary)
-DEFINE_CROSS_PLATFORM_UUIDOF(IDxcCompiler)
-
 namespace {
 
 #if defined(_WIN64) || defined(_WIN32)
