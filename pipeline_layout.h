@@ -49,6 +49,7 @@ struct descriptor {
   descriptor_type type = descriptor_type::INVALID; // Type of resorce accessed.
   uint32_t stage_mask = 0u; // Which stages the descriptor is used from.
   std::string name; // The name used to refer to it in the source code.
+  std::vector<std::pair<spirv_cross::Compiler*, spirv_cross::ID>> usages;
 };
 
 using descriptor_set_layout = std::map<uint32_t, descriptor>;
@@ -63,7 +64,7 @@ public:
   void process_resources(const spirv_cross::SmallVector<spirv_cross::Resource> &resources,
                          descriptor_type resource_type,
                          stage_mask_bit smb,
-                         const spirv_cross::Compiler &refl);
+                         spirv_cross::Compiler &refl);
 
   // Returns the total number of descriptor sets in the layout.
   uint32_t set_count() const { return max_set_ + 1; }
@@ -79,7 +80,7 @@ public:
   // Map (set, binding) to a single binding, for targets that have no concept of
   // descriptor sets and use separate biniding spaces for each resource type
   // (i.e. OpenGL and Metal).
-  void remap_resources(spirv_cross::Compiler &compiler) const;
+  void remap_resources();
 
 private:
   struct descriptor_set {

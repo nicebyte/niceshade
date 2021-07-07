@@ -128,10 +128,3 @@ void compilation::run(const std::string &out_file_path) {
   fclose(out_file);
 }
 
-void compilation::remap_resources(const pipeline_layout& layout) {
-  if (target_info_.api == target_api::GL ||
-      target_info_.api == target_api::METAL) {
-    layout.remap_resources(*spv_cross_compiler_.get());
-  }
-}
-
