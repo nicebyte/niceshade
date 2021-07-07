@@ -253,9 +253,10 @@ int main(int argc, const char *argv[]) {
       }
     }
 
+    res_layout.remap_resources();
+
     for (compilation &c : compilations) {
       std::string out_file_path = out_folder + PATH_SEPARATOR + tech.name;
-      c.remap_resources(res_layout);
       c.run(out_file_path.c_str());
     }
 
