@@ -101,7 +101,7 @@ void compilation::add_resources_to_pipeline_layout(pipeline_layout& layout) cons
     descriptor_type::TEXTURE);
 }
 
-void compilation::run(const std::string &out_file_path) {
+void compilation::run(const std::string &out_file_path, const pipeline_layout& layout) {
   const std::string full_out_file_path =
     out_file_path + 
     (kind_ == shader_kind::vertex ? ".vs." : ".ps.") +
@@ -121,6 +121,7 @@ void compilation::run(const std::string &out_file_path) {
   if (target_info_.api != target_api::VULKAN) {
     result = spv_cross_compiler_->compile();
     fwrite(&result[0], sizeof(uint8_t), result.length(), out_file);
+    layout.dump_native_binding_map(out_file);
   } else {
     fwrite(original_spirv_.data(), sizeof(uint32_t),
            original_spirv_.size(), out_file);
