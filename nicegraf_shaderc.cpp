@@ -257,7 +257,7 @@ int main(int argc, const char *argv[]) {
 
     for (compilation &c : compilations) {
       std::string out_file_path = out_folder + PATH_SEPARATOR + tech.name;
-      c.run(out_file_path.c_str());
+      c.run(out_file_path.c_str(), res_layout);
     }
 
     // Write out the .pipeline file for the current technique.

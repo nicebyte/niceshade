@@ -77,12 +77,26 @@ void pipeline_layout::process_resources(
     desc.usages.emplace_back(&refl, r.id);
   }
 }
+void pipeline_layout::dump_native_binding_map(FILE* f) const{
+  fprintf(f, "/**NGF_NATIVE_BINDING_MAP\n");
+  for (const auto &set_id_and_layout : sets_) {
+    for (const auto &binding_id_and_descriptor : set_id_and_layout.second.layout) {
+      fprintf(f, "(%d %d) : %d\n",
+              binding_id_and_descriptor.first,
+              set_id_and_layout.first,
+              binding_id_and_descriptor.second.native_binding);
+    }
+  }
+  fprintf(f, "(-1 -1) : -1\n");
+  fprintf(f, "**/\n");
+}
 
 void pipeline_layout::remap_resources() {
   uint32_t num_descriptors_of_type[NGF_PLMD_DESC_NUM_TYPES] = {0u};
-  for (const auto &set_id_and_layout : sets_) {
-    for (const auto &binding_id_and_descriptor : set_id_and_layout.second.layout) {
+  for (auto &set_id_and_layout : sets_) {
+    for (auto &binding_id_and_descriptor : set_id_and_layout.second.layout) {
       const uint32_t native_binding = (num_descriptors_of_type[(int)binding_id_and_descriptor.second.type])++;
+      binding_id_and_descriptor.second.native_binding = native_binding;
       for (auto& compiler_and_id : binding_id_and_descriptor.second.usages) {
         compiler_and_id.first->set_decoration(compiler_and_id.second, spv::DecorationBinding, native_binding);
       }

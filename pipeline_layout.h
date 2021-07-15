@@ -49,6 +49,7 @@ struct descriptor {
   descriptor_type type = descriptor_type::INVALID; // Type of resorce accessed.
   uint32_t stage_mask = 0u; // Which stages the descriptor is used from.
   std::string name; // The name used to refer to it in the source code.
+  uint32_t native_binding;
   std::vector<std::pair<spirv_cross::Compiler*, spirv_cross::ID>> usages;
 };
 
@@ -81,6 +82,10 @@ public:
   // descriptor sets and use separate biniding spaces for each resource type
   // (i.e. OpenGL and Metal).
   void remap_resources();
+
+  // Dumps out the (set, binding) => (native binding) map as a comment to
+  // the output file.
+  void dump_native_binding_map(FILE* f) const;
 
 private:
   struct descriptor_set {
