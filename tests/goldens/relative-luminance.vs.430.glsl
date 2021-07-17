@@ -12,3 +12,7 @@ void main()
     gl_Position = vec4(_23[uint(gl_VertexID) % 3u], 0.0, 1.0);
 }
 
+/**NGF_NATIVE_BINDING_MAP
+(0 0) : 0
+(-1 -1) : -1
+**/

@@ -19,3 +19,7 @@ fragment PSMain_out PSMain(texture2d<float> img [[texture(0)]], float4 gl_FragCo
     return out;
 }
 
+/**NGF_NATIVE_BINDING_MAP
+(0 0) : 0
+(-1 -1) : -1
+**/

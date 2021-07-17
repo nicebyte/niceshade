@@ -17,3 +17,6 @@ void main()
     out_var_ATTRIBUTE0 = _33[_38];
 }
 
+/**NGF_NATIVE_BINDING_MAP
+(-1 -1) : -1
+**/

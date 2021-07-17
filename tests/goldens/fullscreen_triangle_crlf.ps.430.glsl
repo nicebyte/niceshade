@@ -8,3 +8,6 @@ void main()
     out_var_SV_TARGET = gl_FragCoord;
 }
 
+/**NGF_NATIVE_BINDING_MAP
+(-1 -1) : -1
+**/

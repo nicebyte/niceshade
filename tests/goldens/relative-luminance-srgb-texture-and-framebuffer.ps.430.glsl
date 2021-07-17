@@ -13,3 +13,7 @@ void main()
     out_var_SV_TARGET = vec4(_44, _44, _44, 1.0);
 }
 
+/**NGF_NATIVE_BINDING_MAP
+(0 0) : 0
+(-1 -1) : -1
+**/
