@@ -20,3 +20,8 @@ fragment PSMain_out PSMain(PSMain_in in [[stage_in]], texture2d<float> tex2 [[te
     return out;
 }
 
+/**NGF_NATIVE_BINDING_MAP
+(1 0) : 0
+(2 0) : 0
+(-1 -1) : -1
+**/
