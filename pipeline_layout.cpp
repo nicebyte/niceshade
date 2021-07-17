@@ -82,8 +82,8 @@ void pipeline_layout::dump_native_binding_map(FILE* f) const{
   for (const auto &set_id_and_layout : sets_) {
     for (const auto &binding_id_and_descriptor : set_id_and_layout.second.layout) {
       fprintf(f, "(%d %d) : %d\n",
-              binding_id_and_descriptor.first,
               set_id_and_layout.first,
+              binding_id_and_descriptor.first,
               binding_id_and_descriptor.second.native_binding);
     }
   }
