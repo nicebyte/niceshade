@@ -1,4 +1,0 @@
-fatal error: generated SPIR-V is invalid: [VUID-FragCoord-FragCoord-04212] According to the Vulkan spec BuiltIn FragCoord variable needs to be a 4-component 32-bit float vector. ID <2> (OpVariable) has 2 components.
-  %gl_FragCoord = OpVariable %_ptr_Input_v2float Input
-
-note: please file a bug report on https://github.com/Microsoft/DirectXShaderCompiler/issues with source code if possible
