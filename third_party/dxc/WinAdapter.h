@@ -32,7 +32,6 @@
 #include <typeinfo>
 #include <vector>
 #endif // __cplusplus
-#include <execinfo.h>
 
 //===----------------------------------------------------------------------===//
 //
@@ -49,7 +48,6 @@
 
 #define _countof(a) (sizeof(a) / sizeof(*(a)))
 
-// If it is GCC, there is no UUID support and we must emulate it.
 #define __EMULATE_UUID 1
 
 #ifdef __EMULATE_UUID
@@ -192,10 +190,6 @@
 
 #define OutputDebugStringA(msg) fputs(msg, stderr)
 #define OutputDebugFormatA(...) fprintf(stderr, __VA_ARGS__)
-
-#define CaptureStackBackTrace(FramesToSkip, FramesToCapture, BackTrace,        \
-                              BackTraceHash)                                   \
-  backtrace(BackTrace, FramesToCapture)
 
 // Event Tracing for Windows (ETW) provides application programmers the ability
 // to start and stop event tracing sessions, instrument an application to
