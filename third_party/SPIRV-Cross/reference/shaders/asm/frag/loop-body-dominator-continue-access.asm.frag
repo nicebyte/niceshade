@@ -10,6 +10,8 @@ layout(binding = 0, std140) uniform Foo
 layout(location = 0) in vec3 fragWorld;
 layout(location = 0) out int _entryPointOutput;
 
+mat4 spvWorkaroundRowMajor(mat4 wrap) { return wrap; }
+
 mat4 GetClip2TexMatrix()
 {
     if (_11.test == 0)
@@ -23,7 +25,7 @@ int GetCascade(vec3 fragWorldPosition)
 {
     for (uint cascadeIndex = 0u; cascadeIndex < _11.shadowCascadesNum; cascadeIndex++)
     {
-        mat4 worldToShadowMap = GetClip2TexMatrix() * _11.lightVP[cascadeIndex];
+        mat4 worldToShadowMap = GetClip2TexMatrix() * spvWorkaroundRowMajor(_11.lightVP[cascadeIndex]);
         vec4 fragShadowMapPos = worldToShadowMap * vec4(fragWorldPosition, 1.0);
         if ((((fragShadowMapPos.z >= 0.0) && (fragShadowMapPos.z <= 1.0)) && (max(fragShadowMapPos.x, fragShadowMapPos.y) <= 1.0)) && (min(fragShadowMapPos.x, fragShadowMapPos.y) >= 0.0))
         {
