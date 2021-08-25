@@ -58,8 +58,8 @@ Options:
   -t <target> - Generate shaders for the given target.  Accepted values are:
       * gl430;
       * gles310, gles300;
-      * msl10, msl11, msl12, msl20;
-      * msl10ios, msl11ios, msl12ios, msl20ios;
+      * msl10, msl11, msl12, msl20, msl21;
+      * msl10ios, msl11ios, msl12ios, msl20ios, msl21ios;
       * spv 
     If the option is encountered multiple times, shaders for all of the
     mentioned targets will be generated. At least one occurence of this option is

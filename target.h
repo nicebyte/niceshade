@@ -109,6 +109,15 @@ static const struct named_target_info TARGET_MAP[] = {
       target_platform_class::DESKTOP
     }
   },
+{
+    "msl21",
+    {
+      target_api::METAL,
+      "21.msl",
+      2u, 1u,
+      target_platform_class::DESKTOP
+    }
+  },
   {
     "msl10ios",
     {
@@ -142,6 +151,15 @@ static const struct named_target_info TARGET_MAP[] = {
       target_api::METAL,
       "20ios.msl",
       2u, 0u,
+      target_platform_class::MOBILE
+    }
+  },
+  {
+    "msl21ios",
+    {
+      target_api::METAL,
+      "21ios.msl",
+      2u, 1u,
       target_platform_class::MOBILE
     }
   },
