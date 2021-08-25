@@ -35,6 +35,10 @@ compilation::compilation(shader_kind kind,
       spirv_code.size());
     spirv_cross::CompilerMSL::Options opts;
     opts.set_msl_version(target_info.version_maj, target_info.version_min);
+    if (target_info.version_min >= 1 && target_info.version_maj >= 2) {
+      // Enable native texel buffers on Metal 2.1+.
+      opts.texture_buffer_native = true;
+    }
     const bool ios = target_info.platform == target_platform_class::MOBILE;
     opts.platform = ios ? spirv_cross::CompilerMSL::Options::iOS
       : spirv_cross::CompilerMSL::Options::macOS;

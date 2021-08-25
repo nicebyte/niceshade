@@ -33,7 +33,8 @@ static const char *DESCRIPTOR_TYPE_NAMES[] = {
   "LOADSTORE_IMAGE",
   "IMAGE",
   "SAMPLER",
-  "COMBINED_IMAGE_SAMPLER"
+  "COMBINED_IMAGE_SAMPLER",
+  "UNIFORM_TEXEL_BUFFER"
 };
 
 void print_cis_map(const ngf_plmd_cis_map *m);

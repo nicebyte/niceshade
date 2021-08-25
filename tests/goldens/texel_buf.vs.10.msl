@@ -1,0 +1,30 @@
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+struct VSMain_out
+{
+    float4 gl_Position [[position]];
+};
+
+// Returns 2D texture coords corresponding to 1D texel buffer coords
+static inline __attribute__((always_inline))
+uint2 spvTexelBufferCoord(uint tc)
+{
+    return uint2(tc % 4096, tc / 4096);
+}
+
+vertex VSMain_out VSMain(texture2d<float> texel_buf [[texture(0)]])
+{
+    VSMain_out out = {};
+    out.gl_Position = float4(texel_buf.read(spvTexelBufferCoord(0)).x);
+    return out;
+}
+
+/**NGF_NATIVE_BINDING_MAP
+(0 0) : 0
+(-1 -1) : -1
+**/
