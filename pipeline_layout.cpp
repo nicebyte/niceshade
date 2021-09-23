@@ -39,13 +39,11 @@ bool should_process_resource(uint32_t id,
 
 void pipeline_layout::process_resources(
     const spirv_cross::SmallVector<spirv_cross::Resource> &resources,
-    descriptor_type apparent_resource_type,
+    descriptor_type resource_type,
     stage_mask_bit smb,
     spirv_cross::Compiler &refl) {
   for (const auto &r : resources) {
     if (!should_process_resource(r.id, refl)) { continue; }
-    bool is_texel_buffer = apparent_resource_type == descriptor_type::TEXTURE && refl.get_type(r.base_type_id).image.dim == spv::Dim::DimBuffer;
-    const descriptor_type resource_type = is_texel_buffer ? descriptor_type::TEXEL_BUFFER : apparent_resource_type;
     uint32_t set_id =
         refl.get_decoration(r.id, spv::DecorationDescriptorSet);
     uint32_t binding_id = refl.get_decoration(r.id, spv::DecorationBinding);
