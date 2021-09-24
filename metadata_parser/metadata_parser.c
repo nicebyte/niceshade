@@ -90,7 +90,7 @@ ngf_plmd_error ngf_plmd_load(const void *buf, size_t buf_size,
   if (alloc_cb == NULL) {
     alloc_cb = &stdlib_alloc;
   }
-  
+
   // Any well-formed pipeline metadata file must contain a multiple of 4 bytes.
   if ((buf_size & 0b11) != 0) {
     err = NGF_PLMD_ERROR_WEIRD_BUFFER_SIZE;
@@ -188,7 +188,7 @@ ngf_plmd_error ngf_plmd_load(const void *buf, size_t buf_size,
   const uint8_t *set_ptr = pipeline_layout_ptr + sizeof(uint32_t);
   for (uint32_t s = 0u; s < nsets; ++s) {
     meta->layout.set_layouts[s] = (const ngf_plmd_descriptor_set_layout*)set_ptr;
-    const uint32_t set_data_size =
+    const size_t set_data_size =
         meta->layout.set_layouts[s]->ndescriptors * sizeof(ngf_plmd_descriptor) +
         sizeof(uint32_t);
     set_ptr += set_data_size;
@@ -277,4 +277,16 @@ const ngf_plmd_header* ngf_plmd_get_header(const ngf_plmd *m) {
 
 const ngf_plmd_entrypoints* ngf_plmd_get_entrypoints(const ngf_plmd* m) {
   return &m->entrypoints;
+}
+
+const char* ngf_plmd_get_error_name(const ngf_plmd_error err) {
+  static const char* ngf_plmd_error_names[] = {
+    "OK",
+    "OUTOFMEM",
+    "MAGIC_NUMBER_MISMATCH",
+    "BUFFER_TOO_SMALL",
+    "WEIRD_BUFFER_SIZE",
+    "INVALID_SHADER_STAGE"
+  };
+  return ngf_plmd_error_names[err];
 }
