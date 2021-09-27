@@ -21,6 +21,7 @@ set(SHADERC_SKIP_TESTS "on")
 set(SPIRV_SKIP_TESTS "on")
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/third_party/SPIRV-Cross)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metadata_parser)
 
 set(NICEGRAF_SHADERC_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/compilation.h
@@ -52,9 +53,6 @@ if (NOT WIN32)
   target_link_libraries(nicegraf_shaderc dl)
 endif()
 set_output_dir(nicegraf_shaderc ${CMAKE_CURRENT_LIST_DIR})
-
-add_library(metadata_parser ${CMAKE_CURRENT_LIST_DIR}/metadata_parser/metadata_parser.h ${CMAKE_CURRENT_LIST_DIR}/metadata_parser/metadata_parser.c)
-target_include_directories(metadata_parser PUBLIC ${CMAKE_CURRENT_LIST_DIR}/metadata_parser)
 
 add_executable(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples/display_metadata.cpp ${CMAKE_CURRENT_LIST_DIR}/file_utils.cpp)
 target_include_directories(display_metadata PRIVATE ${CMAKE_CURRENT_LIST_DIR})
