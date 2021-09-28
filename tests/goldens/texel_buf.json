@@ -21,7 +21,7 @@
       "descriptors": [
         {
           "binding": 0,
-          "type": "UNIFORM_TEXEL_BUFFER",
+          "type": "IMAGE",
           "stage_vis": 1
         }
       ]
