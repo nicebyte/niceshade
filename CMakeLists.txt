@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(nicegraf_shaderc)
+project(niceshade)
+
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 17)
 
 if (WIN32)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
-else()
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
 endif()
 
 function(set_output_dir target dir)
@@ -16,9 +17,6 @@ function(set_output_dir target dir)
   set_target_properties(${target} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${dir}")
 endfunction(set_output_dir)
-
-set(SHADERC_SKIP_TESTS "on")
-set(SPIRV_SKIP_TESTS "on")
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/third_party/SPIRV-Cross)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metadata_parser)
@@ -43,7 +41,6 @@ set(NICEGRAF_SHADERC_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/separate_to_combined_map.cpp)
 
 add_executable(nicegraf_shaderc ${NICEGRAF_SHADERC_SOURCES})
-set_property(TARGET nicegraf_shaderc PROPERTY CXX_STANDARD 17)
 target_include_directories(nicegraf_shaderc PRIVATE 
     ${CMAKE_CURRENT_LIST_DIR}/../library/include
     ${CMAKE_CURRENT_LIST_DIR}/third_party/dxc)
