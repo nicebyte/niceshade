@@ -22,18 +22,29 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/third_party/SPIRV-Cross)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metadata_parser)
 
 add_library(
+  dxc-headers INTERFACE
+  ${CMAKE_CURRENT_LIST_DIR}/third_party/dxc/include/dxc/dxcapi.h
+  ${CMAKE_CURRENT_LIST_DIR}/third_party/dxc/include/dxc/WinAdapter.h)
+
+target_include_directories(
+    dxc-headers INTERFACE
+    ${CMAKE_CURRENT_LIST_DIR}/third_party/dxc/include)
+
+add_library(
   libniceshade
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/common-types.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/technique-parser.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/technique-parser.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.h
-  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.cpp
-)
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.cpp)
 
 target_include_directories(
   libniceshade PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}
-)
+  ${CMAKE_CURRENT_LIST_DIR}/third_party/dxc/include)
+
+target_link_libraries(libniceshade
+    dxc-headers)
 
 set(NICEGRAF_SHADERC_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/compilation.h
@@ -52,8 +63,7 @@ set(NICEGRAF_SHADERC_SOURCES
 
 add_executable(nicegraf_shaderc ${NICEGRAF_SHADERC_SOURCES})
 target_include_directories(nicegraf_shaderc PRIVATE 
-    ${CMAKE_CURRENT_LIST_DIR}/../library/include
-    ${CMAKE_CURRENT_LIST_DIR}/third_party/dxc)
+    ${CMAKE_CURRENT_LIST_DIR}/../library/include)
 target_link_libraries(nicegraf_shaderc
   libniceshade
   spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl)
