@@ -45,7 +45,7 @@ public:
   void add_cis_to_map(separate_to_combined_map &image_map,
                       separate_to_combined_map &sampler_map) const;
   void run(const std::string &out_file_path, const pipeline_layout& pipeline_layout);
-  pipeline_stage kind() const { return stage_; }
+  pipeline_stage stage() const { return stage_; }
 
 private:
   target_info target_info_;
