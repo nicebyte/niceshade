@@ -29,7 +29,7 @@
 #include "pipeline_layout.h"
 #include "pipeline_metadata_file.h"
 #include "separate_to_combined_map.h"
-#include "shader_defines.h"
+#include "libniceshade/common-types.h"
 #include "target.h"
 #include "libniceshade/technique-parser.h"
 #include "spirv_reflect.hpp"
