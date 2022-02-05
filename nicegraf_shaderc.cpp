@@ -217,10 +217,10 @@ int main(int argc, const char *argv[]) {
           input_file_path.c_str(),
           ep,
           tech.defines);
-      if (result.HasDiagMessage()) {
+      if (result.has_diag_msg()) {
         fprintf(stderr, "%s", result.diag_message.c_str());
       }
-      if (!result.HasData()) {
+      if (!result.has_data()) {
         exit(1);
       }
       ep.spirv_code = std::move(result.spirv_code);

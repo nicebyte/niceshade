@@ -22,23 +22,38 @@
 
 #pragma once
 
-#define _CRT_SECURE_NO_WARNING
+#define _CRT_SECURE_NO_WARNINGS
 
-#ifdef _MSC_VER
-#define WIN32_LEAN_AND_MEAN
-#include <unknwn.h>
-#include <windows.h>
-#define ModuleHandle HMODULE
-#undef max
-#undef min
-#else
-#include "dxc/WinAdapter.h"
-#include <dlfcn.h>
-#define LoadLibraryA(name)   dlopen(name, RTLD_NOW)
-#define GetProcAddress(h, n) dlsym(h, n)
-#define FreeModule(h)        dlclose(h)
-#define ModuleHandle         void*
-#endif
+#include "libniceshade/platform.h"
 
-#include "dxc/dxcapi.h"
+namespace libniceshade {
 
+class dynamic_lib {
+  public:
+  dynamic_lib() = default;
+
+  dynamic_lib(const std::vector<std::string>& paths) {
+    for (size_t i = 0; h_ == nullptr && i < paths.size(); ++i) h_ = LoadLibraryA(paths[i].c_str());
+  }
+
+  ~dynamic_lib() {
+    if (h_) FreeModule(h_);
+  }
+
+  dynamic_lib(const dynamic_lib&) = delete;
+
+  dynamic_lib& operator=(const dynamic_lib&) = delete;
+
+  bool is_valid() const {
+    return h_ == nullptr;
+  }
+
+  LPVOID get_proc_address(LPCSTR name) const {
+    return GetProcAddress(h_, name);
+  }
+
+  private:
+  ModuleHandle h_ = NULL;
+};
+
+}  // namespace libniceshade
