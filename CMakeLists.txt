@@ -26,6 +26,8 @@ add_library(
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/common-types.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/technique-parser.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/technique-parser.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.cpp
 )
 
 target_include_directories(
@@ -36,8 +38,6 @@ target_include_directories(
 set(NICEGRAF_SHADERC_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/compilation.h
     ${CMAKE_CURRENT_LIST_DIR}/compilation.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/dxc_wrapper.h
-    ${CMAKE_CURRENT_LIST_DIR}/dxc_wrapper.cpp
 	  ${CMAKE_CURRENT_LIST_DIR}/header_file_writer.h
     ${CMAKE_CURRENT_LIST_DIR}/nicegraf_shaderc.cpp
     ${CMAKE_CURRENT_LIST_DIR}/shader_defines.h

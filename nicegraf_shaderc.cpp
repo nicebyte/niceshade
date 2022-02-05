@@ -22,7 +22,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "dxc_wrapper.h"
+#include "libniceshade/dxc-wrapper.h"
 #include "file_utils.h"
 #include "header_file_writer.h"
 #include "linear_dict.h"
