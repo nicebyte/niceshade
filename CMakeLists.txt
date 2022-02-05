@@ -21,6 +21,18 @@ endfunction(set_output_dir)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/third_party/SPIRV-Cross)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metadata_parser)
 
+add_library(
+  libniceshade
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/common-types.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/technique-parser.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/technique-parser.cpp
+)
+
+target_include_directories(
+  libniceshade PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}
+)
+
 set(NICEGRAF_SHADERC_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/compilation.h
     ${CMAKE_CURRENT_LIST_DIR}/compilation.cpp
@@ -28,8 +40,6 @@ set(NICEGRAF_SHADERC_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/dxc_wrapper.cpp
 	  ${CMAKE_CURRENT_LIST_DIR}/header_file_writer.h
     ${CMAKE_CURRENT_LIST_DIR}/nicegraf_shaderc.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/technique_parser.h
-    ${CMAKE_CURRENT_LIST_DIR}/technique_parser.cpp
     ${CMAKE_CURRENT_LIST_DIR}/shader_defines.h
     ${CMAKE_CURRENT_LIST_DIR}/file_utils.h 
     ${CMAKE_CURRENT_LIST_DIR}/file_utils.cpp
@@ -45,6 +55,7 @@ target_include_directories(nicegraf_shaderc PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/../library/include
     ${CMAKE_CURRENT_LIST_DIR}/third_party/dxc)
 target_link_libraries(nicegraf_shaderc
+  libniceshade
   spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl)
 if (NOT WIN32)
   target_link_libraries(nicegraf_shaderc dl)

@@ -23,5 +23,3 @@ SOFTWARE.
 
 #pragma once
 
-// Stores a sequence of preprocessor definitions.
-using define_container = std::vector<std::pair<std::string, std::string>>;

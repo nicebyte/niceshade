@@ -39,7 +39,7 @@
 #endif
 #include "dxcapi.h"
 #include "shader_defines.h"
-#include "technique_parser.h"
+#include "libniceshade/technique-parser.h"
 #include <vector>
 #include <string>
 #include <stdint.h>
