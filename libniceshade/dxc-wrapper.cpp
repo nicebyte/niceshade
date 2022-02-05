@@ -66,14 +66,14 @@ dxc_wrapper::dxc_wrapper(
   }
 
   // Verify that the dymamic library could be loaded.
-  if (dxcompiler_dll_.IsValid()) {
+  if (dxcompiler_dll_.is_valid()) {
     fprintf(stderr, "dxcompiler library not loaded.\n");
     exit(1);
   }
 
   // Look up the function for creating an instance of the library.
   auto create_proc = (DxcCreateInstanceProc)dxcompiler_dll_.get_proc_address("DxcCreateInstance");
-  if (NULL == create_proc) { exit(1); }
+  if (nullptr == create_proc) { exit(1); }
 
   // Instantiate library, compiler and include handler.
   library_instance_ = com_ptr<IDxcLibrary>(

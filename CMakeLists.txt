@@ -36,6 +36,7 @@ add_library(
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/technique-parser.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/technique-parser.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/platform.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dynamic-library.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.cpp)
 

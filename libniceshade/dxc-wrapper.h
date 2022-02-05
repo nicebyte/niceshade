@@ -24,12 +24,11 @@
 
 #define _CRT_SECURE_NO_WARNING
 
-#include "libniceshade/platform.h"
-#include "libniceshade/common-types.h"
-#include "libniceshade/technique-parser.h"
 #include "libniceshade/com-ptr.h"
-
-#include "dxc/dxcapi.h"
+#include "libniceshade/common-types.h"
+#include "libniceshade/dynamic-library.h"
+#include "libniceshade/platform.h"
+#include "libniceshade/technique-parser.h"
 
 #include <stdint.h>
 #include <string>
@@ -40,36 +39,16 @@
 namespace libniceshade {
 
 class dxc_wrapper {
-  class dynamic_lib {
-    public:
-    dynamic_lib() = default;
-    dynamic_lib(const std::vector<std::string>& paths) {
-      for (size_t i = 0; h_ == NULL && i < paths.size(); ++i) h_ = LoadLibraryA(paths[i].c_str());
-    }
-    ~dynamic_lib() {
-      if (h_) FreeModule(h_);
-    }
-    dynamic_lib(const dynamic_lib&) = delete;
-    dynamic_lib& operator=(const dynamic_lib&) = delete;
-    bool         IsValid() const {
-      return h_ == NULL;
-    }
-    LPVOID get_proc_address(LPCSTR name) const {
-      return GetProcAddress(h_, name);
-    }
-
-    private:
-    ModuleHandle h_ = NULL;
-  };
-
   public:
   struct result {
     std::vector<uint32_t> spirv_code;
     std::string           diag_message;
-    bool                  HasData() const {
+
+    bool has_data() const {
       return spirv_code.size() > 0;
     }
-    bool HasDiagMessage() const {
+
+    bool has_diag_msg() const {
       return diag_message.size() > 0;
     }
   };
