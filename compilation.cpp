@@ -5,10 +5,12 @@
 #include "spirv_glsl.hpp"
 #include "spirv_msl.hpp"
 
-compilation::compilation(shader_kind kind,
+using namespace libniceshade;
+
+compilation::compilation(pipeline_stage stage,
                          const std::vector<uint32_t>& spirv_code,
                          const target_info& target_info) : target_info_(target_info),
-                                                           kind_(kind),
+                                                           stage_(stage),
                                                            original_spirv_(spirv_code) {
   switch (target_info_.api) {
   case target_api::GL: {
@@ -81,7 +83,7 @@ void compilation::add_cis_to_map(separate_to_combined_map &image_map,
 
 void compilation::add_resources_to_pipeline_layout(pipeline_layout& layout) const {
   const stage_mask_bit smb =
-    kind_ == shader_kind::vertex
+    stage_ == pipeline_stage::vertex
     ? STAGE_MASK_VERTEX
     : STAGE_MASK_FRAGMENT;
   auto process_resources =
@@ -108,7 +110,7 @@ void compilation::add_resources_to_pipeline_layout(pipeline_layout& layout) cons
 void compilation::run(const std::string &out_file_path, const pipeline_layout& layout) {
   const std::string full_out_file_path =
     out_file_path + 
-    (kind_ == shader_kind::vertex ? ".vs." : ".ps.") +
+    (stage_ == pipeline_stage::vertex ? ".vs." : ".ps.") +
     target_info_.file_ext;
 
   FILE* out_file =

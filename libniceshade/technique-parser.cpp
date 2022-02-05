@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+namespace libniceshade {
+
 // States of the technique parser.
 enum class technique_parser_state {
   LOOKING_FOR_PREFIX,
@@ -152,12 +154,12 @@ void parse_techniques(const std::string &input_source,
         }
         technique::entry_point ep {
           parameter_name == "vs"
-              ? shader_kind::vertex
-              : shader_kind::fragment,
+              ? pipeline_stage::vertex
+              : pipeline_stage::fragment,
           entry_point_name
         };
         for (const auto &prev_ep : techniques.back().entry_points) {
-          if (prev_ep.kind == ep.kind) {
+          if (prev_ep.stage == ep.stage) {
             report_technique_parser_error(line_num,
                                           "duplicate entry point %s:%s",
                                           parameter_name.c_str(),
@@ -214,3 +216,5 @@ void parse_techniques(const std::string &input_source,
     if (c == '\n') ++line_num;
   }
 }
+
+}  // namespace libniceshade

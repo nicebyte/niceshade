@@ -27,10 +27,12 @@
 #include <string>
 #include <vector>
 
+namespace libniceshade {
+
 // Technique description.
 struct technique {
   struct entry_point {
-    shader_kind kind;
+    pipeline_stage stage;
     std::string name;
     std::vector<uint32_t> spirv_code;
   };
@@ -40,6 +42,8 @@ struct technique {
   std::vector<std::pair<std::string, std::string>> additional_metadata;
 };
 
-void parse_techniques(const std::string &input_source,
-                      std::vector<technique> &techniques,
-                      const define_container &default_defines);
+void parse_techniques(const std::string& input_source,
+  std::vector<technique>& techniques,
+  const define_container& default_defines);
+
+}  // namespace libniceshade

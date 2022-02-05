@@ -247,7 +247,7 @@ int main(int argc, const char *argv[]) {
     for (const technique::entry_point& ep : tech.entry_points) {
       const std::vector<uint32_t>& spv_code = ep.spirv_code;
       for (const target_info* target_info : targets) {
-        compilations.emplace_back(ep.kind, spv_code, *target_info);
+        compilations.emplace_back(ep.stage, spv_code, *target_info);
         compilations.back().add_cis_to_map(images_to_cis, samplers_to_cis);
         compilations.back().add_resources_to_pipeline_layout(res_layout);
       }
@@ -270,7 +270,7 @@ int main(int argc, const char *argv[]) {
     metadata_file.start_new_record();
     metadata_file.write_field((uint32_t)tech.entry_points.size());
     for (const technique::entry_point& ep : tech.entry_points) {
-      metadata_file.write_field((uint32_t)ep.kind);
+      metadata_file.write_field((uint32_t)ep.stage);
       metadata_file.write_raw_bytes(ep.name.c_str(),
         ep.name.length() + 1u);
     }
