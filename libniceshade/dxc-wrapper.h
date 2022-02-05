@@ -22,25 +22,14 @@
 
 #pragma once
 
-#ifdef _MSC_VER
-#define WIN32_LEAN_AND_MEAN
-#include <unknwn.h>
-#include <windows.h>
-#define ModuleHandle HMODULE
-#undef max
-#undef min
-#else
-#include "dxc/WinAdapter.h"
+#define _CRT_SECURE_NO_WARNING
 
-#include <dlfcn.h>
-#define LoadLibraryA(name)   dlopen(name, RTLD_NOW)
-#define GetProcAddress(h, n) dlsym(h, n)
-#define FreeModule(h)        dlclose(h)
-#define ModuleHandle         void*
-#endif
-#include "dxc/dxcapi.h"
+#include "libniceshade/platform.h"
 #include "libniceshade/common-types.h"
 #include "libniceshade/technique-parser.h"
+#include "libniceshade/com-ptr.h"
+
+#include "dxc/dxcapi.h"
 
 #include <stdint.h>
 #include <string>
@@ -51,54 +40,6 @@
 namespace libniceshade {
 
 class dxc_wrapper {
-  template<class T> class com_ptr {
-    public:
-    com_ptr() = default;
-    explicit com_ptr(T* ptr) : ptr_(ptr) {
-      static_assert(std::is_base_of<IUnknown, T>::value);
-    }
-    template<class F> explicit com_ptr(F create_fn) {
-      static_assert(std::is_invocable_r<HRESULT, F, T**>::value);
-      const HRESULT create_result = create_fn(&ptr_);
-      if (create_result != S_OK) exit(1);
-    }
-    com_ptr(const com_ptr&) = delete;
-    com_ptr(com_ptr&& other) {
-      *this = std::move(other);
-    }
-    ~com_ptr() {
-      release();
-    }
-    com_ptr& operator=(const com_ptr&) = delete;
-    com_ptr& operator                  =(com_ptr&& other) noexcept {
-      release();
-      ptr_       = other.ptr_;
-      other.ptr_ = nullptr;
-      return *this;
-    }
-    T* operator->() {
-      return ptr_;
-    }
-    const T* operator->() const {
-      return ptr_;
-    }
-    T* get() {
-      return ptr_;
-    }
-    const T* get() const {
-      return ptr_;
-    }
-    T** PtrToContent() {
-      return &ptr_;
-    }
-
-    private:
-    void release() {
-      if (ptr_) { ptr_->Release(); }
-    }
-    T* ptr_ = nullptr;
-  };
-
   class dynamic_lib {
     public:
     dynamic_lib() = default;
