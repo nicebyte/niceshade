@@ -30,7 +30,7 @@
 #undef max
 #undef min
 #else
-#include "WinAdapter.h"
+#include "dxc/WinAdapter.h"
 
 #include <dlfcn.h>
 #define LoadLibraryA(name)   dlopen(name, RTLD_NOW)
@@ -38,10 +38,9 @@
 #define FreeModule(h)        dlclose(h)
 #define ModuleHandle         void*
 #endif
-#include "dxcapi.h"
+#include "dxc/dxcapi.h"
 #include "libniceshade/common-types.h"
 #include "libniceshade/technique-parser.h"
-#include "shader_defines.h"
 
 #include <stdint.h>
 #include <string>
