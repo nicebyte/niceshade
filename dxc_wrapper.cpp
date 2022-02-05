@@ -133,10 +133,10 @@ dxc_wrapper::result dxc_wrapper::compile_hlsl2spv(
   }
 
   const std::wstring target_profile = [&entry_point]() {
-    switch (entry_point.kind) {
-    case shader_kind::vertex:
+    switch (entry_point.stage) {
+    case pipeline_stage::vertex:
       return L"vs_";
-    case shader_kind::fragment:
+    case pipeline_stage::fragment:
       return L"ps_";
     default:
       exit(1);

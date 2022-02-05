@@ -26,12 +26,16 @@
 #include <utility>
 #include <string>
 
-enum class shader_kind {
+namespace libniceshade {
+
+enum class pipeline_stage {
   vertex,
   fragment
 };
 
 // Stores a sequence of preprocessor definitions.
 using define_container = std::vector<std::pair<std::string, std::string>>;
+
+}  // namespace libniceshade
 
 

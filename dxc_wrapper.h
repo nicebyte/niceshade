@@ -39,12 +39,15 @@
 #endif
 #include "dxcapi.h"
 #include "shader_defines.h"
+#include "libniceshade/common-types.h"
 #include "libniceshade/technique-parser.h"
 #include <vector>
 #include <string>
 #include <stdint.h>
 #include <variant>
 #include <type_traits>
+
+using namespace libniceshade;
 
 class dxc_wrapper {
   template <class T>

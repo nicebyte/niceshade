@@ -33,9 +33,11 @@
 #include <stdint.h>
 #include <string>
 
+using namespace libniceshade;
+
 class compilation {
 public:
-  compilation(shader_kind kind,
+  compilation(pipeline_stage kind,
               const std::vector<uint32_t> &spirv_code,
               const target_info &target_info);
 
@@ -43,11 +45,11 @@ public:
   void add_cis_to_map(separate_to_combined_map &image_map,
                       separate_to_combined_map &sampler_map) const;
   void run(const std::string &out_file_path, const pipeline_layout& pipeline_layout);
-  shader_kind kind() const { return kind_; }
+  pipeline_stage kind() const { return stage_; }
 
 private:
   target_info target_info_;
-  shader_kind kind_;
+  pipeline_stage stage_;
   std::unique_ptr<spirv_cross::Compiler> spv_cross_compiler_;
   const std::vector<uint32_t> &original_spirv_;
 };
