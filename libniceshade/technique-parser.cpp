@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 nicegraf contributors
+ * Copyright (c) 2021 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -20,8 +20,7 @@
  * IN THE SOFTWARE.
  */
 
-
-#include "technique_parser.h"
+#include "libniceshade/technique-parser.h"
 
 #include <assert.h>
 #include <ctype.h>

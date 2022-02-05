@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2020 nicegraf contributors
+ * Copyright (c) 2021 nicegraf contributors
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
  * deal in the Software without restriction, including without limitation the
  * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
@@ -22,32 +22,24 @@
 
 #pragma once
 
-#include "spirv_cross.hpp"
-#include "target.h"
-#include "pipeline_layout.h"
-#include "libniceshade/technique-parser.h"
-#include "separate_to_combined_map.h"
+#include "libniceshade/common-types.h"
 
-#include <memory>
-#include <vector>
-#include <stdint.h>
 #include <string>
+#include <vector>
 
-class compilation {
-public:
-  compilation(shader_kind kind,
-              const std::vector<uint32_t> &spirv_code,
-              const target_info &target_info);
-
-  void add_resources_to_pipeline_layout(pipeline_layout &layout) const;
-  void add_cis_to_map(separate_to_combined_map &image_map,
-                      separate_to_combined_map &sampler_map) const;
-  void run(const std::string &out_file_path, const pipeline_layout& pipeline_layout);
-  shader_kind kind() const { return kind_; }
-
-private:
-  target_info target_info_;
-  shader_kind kind_;
-  std::unique_ptr<spirv_cross::Compiler> spv_cross_compiler_;
-  const std::vector<uint32_t> &original_spirv_;
+// Technique description.
+struct technique {
+  struct entry_point {
+    shader_kind kind;
+    std::string name;
+    std::vector<uint32_t> spirv_code;
+  };
+  std::string name;
+  define_container defines;
+  std::vector<entry_point> entry_points;
+  std::vector<std::pair<std::string, std::string>> additional_metadata;
 };
+
+void parse_techniques(const std::string &input_source,
+                      std::vector<technique> &techniques,
+                      const define_container &default_defines);

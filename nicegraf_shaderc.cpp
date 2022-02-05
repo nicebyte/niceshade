@@ -31,7 +31,7 @@
 #include "separate_to_combined_map.h"
 #include "shader_defines.h"
 #include "target.h"
-#include "technique_parser.h"
+#include "libniceshade/technique-parser.h"
 #include "spirv_reflect.hpp"
 #include "compilation.h"
 
