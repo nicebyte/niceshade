@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 nicegraf contributors
+ * Copyright (c) 2022 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy 
  * of this software and associated documentation files (the "Software"), to
@@ -23,6 +23,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <algorithm>
 #include <string>
 #include "file_utils.h"
 #include "libniceshade/pipeline-layout.h"
