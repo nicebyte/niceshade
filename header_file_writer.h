@@ -25,7 +25,9 @@
 #include <stdio.h>
 #include <string>
 #include "file_utils.h"
-#include "pipeline_layout.h"
+#include "libniceshade/pipeline-layout.h"
+
+using namespace libniceshade;
 
 class header_file_writer {
 public:

@@ -24,7 +24,7 @@
 
 #include "spirv_cross.hpp"
 #include "target.h"
-#include "pipeline_layout.h"
+#include "libniceshade/pipeline-layout.h"
 #include "libniceshade/technique-parser.h"
 #include "separate_to_combined_map.h"
 
