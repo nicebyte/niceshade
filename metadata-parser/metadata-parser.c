@@ -20,7 +20,7 @@
  * IN THE SOFTWARE.
  */
 
-#include "metadata_parser.h"
+#include "metadata-parser.h"
 
 #include <assert.h>
 #include <stdlib.h>

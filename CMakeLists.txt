@@ -36,6 +36,8 @@ add_library(
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/technique-parser.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/technique-parser.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/error.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/pipeline-layout.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/pipeline-layout.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/platform.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dynamic-library.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.h
@@ -47,7 +49,7 @@ target_include_directories(
   ${CMAKE_CURRENT_LIST_DIR}/third_party/dxc/include)
 
 target_link_libraries(libniceshade
-    dxc-headers)
+    dxc-headers metadata-parser spirv-cross-core spirv-cross-reflect)
 
 set(NICEGRAF_SHADERC_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/compilation.h
@@ -56,10 +58,8 @@ set(NICEGRAF_SHADERC_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/nicegraf_shaderc.cpp
     ${CMAKE_CURRENT_LIST_DIR}/file_utils.h 
     ${CMAKE_CURRENT_LIST_DIR}/file_utils.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/pipeline_layout.h
-    ${CMAKE_CURRENT_LIST_DIR}/pipeline_layout.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/pipeline_metadata_file.h
-    ${CMAKE_CURRENT_LIST_DIR}/pipeline_metadata_file.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/metadata-file-writer.h
+    ${CMAKE_CURRENT_LIST_DIR}/metadata-file-writer.cpp
     ${CMAKE_CURRENT_LIST_DIR}/separate_to_combined_map.h
     ${CMAKE_CURRENT_LIST_DIR}/separate_to_combined_map.cpp)
 
@@ -76,7 +76,7 @@ set_output_dir(nicegraf_shaderc ${CMAKE_CURRENT_LIST_DIR})
 
 add_executable(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples/display_metadata.cpp ${CMAKE_CURRENT_LIST_DIR}/file_utils.cpp)
 target_include_directories(display_metadata PRIVATE ${CMAKE_CURRENT_LIST_DIR})
-target_link_libraries(display_metadata PRIVATE metadata_parser)
+target_link_libraries(display_metadata PRIVATE metadata-parser)
 set_output_dir(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
                      

@@ -17,7 +17,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #define _CRT_SECURE_NO_WARNINGS
-#include "metadata_parser/metadata_parser.h"
+#include "metadata-parser/metadata-parser.h"
 #include "file_utils.h"
 #include <assert.h>
 #include <stdio.h>

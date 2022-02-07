@@ -20,7 +20,7 @@ SOFTWARE.
 #pragma once
 
 #include "linear_dict.h"
-#include "pipeline_metadata_file.h"
+#include "metadata-file-writer.h"
 #include "spirv_reflect.hpp"
 #include <stdint.h>
 
