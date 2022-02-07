@@ -22,26 +22,36 @@
 
 #pragma once
 
-#define _CRT_SECURE_NO_WARNINGS
+#include "metadata-parser/metadata-parser.h"
 
-#if defined(_WIN32) || defined(_WIN64)
-#define WIN32_LEAN_AND_MEAN
-#include <unknwn.h>
-#include <windows.h>
-#define ModuleHandle HMODULE
-#undef max
-#undef min
-#pragma comment(lib, "ws2_32.lib")
-#include <winsock2.h>
-#else
-#include <arpa/inet.h>
-#include "dxc/WinAdapter.h"
-#include <dlfcn.h>
-#define LoadLibraryA(name)   dlopen(name, RTLD_NOW)
-#define GetProcAddress(h, n) dlsym(h, n)
-#define FreeModule(h)        dlclose(h)
-#define ModuleHandle         void*
-#endif
+#include <stdint.h>
+#include <stdio.h>
 
-#include "dxc/dxcapi.h"
+namespace libniceshade {
 
+// Convenience class for generating pipeline metadata in binary format.
+class metadata_file_writer {
+public:
+  // Open a new pipeline metadata file for writing.
+  explicit metadata_file_writer(const char* file_path);
+
+  // Begin a new record.
+  void start_new_record();
+
+  // Write a field into the current record.
+  void write_field(uint32_t value);
+
+  // Write the contents of the given byte buffer into the file.
+  void write_raw_bytes(const void* bytes, size_t nbytes);
+
+  // Finalize writing and close the file.
+  void finalize();
+
+private:
+  FILE*           f_;
+  ngf_plmd_header header_;
+  uint32_t*       current_section_offset_ptr_;
+  uint32_t        current_offset_ = sizeof(ngf_plmd_header);
+};
+
+}  // namespace libniceshade
