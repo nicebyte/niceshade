@@ -57,9 +57,8 @@ static void report_technique_parser_error(uint32_t line_num,
   exit(1);
 }
 
-void parse_techniques(const std::string &input_source,
-                      std::vector<technique> &techniques,
-                      const define_container &default_defines) {
+value_or_error<std::vector<technique>>
+parse_techniques(const std::string &input_source, const define_container &default_defines) {
   uint32_t last_four_chars = 0u;
   uint32_t line_num = 1u;
   const uint32_t technique_prefix = 0x2f2f543a; // `//T:'
@@ -67,7 +66,7 @@ void parse_techniques(const std::string &input_source,
   std::string parameter_name, entry_point_name, nameval_name,
               nameval_value;
   bool have_vertex_stage = false;
-  techniques.clear();
+  std::vector<technique> techniques;
   for (uint32_t c_idx = 0u; c_idx < input_source.size(); ++c_idx) {
     char c = input_source[c_idx];
     // Collapse windows line endings into '\n'.
@@ -215,6 +214,7 @@ void parse_techniques(const std::string &input_source,
     }
     if (c == '\n') ++line_num;
   }
+  return techniques;
 }
 
 }  // namespace libniceshade

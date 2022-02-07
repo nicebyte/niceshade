@@ -35,6 +35,7 @@ add_library(
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/common-types.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/technique-parser.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/technique-parser.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/error.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/platform.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dynamic-library.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.h
@@ -53,7 +54,6 @@ set(NICEGRAF_SHADERC_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/compilation.cpp
 	  ${CMAKE_CURRENT_LIST_DIR}/header_file_writer.h
     ${CMAKE_CURRENT_LIST_DIR}/nicegraf_shaderc.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/shader_defines.h
     ${CMAKE_CURRENT_LIST_DIR}/file_utils.h 
     ${CMAKE_CURRENT_LIST_DIR}/file_utils.cpp
     ${CMAKE_CURRENT_LIST_DIR}/pipeline_layout.h
