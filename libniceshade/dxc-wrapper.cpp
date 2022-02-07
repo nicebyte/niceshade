@@ -91,7 +91,7 @@ dxc_wrapper::result dxc_wrapper::compile_hlsl2spv(
     const char*                   source,
     size_t                        source_size,
     const char*                   input_file_name,
-    const technique::entry_point& entry_point,
+    const technique_desc::entry_point& entry_point,
     const define_container&       defines) {
   auto input_blob = com_ptr<IDxcBlobEncoding>([&](auto ptr) {
     return library_instance_

@@ -62,7 +62,7 @@ class dxc_wrapper {
       const char*                   source,
       size_t                        source_size,
       const char*                   input_file_name,
-      const technique::entry_point& entry_point,
+      const technique_desc::entry_point& entry_point,
       const define_container&       defines);
 
   private:
