@@ -43,19 +43,8 @@ enum class technique_parser_state {
   FINALIZING_TECHNIQUE
 };
 
-#define IS_IDENT(c) (isalnum(c) || c == '_')
-#define IS_TAB_SPACE(c) (c == ' '  || c == '\t')
-
-// Reports a technique preprocessor error and exits.
-static void report_technique_parser_error(uint32_t line_num,
-                                          const char *format, ...) {
-  va_list varargs;
-  va_start(varargs, format);
-  fprintf(stderr, "line %d: ", line_num);
-  vfprintf(stderr, format, varargs);
-  fprintf(stderr, "\n");
-  exit(1);
-}
+constexpr bool is_ident(char c) { return (isalnum(c) || c == '_'); }
+constexpr bool is_tab_space(char c) { return (c == ' '  || c == '\t'); }
 
 value_or_error<std::vector<technique>>
 parse_techniques(const std::string &input_source, const define_container &default_defines) {
@@ -72,12 +61,11 @@ parse_techniques(const std::string &input_source, const define_container &defaul
     // Collapse windows line endings into '\n'.
     if (c == '\r' && (c_idx == input_source.size() - 1u ||
                       input_source[c_idx + 1u] != '\n')) {
-      fprintf(stderr, "Stray carriage return in input on line %d\n", line_num);
-      exit(1);
+      NICESHADE_RETURN_ERROR("Stray carriage return in input on line %d\n", line_num);
     } else if (c == '\r') {
       continue;
     }
-    if (!IS_TAB_SPACE(c)) {
+    if (!is_tab_space(c)) {
       last_four_chars <<= 8u;
       last_four_chars |= (uint32_t)c;
     }
@@ -94,38 +82,40 @@ parse_techniques(const std::string &input_source, const define_container &defaul
       }
       break;
     case technique_parser_state::LOOKING_FOR_NAME:
-      if (IS_IDENT(c)) {
+      if (is_ident(c)) {
         state = technique_parser_state::PARSING_NAME;
         techniques.back().name.push_back(c);
-      } else if (!IS_TAB_SPACE(c)) {
-        report_technique_parser_error(
-            line_num, "unexpected character [%c] in technique name", c);
+      } else if (!is_tab_space(c)) {
+        NICESHADE_RETURN_ERROR("unexpected character ", c, " in technique name ", "on line ", line_num);
       }
       break;
     case  technique_parser_state::PARSING_NAME:
-      if (IS_IDENT(c) || c == '-') {
+      if (is_ident(c) || c == '-') {
         techniques.back().name.push_back(c);
-      } else if (IS_TAB_SPACE(c)) {
+      } else if (is_tab_space(c)) {
         state = technique_parser_state::LOOKING_FOR_PARAMETER_NAME;
       } else {
-        report_technique_parser_error(
-            line_num, "unexpected character [%c] in technique name", c);
+        NICESHADE_RETURN_ERROR("unexpected character ", c, " in technique name ", "on line ", line_num);
       }
       break;
     case technique_parser_state::LOOKING_FOR_PARAMETER_NAME:
-      if (IS_IDENT(c)) {
+      if (is_ident(c)) {
         state = technique_parser_state::PARSING_PARAMETER_NAME;
         parameter_name.clear();
         parameter_name.push_back(c);
       } else if (c == '\n') {
         state = technique_parser_state::FINALIZING_TECHNIQUE;
-      } else if (!IS_TAB_SPACE(c)) {
-        report_technique_parser_error(
-            line_num, "unexpected character [%c] in technique param name", c);
+      } else if (!is_tab_space(c)) {
+        NICESHADE_RETURN_ERROR(
+            "unexpected character ",
+            c,
+            " in technique param name ",
+            "on line ",
+            line_num);
       }
       break;
     case technique_parser_state::PARSING_PARAMETER_NAME:
-      if (IS_IDENT(c)) {
+      if (is_ident(c)) {
         parameter_name.push_back(c);
       } else if (c == ':') {
         if (parameter_name == "define" || parameter_name == "meta") {
@@ -135,21 +125,23 @@ parse_techniques(const std::string &input_source, const define_container &defaul
           state = technique_parser_state::PARSING_ENTRYPOINT_NAME;
           entry_point_name.clear();
         } else {
-          report_technique_parser_error(line_num, "unknown parameter [%s]", 
-                                        parameter_name.c_str());
+          NICESHADE_RETURN_ERROR("unknown parameter ", parameter_name.c_str(), " on line ", line_num);
         }
       } else {
-        report_technique_parser_error(
-            line_num, "unexpected character [%c] in technique param name", c);
+        NICESHADE_RETURN_ERROR(
+            "unexpected character ",
+            c,
+            " in technique param name ",
+            "on line ",
+            line_num);
       }
       break;
     case technique_parser_state::PARSING_ENTRYPOINT_NAME:
-      if (IS_IDENT(c)) {
+      if (is_ident(c)) {
         entry_point_name.push_back(c);
-      } else if (IS_TAB_SPACE(c) || c == '\n') {
+      } else if (is_tab_space(c) || c == '\n') {
         if (entry_point_name.empty()) {
-          report_technique_parser_error(line_num,
-                                        "entry point name cannot be empty");
+          NICESHADE_RETURN_ERROR("entry point name cannot be empty on line ", line_num);
         }
         technique::entry_point ep {
           parameter_name == "vs"
@@ -159,10 +151,13 @@ parse_techniques(const std::string &input_source, const define_container &defaul
         };
         for (const auto &prev_ep : techniques.back().entry_points) {
           if (prev_ep.stage == ep.stage) {
-            report_technique_parser_error(line_num,
-                                          "duplicate entry point %s:%s",
-                                          parameter_name.c_str(),
-                                          ep.name.c_str());
+            NICESHADE_RETURN_ERROR(
+                "duplicate entry point ",
+                parameter_name.c_str(),
+                ":",
+                ep.name.c_str(),
+                " on line ",
+                line_num);
           }
         }
         techniques.back().entry_points.emplace_back(ep);
@@ -172,23 +167,29 @@ parse_techniques(const std::string &input_source, const define_container &defaul
             ? technique_parser_state::LOOKING_FOR_PARAMETER_NAME
             : technique_parser_state::FINALIZING_TECHNIQUE;
       } else {
-        report_technique_parser_error(
-            line_num, "unexpected character [%c] in entry point name", c);
+        NICESHADE_RETURN_ERROR(
+            "unexpected character ",
+            c,
+            " in entry point name on line ",
+            line_num);
       }
       break;
     case technique_parser_state::PARSING_NAMEVAL_NAME:
-      if (IS_IDENT(c)) {
+      if (is_ident(c)) {
         nameval_name.push_back(c);
       } else if (c == '=') {
         state = technique_parser_state::PARSING_NAMEVAL_VALUE;
         nameval_value.clear();
       } else {
-        report_technique_parser_error(
-            line_num, "unexpected character [%c] in definition name", c);
+        NICESHADE_RETURN_ERROR(
+            "unexpected character ",
+            c,
+            " in definition name on line ",
+            line_num);
       }
       break;
     case technique_parser_state::PARSING_NAMEVAL_VALUE:
-      if(!IS_TAB_SPACE(c) && c != '\n') {
+      if(!is_tab_space(c) && c != '\n') {
         nameval_value.push_back(c);
       } else {
         if (parameter_name == "define") {
@@ -206,8 +207,7 @@ parse_techniques(const std::string &input_source, const define_container &defaul
       break;
     case technique_parser_state::FINALIZING_TECHNIQUE:
       if (!have_vertex_stage) {
-        report_technique_parser_error(
-            line_num, "technique needs to define at least a vertex stage");
+        NICESHADE_RETURN_ERROR("technique needs to define at least a vertex stage on line ", line_num);
       }
       state = technique_parser_state::LOOKING_FOR_PREFIX;
       break;
