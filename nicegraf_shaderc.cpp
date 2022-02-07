@@ -29,7 +29,7 @@
 #include "linear_dict.h"
 #include "libniceshade/pipeline-layout.h"
 #include "libniceshade/pipeline-layout-builder.h"
-#include "metadata-file-writer.h"
+#include "libniceshade/metadata-file-writer.h"
 #include "separate_to_combined_map.h"
 #include "libniceshade/common-types.h"
 #include "target.h"

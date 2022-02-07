@@ -40,6 +40,8 @@ add_library(
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/pipeline-layout.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/pipeline-layout-builder.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/pipeline-layout-builder.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/metadata-file-writer.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/metadata-file-writer.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/platform.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dynamic-library.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.h
@@ -60,8 +62,6 @@ set(NICEGRAF_SHADERC_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/nicegraf_shaderc.cpp
     ${CMAKE_CURRENT_LIST_DIR}/file_utils.h 
     ${CMAKE_CURRENT_LIST_DIR}/file_utils.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/metadata-file-writer.h
-    ${CMAKE_CURRENT_LIST_DIR}/metadata-file-writer.cpp
     ${CMAKE_CURRENT_LIST_DIR}/separate_to_combined_map.h
     ${CMAKE_CURRENT_LIST_DIR}/separate_to_combined_map.cpp)
 
