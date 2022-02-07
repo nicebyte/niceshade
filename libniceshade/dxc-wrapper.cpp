@@ -102,8 +102,13 @@ dxc_wrapper::result dxc_wrapper::compile_hlsl2spv(
   const std::wstring wentry_point_name =
       towstring(entry_point.name.c_str(), entry_point.name.size());
 
+  // This vector contains the wide-string versions of the defines.
   std::vector<std::pair<std::wstring, std::wstring>> wdefines;
-  std::vector<DxcDefine>                             dxc_defines;
+
+  // This vector contains DxcDefine objects that refer back to strings from
+  // the preceding `wdefines` vector. Those actually get fed to the dxc compiler.
+  std::vector<DxcDefine> dxc_defines;
+
   wdefines.reserve(defines.size());
   dxc_defines.reserve(defines.size());
   for (const std::pair<std::string, std::string>& define : defines) {
@@ -112,7 +117,7 @@ dxc_wrapper::result dxc_wrapper::compile_hlsl2spv(
         towstring(define.second.c_str(), define.second.size()));
     const auto& wdefine = wdefines.back();
     dxc_defines.emplace_back(
-        DxcDefine {wdefine.first.c_str(), wdefine.second.empty() ? NULL : wdefine.second.c_str()});
+        DxcDefine {wdefine.first.c_str(), wdefine.second.empty() ? nullptr : wdefine.second.c_str()});
   }
 
   const std::wstring target_profile = [&entry_point]() {
