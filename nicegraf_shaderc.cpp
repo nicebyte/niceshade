@@ -199,7 +199,7 @@ int main(int argc, const char *argv[]) {
     fprintf(stderr, maybe_techniques.error_message().c_str());
     exit(1);
   }
-  std::vector<technique>& techniques = maybe_techniques.get();
+  std::vector<technique_desc>& techniques = maybe_techniques.get();
   if (techniques.size() == 0u) {
     fprintf(stderr, "Input file does not appear to define any techniques. "
                     "Define techniques with a special comment (`//T:').\n");
@@ -213,23 +213,23 @@ int main(int argc, const char *argv[]) {
   std::vector<std::vector<spirv_blob>> spirv_blobs;
   // Obtain SPIR-V.
   dxc_wrapper dxcompiler(shader_model, dxc_options, exe_dir);
-  for (technique &tech : techniques) {
+  for (const technique_desc &tech : techniques) {
     spirv_blobs.emplace_back();
-    for (technique::entry_point &ep : tech.entry_points) {
+    for (const technique_desc::entry_point &ep : tech.entry_points) {
       // Produce SPIR-V.
-      dxc_wrapper::result result = dxcompiler.compile_hlsl2spv(
+      auto maybe_spirv_blob = dxcompiler.compile_hlsl2spv(
           input_source.c_str(),
           input_source.size(),
           input_file_path.c_str(),
           ep,
           tech.defines);
-      if (result.has_diag_msg()) {
-        fprintf(stderr, "%s", result.diag_message.c_str());
+      if (maybe_spirv_blob.is_error()) {
+        fprintf(stderr, "%s", maybe_spirv_blob.error_message().c_str());
       }
-      if (!result.has_data()) {
+      if (!maybe_spirv_blob.get().size() == 0) {
         exit(1);
       }
-      spirv_blobs.back().emplace_back(std::move(result.spirv_code));
+      spirv_blobs.back().emplace_back(std::move(maybe_spirv_blob.get()));
     }
   }
 #pragma endregion gen_spv
@@ -245,13 +245,13 @@ int main(int argc, const char *argv[]) {
     exit(1);
   }
 
-  for (const technique& tech : techniques) {
+  for (const technique_desc& tech : techniques) {
     pipeline_layout res_layout;
     separate_to_combined_map images_to_cis, samplers_to_cis;
     std::vector<compilation> compilations;
-    const intptr_t tech_idx = &tech - &techniques[0];
-    for (const technique::entry_point& ep : tech.entry_points) {
-      const intptr_t ep_idx = &ep - &tech.entry_points[0];
+    const intptr_t tech_idx = &tech - &(techniques[0]);
+    for (const technique_desc::entry_point& ep : tech.entry_points) {
+      const intptr_t ep_idx = &ep - &(tech.entry_points[0]);
       const spirv_blob& spv_code = spirv_blobs[tech_idx][ep_idx];
       for (const target_info* target_info : targets) {
         compilations.emplace_back(ep.stage, spv_code, *target_info);
@@ -276,7 +276,7 @@ int main(int argc, const char *argv[]) {
     // Write out the entrypoints section.
     metadata_file.start_new_record();
     metadata_file.write_field((uint32_t)tech.entry_points.size());
-    for (const technique::entry_point& ep : tech.entry_points) {
+    for (const technique_desc::entry_point& ep : tech.entry_points) {
       metadata_file.write_field((uint32_t)ep.stage);
       metadata_file.write_raw_bytes(ep.name.c_str(),
         ep.name.length() + 1u);

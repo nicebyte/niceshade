@@ -87,7 +87,7 @@ dxc_wrapper::dxc_wrapper(
       [&](auto ptr) { return library_instance_->CreateIncludeHandler(ptr); });
 }
 
-dxc_wrapper::result dxc_wrapper::compile_hlsl2spv(
+value_or_error<spirv_blob> dxc_wrapper::compile_hlsl2spv(
     const char*                   source,
     size_t                        source_size,
     const char*                   input_file_name,
@@ -144,27 +144,22 @@ dxc_wrapper::result dxc_wrapper::compile_hlsl2spv(
         ptr);
   });
 
-  result result;
+  auto dxc_spirv_blob = com_ptr<IDxcBlob>([&](auto ptr) { return dxc_result->GetResult(ptr); });
 
-  auto spirv_blob = com_ptr<IDxcBlob>([&](auto ptr) { return dxc_result->GetResult(ptr); });
-
-  if (spirv_blob.get() != nullptr && spirv_blob->GetBufferSize() > 0) {
-    result.spirv_code = std::vector<uint32_t>(spirv_blob->GetBufferSize() / sizeof(uint32_t), 0u);
-    memcpy(result.spirv_code.data(), spirv_blob->GetBufferPointer(), spirv_blob->GetBufferSize());
+  if (dxc_spirv_blob.get() != nullptr && dxc_spirv_blob->GetBufferSize() > 0) {
+    const uint32_t* dxc_blob_start = reinterpret_cast<uint32_t*>(dxc_spirv_blob->GetBufferPointer());
+    const uint32_t* dxc_blob_end = dxc_blob_start + dxc_spirv_blob->GetBufferSize() / sizeof(uint32_t);
+    return spirv_blob(dxc_blob_start, dxc_blob_end);
   }
 
   auto errmsg_blob =
       com_ptr<IDxcBlobEncoding>([&](auto ptr) { return dxc_result->GetErrorBuffer(ptr); });
 
   if (errmsg_blob->GetBufferSize() > 0) {
-    result.diag_message = std::string(errmsg_blob->GetBufferSize() + 1u, '\0');
-    memcpy(
-        (void*)result.diag_message.data(),
-        errmsg_blob->GetBufferPointer(),
-        errmsg_blob->GetBufferSize());
+    NICESHADE_RETURN_ERROR(std::string(errmsg_blob->GetBufferSize() + 1u, '\0'));
+  } else {
+    NICESHADE_RETURN_ERROR("failed to compile HLSL to SPIR-V");
   }
-
-  return result;
 }
 
 }  // namespace libniceshade
