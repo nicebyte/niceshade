@@ -194,8 +194,12 @@ int main(int argc, const char *argv[]) {
   input_source.push_back('\n');
 
   // Look for and parse technique directives in the code.
-  std::vector<technique> techniques;
-  parse_techniques(input_source, techniques, global_macro_definitions);
+  auto maybe_techniques = parse_techniques(input_source, global_macro_definitions);
+  if (maybe_techniques.is_error()) {
+    fprintf(stderr, maybe_techniques.error_message().c_str());
+    exit(1);
+  }
+  std::vector<technique>& techniques = maybe_techniques.get();
   if (techniques.size() == 0u) {
     fprintf(stderr, "Input file does not appear to define any techniques. "
                     "Define techniques with a special comment (`//T:').\n");

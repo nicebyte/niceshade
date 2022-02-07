@@ -22,28 +22,39 @@
 
 #pragma once
 
-#include "libniceshade/common-types.h"
-#include "libniceshade/error.h"
-
 #include <string>
-#include <vector>
+#include <utility>
+#include <assert.h>
 
 namespace libniceshade {
 
-// Technique description.
-struct technique {
-  struct entry_point {
-    pipeline_stage stage;
-    std::string name;
-    std::vector<uint32_t> spirv_code;
-  };
-  std::string name;
-  define_container defines;
-  std::vector<entry_point> entry_points;
-  std::vector<std::pair<std::string, std::string>> additional_metadata;
+class error {
+public:
+  error() = default;
+  explicit error(const char* msg) : msg_ {msg} {}
+
+  bool               is_error() const { return !msg_.empty(); }
+  const std::string& error_message() const { return msg_; }
+
+private:
+  std::string msg_;
 };
 
-value_or_error<std::vector<technique>>
-parse_techniques(const std::string& input_source, const define_container& default_defines);
+template<class ValueT> class value_or_error : public error {
+public:
+  value_or_error(ValueT&& val) : val_ {std::forward<ValueT>(val)} {}
+  value_or_error(error&& err) : error {std::move(err)} {}
+
+  ValueT&       get() { return val_; }
+  const ValueT& get() const { return val_; }
+
+private:
+  ValueT val_ {};
+};
+
+#define NICESHADE_RETURN_IF_ERROR(x) \
+  {                                  \
+    if (x.is_error()) return x;      \
+  }
 
 }  // namespace libniceshade
