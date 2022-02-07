@@ -8,7 +8,7 @@ else()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 endif()
 
-add_library(metadata_parser ${CMAKE_CURRENT_LIST_DIR}/metadata_parser.h ${CMAKE_CURRENT_LIST_DIR}/metadata_parser.c)
+add_library(metadata_parser ${CMAKE_CURRENT_LIST_DIR}/metadata-parser.h ${CMAKE_CURRENT_LIST_DIR}/metadata-parser.c)
 
 set_property(TARGET metadata_parser PROPERTY CXX_STANDARD 17)
 

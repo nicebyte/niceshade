@@ -19,7 +19,7 @@ function(set_output_dir target dir)
 endfunction(set_output_dir)
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/third_party/SPIRV-Cross)
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metadata_parser)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metadata-parser)
 
 add_library(
   dxc-headers INTERFACE
