@@ -31,7 +31,7 @@
 namespace libniceshade {
 
 // Technique description.
-struct technique {
+struct technique_desc {
   struct entry_point {
     pipeline_stage stage;
     std::string name;
@@ -42,7 +42,7 @@ struct technique {
   std::vector<std::pair<std::string, std::string>> additional_metadata;
 };
 
-value_or_error<std::vector<technique>>
+value_or_error<std::vector<technique_desc>>
 parse_techniques(const std::string& input_source, const define_container& default_defines);
 
 }  // namespace libniceshade

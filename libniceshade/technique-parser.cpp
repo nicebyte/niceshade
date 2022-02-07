@@ -48,7 +48,7 @@ bool is_ident(char c) { return (isalnum(c) || c == '_'); }
 constexpr bool is_tab_space(char c) { return (c == ' '  || c == '\t'); }
 }
 
-value_or_error<std::vector<technique>>
+value_or_error<std::vector<technique_desc>>
 parse_techniques(const std::string &input_source, const define_container &default_defines) {
   uint32_t last_four_chars = 0u;
   uint32_t line_num = 1u;
@@ -57,7 +57,7 @@ parse_techniques(const std::string &input_source, const define_container &defaul
   std::string parameter_name, entry_point_name, nameval_name,
               nameval_value;
   bool have_vertex_stage = false;
-  std::vector<technique> techniques;
+  std::vector<technique_desc> techniques;
   for (uint32_t c_idx = 0u; c_idx < input_source.size(); ++c_idx) {
     char c = input_source[c_idx];
     // Collapse windows line endings into '\n'.
@@ -76,7 +76,7 @@ parse_techniques(const std::string &input_source, const define_container &defaul
       if (last_four_chars == technique_prefix) {
         state = technique_parser_state::LOOKING_FOR_NAME;
         techniques.emplace_back();
-        technique &new_tech = techniques.back();
+        technique_desc &new_tech = techniques.back();
         new_tech.defines.insert(new_tech.defines.end(),
                                 default_defines.begin(),
                                 default_defines.end());
@@ -145,7 +145,7 @@ parse_techniques(const std::string &input_source, const define_container &defaul
         if (entry_point_name.empty()) {
           NICESHADE_RETURN_ERROR("entry point name cannot be empty on line ", line_num);
         }
-        technique::entry_point ep {
+        technique_desc::entry_point ep {
           parameter_name == "vs"
               ? pipeline_stage::vertex
               : pipeline_stage::fragment,
