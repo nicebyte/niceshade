@@ -31,6 +31,7 @@ namespace libniceshade {
 
 class error {
 public:
+  error() = default;
   template<class... Args> explicit error(const char* source_file, int source_line, Args&&... args) {
     std::ostringstream stream;
     ((stream << args), ...);
@@ -40,7 +41,6 @@ public:
   }
 
 public:
-  error() = default;
 
   bool               is_error() const { return !msg_.empty(); }
   const std::string& error_message() const { return msg_; }

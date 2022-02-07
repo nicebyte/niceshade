@@ -23,7 +23,6 @@
 #pragma once
 
 #include "metadata-parser/metadata-parser.h"
-#include "spirv_reflect.hpp"
 #include <stdint.h>
 #include <string>
 #include <vector>
@@ -54,24 +53,14 @@ struct descriptor {
   uint32_t        stage_mask = 0u;  // Which stages the descriptor is used from.
   std::string     name;             // The name used to refer to it in the source code.
   uint32_t        native_binding;
-  std::vector<std::pair<spirv_cross::Compiler*, spirv_cross::ID>> usages;
 };
 
 using descriptor_set_layout = std::map<uint32_t, descriptor>;
 
 // Stores information about shader resources accessed by a technique.
 class pipeline_layout {
+  friend class pipeline_layout_builder;
 public:
-  // Adds descriptors of a given type to the pipeline layout.
-  // `resources' is a vector of spv-cross resources which are to be added.
-  // `resource_type' indicates the type, and `smb' indicates which pipeline
-  // stage the resources are used at.
-  void process_resources(
-      const spirv_cross::SmallVector<spirv_cross::Resource>& resources,
-      descriptor_type                                        resource_type,
-      stage_mask_bit                                         smb,
-      spirv_cross::Compiler&                                 refl);
-
   // Returns the total number of descriptor sets in the layout.
   uint32_t set_count() const { return max_set_ + 1; }
 
@@ -82,11 +71,6 @@ public:
   // Returns the layout of the n-th descriptor set.
   const descriptor_set_layout& set(uint32_t set_id) const;
 
-  // Map (set, binding) to a single binding, for targets that have no concept of
-  // descriptor sets and use separate biniding spaces for each resource type
-  // (i.e. OpenGL and Metal).
-  void remap_resources();
-
   // Dumps out the (set, binding) => (native binding) map as a comment to
   // the output file.
   void dump_native_binding_map(FILE* f) const;
@@ -96,7 +80,7 @@ private:
     uint32_t              slot = 0u;
     descriptor_set_layout layout;
   };
-  std::map<uint32_t, descriptor_set> sets_;
+  std::map<uint32_t, descriptor_set> sets_; // shouldn't be unordered_map to guarantee consistent order.
   uint32_t                           max_set_ = 0u;  // Max set number encountered.
   uint32_t                           nres_    = 0u;  // Total number of resources.
 };

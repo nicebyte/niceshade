@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2020 nicegraf contributors
+ * Copyright (c) 2022 nicegraf contributors
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
  * deal in the Software without restriction, including without limitation the
  * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
@@ -22,34 +22,35 @@
 
 #pragma once
 
-#include "spirv_cross.hpp"
-#include "target.h"
-#include "libniceshade/pipeline-layout.h"
+#include "libniceshade/pipeline-layout-builder.h"
 #include "libniceshade/technique-parser.h"
 #include "separate_to_combined_map.h"
+#include "spirv_cross.hpp"
+#include "target.h"
 
 #include <memory>
-#include <vector>
 #include <stdint.h>
 #include <string>
+#include <vector>
 
 using namespace libniceshade;
 
 class compilation {
 public:
-  compilation(pipeline_stage kind,
-              const std::vector<uint32_t> &spirv_code,
-              const target_info &target_info);
+  compilation(
+      pipeline_stage               kind,
+      const std::vector<uint32_t>& spirv_code,
+      const target_info&           target_info);
 
-  void add_resources_to_pipeline_layout(pipeline_layout &layout) const;
-  void add_cis_to_map(separate_to_combined_map &image_map,
-                      separate_to_combined_map &sampler_map) const;
-  void run(const std::string &out_file_path, const pipeline_layout& pipeline_layout);
+  void add_resources_to_pipeline_layout(pipeline_layout_builder& builder) const;
+  void
+  add_cis_to_map(separate_to_combined_map& image_map, separate_to_combined_map& sampler_map) const;
+  void           run(const std::string& out_file_path, const pipeline_layout& pipeline_layout);
   pipeline_stage stage() const { return stage_; }
 
 private:
-  target_info target_info_;
-  pipeline_stage stage_;
+  target_info                            target_info_;
+  pipeline_stage                         stage_;
   std::unique_ptr<spirv_cross::Compiler> spv_cross_compiler_;
-  const std::vector<uint32_t> &original_spirv_;
+  const std::vector<uint32_t>&           original_spirv_;
 };

@@ -28,6 +28,7 @@
 #include "header_file_writer.h"
 #include "linear_dict.h"
 #include "libniceshade/pipeline-layout.h"
+#include "libniceshade/pipeline-layout-builder.h"
 #include "metadata-file-writer.h"
 #include "separate_to_combined_map.h"
 #include "libniceshade/common-types.h"
@@ -227,7 +228,7 @@ int main(int argc, const char *argv[]) {
       if (maybe_spirv_blob.is_error()) {
         fprintf(stderr, "%s", maybe_spirv_blob.error_message().c_str());
       }
-      if (!maybe_spirv_blob.get().size() == 0) {
+      if (maybe_spirv_blob.get().size() == 0) {
         exit(1);
       }
       spirv_blobs.back().emplace_back(std::move(maybe_spirv_blob.get()));
@@ -247,7 +248,7 @@ int main(int argc, const char *argv[]) {
   }
 
   for (const technique_desc& tech : techniques) {
-    pipeline_layout res_layout;
+    pipeline_layout_builder res_layout_builder;
     separate_to_combined_map images_to_cis, samplers_to_cis;
     std::vector<compilation> compilations;
     const intptr_t tech_idx = &tech - &(techniques[0]);
@@ -257,11 +258,11 @@ int main(int argc, const char *argv[]) {
       for (const target_info* target_info : targets) {
         compilations.emplace_back(ep.stage, spv_code, *target_info);
         compilations.back().add_cis_to_map(images_to_cis, samplers_to_cis);
-        compilations.back().add_resources_to_pipeline_layout(res_layout);
+        compilations.back().add_resources_to_pipeline_layout(res_layout_builder);
       }
     }
 
-    res_layout.remap_resources();
+    pipeline_layout res_layout = std::move(res_layout_builder.build().get());
 
     for (compilation &c : compilations) {
       std::string out_file_path = out_folder + PATH_SEPARATOR + tech.name;

@@ -38,6 +38,8 @@ add_library(
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/error.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/pipeline-layout.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/pipeline-layout.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/pipeline-layout-builder.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/pipeline-layout-builder.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/platform.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dynamic-library.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.h
