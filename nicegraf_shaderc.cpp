@@ -210,9 +210,11 @@ int main(int argc, const char *argv[]) {
 #pragma endregion load_input
 
 #pragma region gen_spv
+  std::vector<std::vector<spirv_blob>> spirv_blobs;
   // Obtain SPIR-V.
   dxc_wrapper dxcompiler(shader_model, dxc_options, exe_dir);
   for (technique &tech : techniques) {
+    spirv_blobs.emplace_back();
     for (technique::entry_point &ep : tech.entry_points) {
       // Produce SPIR-V.
       dxc_wrapper::result result = dxcompiler.compile_hlsl2spv(
@@ -227,7 +229,7 @@ int main(int argc, const char *argv[]) {
       if (!result.has_data()) {
         exit(1);
       }
-      ep.spirv_code = std::move(result.spirv_code);
+      spirv_blobs.back().emplace_back(std::move(result.spirv_code));
     }
   }
 #pragma endregion gen_spv
@@ -247,9 +249,10 @@ int main(int argc, const char *argv[]) {
     pipeline_layout res_layout;
     separate_to_combined_map images_to_cis, samplers_to_cis;
     std::vector<compilation> compilations;
-    
+    const intptr_t tech_idx = &tech - &techniques[0];
     for (const technique::entry_point& ep : tech.entry_points) {
-      const std::vector<uint32_t>& spv_code = ep.spirv_code;
+      const intptr_t ep_idx = &ep - &tech.entry_points[0];
+      const spirv_blob& spv_code = spirv_blobs[tech_idx][ep_idx];
       for (const target_info* target_info : targets) {
         compilations.emplace_back(ep.stage, spv_code, *target_info);
         compilations.back().add_cis_to_map(images_to_cis, samplers_to_cis);

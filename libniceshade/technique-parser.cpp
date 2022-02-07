@@ -43,8 +43,10 @@ enum class technique_parser_state {
   FINALIZING_TECHNIQUE
 };
 
-constexpr bool is_ident(char c) { return (isalnum(c) || c == '_'); }
+namespace {
+bool is_ident(char c) { return (isalnum(c) || c == '_'); }
 constexpr bool is_tab_space(char c) { return (c == ' '  || c == '\t'); }
+}
 
 value_or_error<std::vector<technique>>
 parse_techniques(const std::string &input_source, const define_container &default_defines) {
