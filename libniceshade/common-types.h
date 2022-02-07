@@ -36,6 +36,9 @@ enum class pipeline_stage {
 // Stores a sequence of preprocessor definitions.
 using define_container = std::vector<std::pair<std::string, std::string>>;
 
+// A blob of spirv code.
+using spirv_blob = std::vector<uint32_t>;
+
 }  // namespace libniceshade
 
 

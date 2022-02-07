@@ -35,7 +35,6 @@ struct technique {
   struct entry_point {
     pipeline_stage stage;
     std::string name;
-    std::vector<uint32_t> spirv_code;
   };
   std::string name;
   define_container defines;
