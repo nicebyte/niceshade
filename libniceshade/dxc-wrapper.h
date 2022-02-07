@@ -29,6 +29,7 @@
 #include "libniceshade/dynamic-library.h"
 #include "libniceshade/platform.h"
 #include "libniceshade/technique-parser.h"
+#include "libniceshade/error.h"
 
 #include <stdint.h>
 #include <string>
@@ -58,7 +59,7 @@ class dxc_wrapper {
       const std::vector<std::string>& dxc_params,
       const std::string&              exe_dir);
 
-  result compile_hlsl2spv(
+  value_or_error<spirv_blob> compile_hlsl2spv(
       const char*                   source,
       size_t                        source_size,
       const char*                   input_file_name,
