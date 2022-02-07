@@ -23,6 +23,7 @@
 #pragma once
 
 #include <string>
+#include <sstream>
 #include <utility>
 #include <assert.h>
 
@@ -30,8 +31,16 @@ namespace libniceshade {
 
 class error {
 public:
+  template<class... Args> explicit error(const char* source_file, int source_line, Args&&... args) {
+    std::ostringstream stream;
+    ((stream << args), ...);
+    stream << "\n"
+           << "source file: " << source_file << ", source line: " << source_line;
+    msg_ = std::move(stream.str());
+  }
+
+public:
   error() = default;
-  explicit error(const char* msg) : msg_ {msg} {}
 
   bool               is_error() const { return !msg_.empty(); }
   const std::string& error_message() const { return msg_; }
@@ -52,9 +61,8 @@ private:
   ValueT val_ {};
 };
 
-#define NICESHADE_RETURN_IF_ERROR(x) \
-  {                                  \
-    if (x.is_error()) return x;      \
-  }
+#define NICESHADE_RETURN_ERROR(...) return error(__FILE__, __LINE__, __VA_ARGS__)
+
+#define NICESHADE_RETURN_IF_ERROR(x) if (x.is_error()) return x
 
 }  // namespace libniceshade
