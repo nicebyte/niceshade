@@ -23,10 +23,10 @@ SOFTWARE.
 #include <stdio.h>
 
 // Convenience class for generating pipeline metadata in binary format.
-class pipeline_metadata_file {
+class metadata_file_writer {
 public:
   // Open a new pipeline metadata file for writing.
-  explicit pipeline_metadata_file(const char *file_path);
+  explicit metadata_file_writer(const char *file_path);
 
   // Begin a new record.
   void start_new_record();

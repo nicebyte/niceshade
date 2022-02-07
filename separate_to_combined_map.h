@@ -34,7 +34,7 @@ public:
                     uint32_t combined_id,
                     const spirv_cross::Compiler &compiler);
 
-  void serialize(pipeline_metadata_file &metadata_file) const;
+  void serialize(metadata_file_writer &metadata_file) const;
 
 private:
   struct set_and_binding {

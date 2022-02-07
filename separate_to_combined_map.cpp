@@ -37,7 +37,7 @@ void separate_to_combined_map::add_resource(uint32_t separate_id,
 }
 
 void separate_to_combined_map::serialize(
-    pipeline_metadata_file &metadata_file) const {
+    metadata_file_writer &metadata_file) const {
   metadata_file.write_field((uint32_t)map_.size());
   for (const auto &entry : map_) {
     const set_and_binding &sb = entry.first;
