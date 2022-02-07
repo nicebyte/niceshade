@@ -270,7 +270,7 @@ int main(int argc, const char *argv[]) {
     // Write out the .pipeline file for the current technique.
     std::string metadata_file_path =
       out_folder + PATH_SEPARATOR + tech.name + ".pipeline";
-    pipeline_metadata_file metadata_file(metadata_file_path.c_str());
+    metadata_file_writer metadata_file(metadata_file_path.c_str());
     header_writer.begin_technique(tech.name);
 
     // Write out the entrypoints section.

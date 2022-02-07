@@ -33,7 +33,7 @@
 #include <arpa/inet.h>
 #endif
 
-pipeline_metadata_file::pipeline_metadata_file(const char *file_path) {
+metadata_file_writer::metadata_file_writer(const char *file_path) {
   f_ = fopen(file_path, "wb");
   if (f_ == nullptr) {
     fprintf(stderr, "Error opening output file %s\n", file_path);
@@ -43,20 +43,20 @@ pipeline_metadata_file::pipeline_metadata_file(const char *file_path) {
   current_section_offset_ptr_ = &header_.entrypoints_offset;
 }
 
-void pipeline_metadata_file::start_new_record() {
+void metadata_file_writer::start_new_record() {
   assert(f_);
   *current_section_offset_ptr_ = htonl(current_offset_);
   current_section_offset_ptr_ += 1u;
 }
 
-void pipeline_metadata_file::write_field(uint32_t value) {
+void metadata_file_writer::write_field(uint32_t value) {
   assert(f_);
   uint32_t nbo = htonl(value);
   fwrite(&nbo, sizeof(uint32_t), 1u, f_);
   current_offset_ += 4u;
 }
 
-void pipeline_metadata_file::write_raw_bytes(const void *bytes,
+void metadata_file_writer::write_raw_bytes(const void *bytes,
                                              size_t nbytes) {
 
   size_t nwords_div = nbytes >> 2u;
@@ -72,7 +72,7 @@ void pipeline_metadata_file::write_raw_bytes(const void *bytes,
   current_offset_ += (uint32_t)(nwords * sizeof(uint32_t));
 }
 
-void pipeline_metadata_file::finalize() {
+void metadata_file_writer::finalize() {
   header_.magic_number = htonl(0xdeadbeef);
   header_.header_size = htonl(sizeof(header_));
   header_.version_maj = htonl(0u);
