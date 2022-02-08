@@ -29,7 +29,7 @@
 #include "libniceshade/pipeline-layout.h"
 #include "libniceshade/pipeline-layout-builder.h"
 #include "libniceshade/metadata-file-writer.h"
-#include "separate_to_combined_map.h"
+#include "libniceshade/separate-to-combined-map.h"
 #include "libniceshade/common-types.h"
 #include "target.h"
 #include "libniceshade/technique-parser.h"

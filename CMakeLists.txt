@@ -45,7 +45,9 @@ add_library(
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/platform.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dynamic-library.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.h
-  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.cpp)
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/separate-to-combined-map.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/separate-to-combined-map.cpp )
 
 target_include_directories(
   libniceshade PRIVATE
@@ -61,9 +63,7 @@ set(NICEGRAF_SHADERC_SOURCES
 	  ${CMAKE_CURRENT_LIST_DIR}/header_file_writer.h
     ${CMAKE_CURRENT_LIST_DIR}/nicegraf_shaderc.cpp
     ${CMAKE_CURRENT_LIST_DIR}/file_utils.h 
-    ${CMAKE_CURRENT_LIST_DIR}/file_utils.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/separate_to_combined_map.h
-    ${CMAKE_CURRENT_LIST_DIR}/separate_to_combined_map.cpp)
+    ${CMAKE_CURRENT_LIST_DIR}/file_utils.cpp)
 
 add_executable(nicegraf_shaderc ${NICEGRAF_SHADERC_SOURCES})
 target_include_directories(nicegraf_shaderc PRIVATE 
