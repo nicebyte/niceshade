@@ -53,13 +53,15 @@ std::wstring towstring(const char* src, size_t len) {
 namespace libniceshade {
 
 dxc_wrapper::dxc_wrapper(
-    const std::string&              sm,
-    const std::vector<std::string>& dxc_params,
-    const std::string&              exe_dir)
+    const std::string& sm,
+    const std::string* dxc_params,
+    uint32_t           num_dxc_params,
+    const std::string& exe_dir)
     : shader_model_(towstring(sm.c_str(), sm.length())),
       dxcompiler_dll_(get_dxc_lib_path_candidates(exe_dir)) {
   // Convert dxc parameters to wide string.
-  for (const std::string& dxc_param : dxc_params) {
+  for (uint32_t i = 0; i < num_dxc_params; ++i) {
+    const std::string& dxc_param = dxc_params[i];
     wchar_t* wide_dxc_param = new wchar_t[dxc_param.size() + 1u];
     std::mbstowcs(wide_dxc_param, dxc_param.c_str(), dxc_param.length() + 1u);
     dxc_params_.emplace_back(wide_dxc_param);
