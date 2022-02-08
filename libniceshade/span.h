@@ -26,25 +26,24 @@
 
 namespace libniceshade {
 
-template <class T>
-class span {
+template<class T> class span {
 public:
-    using iterator = T*;
-    using const_iterator = const T*;
+  using iterator       = T*;
+  using const_iterator = const T*;
 
-    span(T* ptr, size_t size) : ptr_(ptr), size_(size) {}
-    
-    size_t size() const { return size_; }
-    iterator begin() { return ptr_; }
-    const_iterator begin() const { return ptr_; }
-    const_iterator cbegin() const { return ptr_; }
-    iterator end() { return ptr_ + size_; }
-    const_iterator end() const { return ptr_ + size_; }
-    const_iterator cend() const { return ptr_ + size_; }
+  span(T* ptr, size_t size) : ptr_(ptr), size_(size) {}
+
+  size_t         size() const { return size_; }
+  iterator       begin() { return ptr_; }
+  const_iterator begin() const { return ptr_; }
+  const_iterator cbegin() const { return ptr_; }
+  iterator       end() { return ptr_ + size_; }
+  const_iterator end() const { return ptr_ + size_; }
+  const_iterator cend() const { return ptr_ + size_; }
 
 private:
-    T* ptr_;
-    size_t size_;
+  T*     ptr_;
+  size_t size_;
 };
 
-}
+}  // namespace libniceshade

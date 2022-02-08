@@ -54,14 +54,12 @@ namespace libniceshade {
 
 dxc_wrapper::dxc_wrapper(
     const std::string& sm,
-    const std::string* dxc_params,
-    uint32_t           num_dxc_params,
+    span<std::string>  dxc_params,
     const std::string& exe_dir)
     : shader_model_(towstring(sm.c_str(), sm.length())),
       dxcompiler_dll_(get_dxc_lib_path_candidates(exe_dir)) {
   // Convert dxc parameters to wide string.
-  for (uint32_t i = 0; i < num_dxc_params; ++i) {
-    const std::string& dxc_param = dxc_params[i];
+  for (const std::string& dxc_param : dxc_params) {
     wchar_t* wide_dxc_param = new wchar_t[dxc_param.size() + 1u];
     std::mbstowcs(wide_dxc_param, dxc_param.c_str(), dxc_param.length() + 1u);
     dxc_params_.emplace_back(wide_dxc_param);
@@ -90,11 +88,11 @@ dxc_wrapper::dxc_wrapper(
 }
 
 value_or_error<spirv_blob> dxc_wrapper::compile_hlsl2spv(
-    const char*                   source,
-    size_t                        source_size,
-    const char*                   input_file_name,
+    const char*                        source,
+    size_t                             source_size,
+    const char*                        input_file_name,
     const technique_desc::entry_point& entry_point,
-    const define_container&       defines) {
+    const define_container&            defines) {
   auto input_blob = com_ptr<IDxcBlobEncoding>([&](auto ptr) {
     return library_instance_
         ->CreateBlobWithEncodingFromPinned(source, (uint32_t)source_size, 0, ptr);
@@ -118,18 +116,16 @@ value_or_error<spirv_blob> dxc_wrapper::compile_hlsl2spv(
         towstring(define.first.c_str(), define.first.size()),
         towstring(define.second.c_str(), define.second.size()));
     const auto& wdefine = wdefines.back();
-    dxc_defines.emplace_back(
-        DxcDefine {wdefine.first.c_str(), wdefine.second.empty() ? nullptr : wdefine.second.c_str()});
+    dxc_defines.emplace_back(DxcDefine {
+        wdefine.first.c_str(),
+        wdefine.second.empty() ? nullptr : wdefine.second.c_str()});
   }
 
   const std::wstring target_profile = [&entry_point]() {
     switch (entry_point.stage) {
-    case pipeline_stage::vertex:
-      return L"vs_";
-    case pipeline_stage::fragment:
-      return L"ps_";
-    default:
-      exit(1);
+    case pipeline_stage::vertex: return L"vs_";
+    case pipeline_stage::fragment: return L"ps_";
+    default: exit(1);
     }
   }() + shader_model_;
   auto dxc_result = com_ptr<IDxcOperationResult>([&, this](auto ptr) {
@@ -149,8 +145,10 @@ value_or_error<spirv_blob> dxc_wrapper::compile_hlsl2spv(
   auto dxc_spirv_blob = com_ptr<IDxcBlob>([&](auto ptr) { return dxc_result->GetResult(ptr); });
 
   if (dxc_spirv_blob.get() != nullptr && dxc_spirv_blob->GetBufferSize() > 0) {
-    const uint32_t* dxc_blob_start = reinterpret_cast<uint32_t*>(dxc_spirv_blob->GetBufferPointer());
-    const uint32_t* dxc_blob_end = dxc_blob_start + dxc_spirv_blob->GetBufferSize() / sizeof(uint32_t);
+    const uint32_t* dxc_blob_start =
+        reinterpret_cast<uint32_t*>(dxc_spirv_blob->GetBufferPointer());
+    const uint32_t* dxc_blob_end =
+        dxc_blob_start + dxc_spirv_blob->GetBufferSize() / sizeof(uint32_t);
     return spirv_blob(dxc_blob_start, dxc_blob_end);
   }
 
