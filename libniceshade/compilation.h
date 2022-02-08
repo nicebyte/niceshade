@@ -23,8 +23,8 @@
 #pragma once
 
 #include "libniceshade/pipeline-layout-builder.h"
-#include "libniceshade/technique-parser.h"
 #include "libniceshade/separate-to-combined-map.h"
+#include "libniceshade/technique-parser.h"
 #include "spirv_cross.hpp"
 #include "target.h"
 
@@ -33,7 +33,7 @@
 #include <string>
 #include <vector>
 
-using namespace libniceshade;
+namespace libniceshade {
 
 class compilation {
 public:
@@ -54,3 +54,5 @@ private:
   std::unique_ptr<spirv_cross::Compiler> spv_cross_compiler_;
   const std::vector<uint32_t>&           original_spirv_;
 };
+
+}  // namespace libniceshade

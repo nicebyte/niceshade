@@ -34,7 +34,7 @@
 #include "target.h"
 #include "libniceshade/technique-parser.h"
 #include "spirv_reflect.hpp"
-#include "compilation.h"
+#include "libniceshade/compilation.h"
 
 #include <ctype.h>
 #include <memory>

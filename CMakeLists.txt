@@ -47,7 +47,9 @@ add_library(
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/separate-to-combined-map.h
-  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/separate-to-combined-map.cpp )
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/separate-to-combined-map.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/compilation.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/compilation.cpp)
 
 target_include_directories(
   libniceshade PRIVATE
@@ -58,8 +60,6 @@ target_link_libraries(libniceshade
     dxc-headers metadata-parser spirv-cross-core spirv-cross-reflect)
 
 set(NICEGRAF_SHADERC_SOURCES
-    ${CMAKE_CURRENT_LIST_DIR}/compilation.h
-    ${CMAKE_CURRENT_LIST_DIR}/compilation.cpp
 	  ${CMAKE_CURRENT_LIST_DIR}/header_file_writer.h
     ${CMAKE_CURRENT_LIST_DIR}/nicegraf_shaderc.cpp
     ${CMAKE_CURRENT_LIST_DIR}/file_utils.h 
