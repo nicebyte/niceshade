@@ -27,46 +27,41 @@
 #include "libniceshade/com-ptr.h"
 #include "libniceshade/common-types.h"
 #include "libniceshade/dynamic-library.h"
+#include "libniceshade/error.h"
 #include "libniceshade/platform.h"
 #include "libniceshade/technique-parser.h"
-#include "libniceshade/error.h"
 
 #include <stdint.h>
 #include <string>
-#include <type_traits>
-#include <variant>
 #include <vector>
 
 namespace libniceshade {
 
 class dxc_wrapper {
-  public:
+public:
   struct result {
     std::vector<uint32_t> spirv_code;
     std::string           diag_message;
 
-    bool has_data() const {
-      return spirv_code.size() > 0;
-    }
+    bool has_data() const { return spirv_code.size() > 0; }
 
-    bool has_diag_msg() const {
-      return diag_message.size() > 0;
-    }
+    bool has_diag_msg() const { return diag_message.size() > 0; }
   };
 
   dxc_wrapper(
-      const std::string&              sm,
-      const std::vector<std::string>& dxc_params,
-      const std::string&              exe_dir);
+      const std::string& sm,
+      const std::string* dxc_params,
+      uint32_t           num_dxc_params,
+      const std::string& exe_dir);
 
   value_or_error<spirv_blob> compile_hlsl2spv(
-      const char*                   source,
-      size_t                        source_size,
-      const char*                   input_file_name,
+      const char*                        source,
+      size_t                             source_size,
+      const char*                        input_file_name,
       const technique_desc::entry_point& entry_point,
-      const define_container&       defines);
+      const define_container&            defines);
 
-  private:
+private:
   std::wstring                shader_model_;
   dynamic_lib                 dxcompiler_dll_;
   com_ptr<IDxcLibrary>        library_instance_;

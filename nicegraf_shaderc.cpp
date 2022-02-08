@@ -213,7 +213,7 @@ int main(int argc, const char *argv[]) {
 #pragma region gen_spv
   std::vector<std::vector<spirv_blob>> spirv_blobs;
   // Obtain SPIR-V.
-  dxc_wrapper dxcompiler(shader_model, dxc_options, exe_dir);
+  dxc_wrapper dxcompiler(shader_model, dxc_options.data(), dxc_options.size(), exe_dir);
   for (const technique_desc &tech : techniques) {
     spirv_blobs.emplace_back();
     for (const technique_desc::entry_point &ep : tech.entry_points) {
