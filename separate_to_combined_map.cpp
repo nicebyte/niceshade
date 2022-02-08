@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 nicegraf contributors
+ * Copyright (c) 2022 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -20,34 +20,26 @@
  * IN THE SOFTWARE.
  */
 
-
 #include "separate_to_combined_map.h"
 
-void separate_to_combined_map::add_resource(uint32_t separate_id,
-                                            uint32_t combined_id,
-                                            const spirv_cross::Compiler 
-                                                &compiler) {
-  uint32_t set_id = compiler.get_decoration(separate_id,
-                                            spv::DecorationDescriptorSet);
-  uint32_t binding_id = compiler.get_decoration(separate_id,
-                                                spv::DecorationBinding);
-  uint32_t combined_binding_id =
-      compiler.get_decoration(combined_id, spv::DecorationBinding);
-  map_[set_and_binding{set_id, binding_id}][combined_binding_id] = true;
+void separate_to_combined_map::add_resource(
+    uint32_t                     separate_id,
+    uint32_t                     combined_id,
+    const spirv_cross::Compiler& compiler) {
+  uint32_t set_id              = compiler.get_decoration(separate_id, spv::DecorationDescriptorSet);
+  uint32_t binding_id          = compiler.get_decoration(separate_id, spv::DecorationBinding);
+  uint32_t combined_binding_id = compiler.get_decoration(combined_id, spv::DecorationBinding);
+  map_[set_and_binding {set_id, binding_id}][combined_binding_id] = true;
 }
 
-void separate_to_combined_map::serialize(
-    metadata_file_writer &metadata_file) const {
+void separate_to_combined_map::serialize(metadata_file_writer& metadata_file) const {
   metadata_file.write_field((uint32_t)map_.size());
-  for (const auto &entry : map_) {
-    const set_and_binding &sb = entry.first;
-    const linear_dict<uint32_t, bool> &combined_image_samplers =
-        entry.second;
+  for (const auto& entry : map_) {
+    const set_and_binding&          sb                      = entry.first;
+    const std::map<uint32_t, bool>& combined_image_samplers = entry.second;
     metadata_file.write_field(sb.set);
     metadata_file.write_field(sb.binding);
     metadata_file.write_field((uint32_t)combined_image_samplers.size());
-    for (const auto &c : combined_image_samplers) {
-      metadata_file.write_field(c.first);
-    }
+    for (const auto& c : combined_image_samplers) { metadata_file.write_field(c.first); }
   }
 }

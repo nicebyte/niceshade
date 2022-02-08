@@ -19,10 +19,10 @@ SOFTWARE.
 
 #pragma once
 
-#include "linear_dict.h"
 #include "libniceshade/metadata-file-writer.h"
 #include "spirv_reflect.hpp"
 #include <stdint.h>
+#include <map>
 
 using namespace libniceshade;
 
@@ -41,9 +41,9 @@ private:
   struct set_and_binding {
     uint32_t set;
     uint32_t binding;
-    bool operator==(const set_and_binding &rhs) const {
-      return set == rhs.set && binding == rhs.binding;
+    bool operator<(const set_and_binding &rhs) const {
+      return set < rhs.set ? true : binding < rhs.binding;
     }
   };
-  linear_dict<set_and_binding, linear_dict<uint32_t, bool>> map_;
+  std::map<set_and_binding, std::map<uint32_t, bool>> map_;
 };
