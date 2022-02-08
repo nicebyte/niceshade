@@ -29,6 +29,7 @@
 #include "libniceshade/dynamic-library.h"
 #include "libniceshade/error.h"
 #include "libniceshade/platform.h"
+#include "libniceshade/span.h"
 #include "libniceshade/technique-parser.h"
 
 #include <stdint.h>
@@ -50,8 +51,7 @@ public:
 
   dxc_wrapper(
       const std::string& sm,
-      const std::string* dxc_params,
-      uint32_t           num_dxc_params,
+      span<std::string> dxc_params,
       const std::string& exe_dir);
 
   value_or_error<spirv_blob> compile_hlsl2spv(
