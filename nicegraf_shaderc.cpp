@@ -26,7 +26,6 @@
 #include "libniceshade/dxc-wrapper.h"
 #include "file_utils.h"
 #include "header_file_writer.h"
-#include "linear_dict.h"
 #include "libniceshade/pipeline-layout.h"
 #include "libniceshade/pipeline-layout-builder.h"
 #include "libniceshade/metadata-file-writer.h"
