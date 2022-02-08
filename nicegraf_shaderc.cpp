@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 nicegraf contributors
+ * Copyright (c) 2022 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -35,6 +35,7 @@
 #include "libniceshade/technique-parser.h"
 #include "spirv_reflect.hpp"
 #include "libniceshade/compilation.h"
+#include "libniceshade/span.h"
 
 #include <ctype.h>
 #include <memory>
@@ -165,7 +166,6 @@ int main(int argc, const char *argv[]) {
 
   // Build up parameters for the DirectX Shader Compiler.
   std::vector<std::string> dxc_options = {
-    "-spirv",  // always enable spir-v codegen
     "-Zpc"     // always forbid overriding explicit matrix orientation.
   };
   // Add the remaining dxc parameters from the command line.
@@ -213,7 +213,7 @@ int main(int argc, const char *argv[]) {
 #pragma region gen_spv
   std::vector<std::vector<spirv_blob>> spirv_blobs;
   // Obtain SPIR-V.
-  dxc_wrapper dxcompiler(shader_model, dxc_options.data(), dxc_options.size(), exe_dir);
+  dxc_wrapper dxcompiler(shader_model, span{dxc_options.data(), dxc_options.size()}, exe_dir);
   for (const technique_desc &tech : techniques) {
     spirv_blobs.emplace_back();
     for (const technique_desc::entry_point &ep : tech.entry_points) {

@@ -58,6 +58,7 @@ dxc_wrapper::dxc_wrapper(
     const std::string& exe_dir)
     : shader_model_(towstring(sm.c_str(), sm.length())),
       dxcompiler_dll_(get_dxc_lib_path_candidates(exe_dir)) {
+  dxc_params_.emplace_back(L"-spirv"); // always enable spir-v codegen.
   // Convert dxc parameters to wide string.
   for (const std::string& dxc_param : dxc_params) {
     wchar_t* wide_dxc_param = new wchar_t[dxc_param.size() + 1u];
