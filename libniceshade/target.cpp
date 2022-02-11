@@ -20,39 +20,22 @@
  * IN THE SOFTWARE.
  */
 
-#pragma once
-
-#include "libniceshade/common-types.h"
-#include "libniceshade/output.h"
-#include "libniceshade/pipeline-layout-builder.h"
-#include "libniceshade/separate-to-combined-map.h"
-#include "libniceshade/technique-parser.h"
-#include "spirv_cross.hpp"
-#include "target.h"
-
-#include <memory>
-#include <stdint.h>
-#include <string>
-#include <vector>
+#include "libniceshade/target.h"
 
 namespace libniceshade {
 
-class compilation {
-public:
-  compilation(pipeline_stage kind, const spirv_blob& spirv_code, const target_desc& target_info);
-
-  void add_resources_to_pipeline_layout(pipeline_layout_builder& builder) const;
-  void
-  add_cis_to_map(separate_to_combined_map& image_map, separate_to_combined_map& sampler_map) const;
-  pipeline_stage stage() const { return stage_; }
-  void           run(const std::string& out_file_path, const pipeline_layout& pipeline_layout);
-  value_or_error<compilation_result> run(const pipeline_layout& pipeline_layout);
-
-private:
-  target_desc                            target_info_;
-  pipeline_stage                         stage_;
-  std::unique_ptr<spirv_cross::Compiler> spv_cross_compiler_;
-  const spirv_blob&                      original_spirv_;
-};
+std::string file_ext_for_target(const target_desc& target) {
+  const bool is_mobile = target.platform == target_platform_class::MOBILE;
+  switch (target.api) {
+  case target_api::GL:
+    return std::to_string(target.version_maj * 100 + target.version_min * 10) +
+           (is_mobile ? "es" : "") + ".glsl";
+  case target_api::METAL:
+    return std::to_string(target.version_maj * 10 + target.version_min) + (is_mobile ? "ios" : "") +
+           ".msl";
+  case target_api::VULKAN: return "spv";
+  }
+  return "unknown";
+}
 
 }  // namespace libniceshade

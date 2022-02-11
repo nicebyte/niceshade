@@ -30,12 +30,12 @@
 namespace libniceshade {
 
 compilation::compilation(
-    pipeline_stage               stage,
-    const std::vector<uint32_t>& spirv_code,
-    const target_info&           target_info)
+    pipeline_stage     stage,
+    const spirv_blob&       spirv_code,
+    const target_desc& target_info)
     : target_info_(target_info),
       stage_(stage),
-      original_spirv_(spirv_code) {
+      original_spirv_(std::move(spirv_code)) {
   switch (target_info_.api) {
   case target_api::GL: {
     auto gl_compiler =
@@ -122,7 +122,7 @@ void compilation::add_resources_to_pipeline_layout(pipeline_layout_builder& buil
 
 void compilation::run(const std::string& out_file_path, const pipeline_layout& layout) {
   const std::string full_out_file_path =
-      out_file_path + (stage_ == pipeline_stage::vertex ? ".vs." : ".ps.") + target_info_.file_ext;
+      out_file_path + (stage_ == pipeline_stage::vertex ? ".vs." : ".ps.") + file_ext_for_target(target_info_);
 
   FILE* out_file = fopen(full_out_file_path.c_str(), "wb");
 
@@ -141,4 +141,13 @@ void compilation::run(const std::string& out_file_path, const pipeline_layout& l
   }
   fclose(out_file);
 }
+
+value_or_error<compilation_result> compilation::run(const pipeline_layout& layout) {
+  try {
+    return (target_info_.api != target_api::VULKAN)
+               ? compilation_result {spv_cross_compiler_->compile() + layout.native_binding_map_string()}
+               : compilation_result {original_spirv_};
+  } catch (spirv_cross::CompilerError& ce) { NICESHADE_RETURN_ERROR(ce.what()); }
+}
+
 }  // namespace libniceshade

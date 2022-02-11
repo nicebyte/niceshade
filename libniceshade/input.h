@@ -23,17 +23,20 @@
 #pragma once
 
 #include "libniceshade/technique-parser.h"
+#include "libniceshade/target.h"
 #include "libniceshade/span.h"
 
 #include <stdint.h>
+#include <cstddef>
 
 namespace libniceshade {
 
-using input_blob = span<char>;
+using input_blob = const_span<std::byte>;
 
 struct compiler_input {
     input_blob hlsl;
-    span<technique_desc> technique_descs;
+    const_span<technique_desc> technique_descs;
+    const char* file_name;
 };
 
 }

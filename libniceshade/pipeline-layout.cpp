@@ -22,6 +22,7 @@
 
 #include "libniceshade/pipeline-layout.h"
 
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -43,6 +44,19 @@ void pipeline_layout::dump_native_binding_map(FILE* f) const {
   fprintf(f, "**/\n");
 }
 
+std::string pipeline_layout::native_binding_map_string() const {
+  std::ostringstream os;
+  os << "/**NGF_NATIVE_BINDING_MAP\n";
+  for (const auto& set_id_and_layout : sets_) {
+    for (const auto& binding_id_and_descriptor : set_id_and_layout.second.layout) {
+      os << "(" << set_id_and_layout.first << ", " << binding_id_and_descriptor.first << ") : "
+         << binding_id_and_descriptor.second.native_binding << "\n";
+    }
+  }
+  os << "(-1 -1) : -1\n**/";
+  return os.str();
+}
+
 const descriptor_set_layout& pipeline_layout::set(uint32_t set_id) const {
   static const descriptor_set_layout empty_layout{};
   auto                               it = sets_.find(set_id);
@@ -52,4 +66,6 @@ const descriptor_set_layout& pipeline_layout::set(uint32_t set_id) const {
     return empty_layout;
   }
 }
+
+
 }  // namespace libniceshade
