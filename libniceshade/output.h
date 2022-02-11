@@ -23,25 +23,58 @@
 #pragma once
 
 #include "libniceshade/common-types.h"
-#include "libniceshade/technique-parser.h"
 #include "libniceshade/pipeline-layout.h"
+#include "libniceshade/span.h"
+#include "libniceshade/technique-parser.h"
 
-#include <vector>
 #include <tuple>
+#include <variant>
+#include <vector>
 
 namespace libniceshade {
 
+class compilation_result {
+  friend class compilation;
+
+public:
+  compilation_result()                     = default;
+  compilation_result(compilation_result&&) = default;
+  compilation_result& operator=(compilation_result&&) = default;
+
+  const_span<std::byte> data() const {
+    if (std::holds_alternative<spirv_blob>(result_)) {
+      const spirv_blob& blob = std::get<spirv_blob>(result_);
+      return const_span<std::byte> {reinterpret_cast<const std::byte*>(blob.data()), blob.size()};
+    } else {
+      const std::string str = std::get<std::string>(result_);
+      return const_span<std::byte> {reinterpret_cast<const std::byte*>(str.data()), str.size()};
+    }
+  }
+
+private:
+  explicit compilation_result(const spirv_blob& blob) { result_.emplace<spirv_blob>(blob); }
+  explicit compilation_result(std::string&& str) { result_.emplace<std::string>(std::move(str)); }
+  std::variant<spirv_blob, std::string> result_;
+};
+
 struct compiled_stage {
-    std::vector<char> blob;
-    pipeline_stage stage;
+  compiled_stage() = default;
+  compiled_stage(compiled_stage&&) = default;
+  compiled_stage& operator=(compiled_stage&&) = default;
+  compilation_result result;
+  pipeline_stage     stage;
 };
 
 struct compiled_technique {
-    std::vector<compiled_stage> stages;
-    pipeline_layout layout;
+  compiled_technique() = default;
+  compiled_technique(compiled_technique&&) = default;
+  compiled_technique& operator=(compiled_technique&&) = default;
+  std::string                 name;
+  std::vector<compiled_stage> stages;
+  pipeline_layout             layout;
 };
 
-using compiled_techniques = std::vector<compiled_technique>;
-using parsed_technique_descs = std::vector<technique_desc>;
+using compiled_techniques           = std::vector<compiled_technique>;
+using parsed_technique_descs        = std::vector<technique_desc>;
 using descs_and_compiled_techniques = std::tuple<parsed_technique_descs, compiled_techniques>;
-}
+}  // namespace libniceshade

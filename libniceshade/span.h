@@ -46,4 +46,7 @@ private:
   size_t size_;
 };
 
+template<class T>
+using const_span = span<const T>;
+
 }  // namespace libniceshade

@@ -49,7 +49,14 @@ add_library(
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/separate-to-combined-map.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/separate-to-combined-map.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/compilation.h
-  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/compilation.cpp)
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/compilation.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/span.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/input.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/output.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/target.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/target.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/instance.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/instance.cpp)
 
 target_include_directories(
   libniceshade PRIVATE

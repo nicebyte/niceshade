@@ -26,6 +26,7 @@
 #include "libniceshade/output.h"
 #include "libniceshade/input.h"
 #include "libniceshade/span.h"
+#include "libniceshade/target.h"
 #include "libniceshade/dxc-wrapper.h"
 
 #include <string>
@@ -43,8 +44,8 @@ public:
     };
 
     explicit instance(const options& opts);
-    value_or_error<compiled_techniques> compile(span<compiler_input> compiler_inputs);
-    value_or_error<descs_and_compiled_techniques> parse_techniques_and_compile(input_blob in_blob);
+    value_or_error<compiled_techniques> compile(const_span<compiler_input> compiler_inputs, const_span<target_desc> targets);
+    value_or_error<descs_and_compiled_techniques> parse_techniques_and_compile(input_blob in_blob, const_span<target_desc> targets);
     
 private:
     dxc_wrapper dxc_;

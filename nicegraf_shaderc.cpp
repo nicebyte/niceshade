@@ -100,7 +100,7 @@ int main(int argc, const char *argv[]) {
   std::string header_path = "";
   std::string header_namespace = "";
   std::string shader_model = "6_2";
-  std::vector<const target_info*> targets;
+  std::vector<const target_desc*> targets;
   define_container global_macro_definitions;
   size_t dxc_options_start = argc;
 
@@ -183,8 +183,8 @@ int main(int argc, const char *argv[]) {
 
   // Make sure targets are always processed in the same order, no matter
   // what order they're specified in.
-  std::sort(targets.begin(), targets.end(), [](const target_info *t1,
-                                               const target_info *t2) { 
+  std::sort(targets.begin(), targets.end(), [](const target_desc *t1,
+                                               const target_desc *t2) { 
                                               return t1->api < t2->api;
                                             });
 #pragma endregion pre_checks
@@ -254,7 +254,7 @@ int main(int argc, const char *argv[]) {
     for (const technique_desc::entry_point& ep : tech.entry_points) {
       const intptr_t ep_idx = &ep - &(tech.entry_points[0]);
       const spirv_blob& spv_code = spirv_blobs[tech_idx][ep_idx];
-      for (const target_info* target_info : targets) {
+      for (const ::target_desc* target_info : targets) {
         compilations.emplace_back(ep.stage, spv_code, *target_info);
         compilations.back().add_cis_to_map(images_to_cis, samplers_to_cis);
         compilations.back().add_resources_to_pipeline_layout(res_layout_builder);

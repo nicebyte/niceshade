@@ -75,6 +75,8 @@ public:
   // the output file.
   void dump_native_binding_map(FILE* f) const;
 
+  std::string native_binding_map_string() const;
+
 private:
   struct descriptor_set {
     uint32_t              slot = 0u;
