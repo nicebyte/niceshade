@@ -40,13 +40,14 @@ public:
   iterator       end() { return ptr_ + size_; }
   const_iterator end() const { return ptr_ + size_; }
   const_iterator cend() const { return ptr_ + size_; }
+  T&             operator[](size_t idx) { return ptr_[idx]; }
+  const T&       operator[](size_t idx) const { return ptr_[idx]; }
 
 private:
   T*     ptr_;
   size_t size_;
 };
 
-template<class T>
-using const_span = span<const T>;
+template<class T> using const_span = span<const T>;
 
 }  // namespace libniceshade
