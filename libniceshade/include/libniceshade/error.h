@@ -32,11 +32,10 @@ namespace libniceshade {
 class error {
 public:
   error() = default;
-  template<class... Args> explicit error(const char* source_file, int source_line, Args&&... args) {
+  template<class... Args> explicit error(Args&&... args) {
     std::ostringstream stream;
     ((stream << args), ...);
-    stream << "\n"
-           << "source file: " << source_file << ", source line: " << source_line;
+    stream << "\n";
     msg_ = std::move(stream.str());
   }
 
@@ -61,7 +60,7 @@ private:
   ValueT val_ {};
 };
 
-#define NICESHADE_RETURN_ERROR(...) return error(__FILE__, __LINE__, __VA_ARGS__)
+#define NICESHADE_RETURN_ERROR(...) return error(__VA_ARGS__)
 
 #define NICESHADE_RETURN_IF_ERROR(x) if (x.is_error()) return x
 
