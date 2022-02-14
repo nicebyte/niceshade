@@ -157,7 +157,9 @@ value_or_error<spirv_blob> dxc_wrapper::compile_hlsl2spv(
       com_ptr<IDxcBlobEncoding>([&](auto ptr) { return dxc_result->GetErrorBuffer(ptr); });
 
   if (errmsg_blob->GetBufferSize() > 0) {
-    NICESHADE_RETURN_ERROR(std::string(errmsg_blob->GetBufferSize() + 1u, '\0'));
+    std::string err_msg (errmsg_blob->GetBufferSize() + 1u, '\0');
+    memcpy(err_msg.data(), errmsg_blob->GetBufferPointer(), errmsg_blob->GetBufferSize());
+    NICESHADE_RETURN_ERROR(err_msg);
   } else {
     NICESHADE_RETURN_ERROR("failed to compile HLSL to SPIR-V");
   }

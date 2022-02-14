@@ -43,6 +43,6 @@ struct technique_desc {
 };
 
 value_or_error<std::vector<technique_desc>>
-parse_techniques(const std::string& input_source, const define_container& default_defines);
+parse_techniques(input_blob input_source, const define_container& default_defines);
 
 }  // namespace libniceshade

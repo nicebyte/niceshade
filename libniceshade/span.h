@@ -30,7 +30,7 @@ template<class T> class span {
 public:
   using iterator       = T*;
   using const_iterator = const T*;
-
+  span() = default;
   span(T* ptr, size_t size) : ptr_(ptr), size_(size) {}
 
   size_t         size() const { return size_; }
@@ -44,8 +44,8 @@ public:
   const T&       operator[](size_t idx) const { return ptr_[idx]; }
 
 private:
-  T*     ptr_;
-  size_t size_;
+  T*     ptr_ = nullptr;
+  size_t size_ = 0u;
 };
 
 template<class T> using const_span = span<const T>;

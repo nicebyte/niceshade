@@ -49,7 +49,7 @@ std::string pipeline_layout::native_binding_map_string() const {
   os << "/**NGF_NATIVE_BINDING_MAP\n";
   for (const auto& set_id_and_layout : sets_) {
     for (const auto& binding_id_and_descriptor : set_id_and_layout.second.layout) {
-      os << "(" << set_id_and_layout.first << ", " << binding_id_and_descriptor.first << ") : "
+      os << "(" << set_id_and_layout.first << " " << binding_id_and_descriptor.first << ") : "
          << binding_id_and_descriptor.second.native_binding << "\n";
     }
   }

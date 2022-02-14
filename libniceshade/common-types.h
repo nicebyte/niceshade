@@ -22,16 +22,15 @@
 
 #pragma once
 
-#include <vector>
-#include <utility>
+#include "libniceshade/span.h"
+
 #include <string>
+#include <utility>
+#include <vector>
 
 namespace libniceshade {
 
-enum class pipeline_stage {
-  vertex,
-  fragment
-};
+enum class pipeline_stage { vertex, fragment };
 
 // Stores a sequence of preprocessor definitions.
 using define_container = std::vector<std::pair<std::string, std::string>>;
@@ -39,6 +38,6 @@ using define_container = std::vector<std::pair<std::string, std::string>>;
 // A blob of spirv code.
 using spirv_blob = std::vector<uint32_t>;
 
+using input_blob = const_span<std::byte>;
+
 }  // namespace libniceshade
-
-

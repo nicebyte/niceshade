@@ -23,6 +23,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
+#include "libniceshade/instance.h"
 #include "libniceshade/dxc-wrapper.h"
 #include "file_utils.h"
 #include "header_file_writer.h"
@@ -100,7 +101,7 @@ int main(int argc, const char *argv[]) {
   std::string header_path = "";
   std::string header_namespace = "";
   std::string shader_model = "6_2";
-  std::vector<const target_desc*> targets;
+  std::vector<target_desc> targets;
   define_container global_macro_definitions;
   size_t dxc_options_start = argc;
 
@@ -130,7 +131,7 @@ int main(int argc, const char *argv[]) {
         fprintf(stderr, "Unknown target \"%s\"\n", option_value.c_str());
         exit(1);
       }
-      targets.push_back(&(t->target));
+      targets.push_back((t->target));
     } else if ("-m" == option_name) {
       shader_model = option_value;
       if (shader_model.length() != 3) {
@@ -183,57 +184,33 @@ int main(int argc, const char *argv[]) {
 
   // Make sure targets are always processed in the same order, no matter
   // what order they're specified in.
-  std::sort(targets.begin(), targets.end(), [](const target_desc *t1,
-                                               const target_desc *t2) { 
-                                              return t1->api < t2->api;
+  std::sort(targets.begin(), targets.end(), [](const target_desc &t1,
+                                               const target_desc &t2) { 
+                                              return t1.api < t2.api;
                                             });
 #pragma endregion pre_checks
 
-#pragma region load_input
+  const std::string exe_path(argv[0]);
+  const std::string exe_dir = exe_path.substr(0, exe_path.find_last_of("/\\"));
+ 
   // Load the input file.
   std::string input_source = read_file(input_file_path.c_str());
   input_source.push_back('\n');
 
-  // Look for and parse technique directives in the code.
-  auto maybe_techniques = parse_techniques(input_source, global_macro_definitions);
-  if (maybe_techniques.is_error()) {
-    fprintf(stderr, maybe_techniques.error_message().c_str());
-    exit(1);
-  }
-  std::vector<technique_desc>& techniques = maybe_techniques.get();
-  if (techniques.size() == 0u) {
-    fprintf(stderr, "Input file does not appear to define any techniques. "
-                    "Define techniques with a special comment (`//T:').\n");
-    exit(1);
-  }
-  const std::string exe_path(argv[0]);
-  const std::string exe_dir = exe_path.substr(0, exe_path.find_last_of("/\\"));
-#pragma endregion load_input
+  instance inst{instance::options{shader_model, span<std::string>{dxc_options.data(), dxc_options.size()}, exe_dir}};
 
-#pragma region gen_spv
-  std::vector<std::vector<spirv_blob>> spirv_blobs;
-  // Obtain SPIR-V.
-  dxc_wrapper dxcompiler(shader_model, span{dxc_options.data(), dxc_options.size()}, exe_dir);
-  for (const technique_desc &tech : techniques) {
-    spirv_blobs.emplace_back();
-    for (const technique_desc::entry_point &ep : tech.entry_points) {
-      // Produce SPIR-V.
-      auto maybe_spirv_blob = dxcompiler.compile_hlsl2spv(
-          input_source.c_str(),
-          input_source.size(),
-          input_file_path.c_str(),
-          ep,
-          tech.defines);
-      if (maybe_spirv_blob.is_error()) {
-        fprintf(stderr, "%s", maybe_spirv_blob.error_message().c_str());
-      }
-      if (maybe_spirv_blob.get().size() == 0) {
-        exit(1);
-      }
-      spirv_blobs.back().emplace_back(std::move(maybe_spirv_blob.get()));
-    }
+  auto maybe_results = inst.parse_techniques_and_compile(
+      const_span<std::byte> {(std::byte*)input_source.data(), input_source.size()},
+      input_file_path.c_str(),
+      const_span<target_desc> {targets.data(), targets.size()},
+      global_macro_definitions);
+  if (maybe_results.is_error()) {
+    fprintf(stderr, "%s", maybe_results.error_message().c_str());
+    exit(1);
   }
-#pragma endregion gen_spv
+  const descs_and_compiled_techniques& results = maybe_results.get();
+  const auto& technique_descs = std::get<parsed_technique_descs>(results);
+  const auto& compiled_techs= std::get<compiled_techniques>(results);
 
  #pragma region gen_output
   // Generate output.
@@ -246,26 +223,25 @@ int main(int argc, const char *argv[]) {
     exit(1);
   }
 
-  for (const technique_desc& tech : techniques) {
-    pipeline_layout_builder res_layout_builder;
-    separate_to_combined_map images_to_cis, samplers_to_cis;
-    std::vector<compilation> compilations;
-    const intptr_t tech_idx = &tech - &(techniques[0]);
-    for (const technique_desc::entry_point& ep : tech.entry_points) {
-      const intptr_t ep_idx = &ep - &(tech.entry_points[0]);
-      const spirv_blob& spv_code = spirv_blobs[tech_idx][ep_idx];
-      for (const ::target_desc* target_info : targets) {
-        compilations.emplace_back(ep.stage, spv_code, *target_info);
-        compilations.back().add_cis_to_map(images_to_cis, samplers_to_cis);
-        compilations.back().add_resources_to_pipeline_layout(res_layout_builder);
+  for (const technique_desc& tech : technique_descs) {
+    const size_t tech_idx = &tech - technique_descs.data();
+    const compiled_technique& compiled_tech = compiled_techs[tech_idx];
+    const pipeline_layout& res_layout = compiled_tech.layout;
+
+    std::string out_file_path = out_folder + PATH_SEPARATOR + tech.name;
+    for (const targeted_output& target_out : compiled_tech.targeted_outputs) {
+      for (const compiled_stage& out_stage : target_out.stages) {
+        const std::string full_out_file_path =
+            out_file_path + (out_stage.stage == pipeline_stage::vertex ? ".vs." : ".ps.") +
+            file_ext_for_target(target_out.target);
+        FILE* out_file = fopen(full_out_file_path.c_str(), "wb");
+        if (out_file == nullptr) {
+          fprintf(stderr, "Failed to open output file %s\n", out_file_path.c_str());
+          exit(1);
+        }
+        fwrite(out_stage.result.data().begin(), 1u, out_stage.result.data().size(), out_file);
+        fclose(out_file);
       }
-    }
-
-    pipeline_layout res_layout = std::move(res_layout_builder.build().get());
-
-    for (compilation &c : compilations) {
-      std::string out_file_path = out_folder + PATH_SEPARATOR + tech.name;
-      c.run(out_file_path.c_str(), res_layout);
     }
 
     // Write out the .pipeline file for the current technique.
@@ -300,9 +276,9 @@ int main(int argc, const char *argv[]) {
 
     // Write out separate-to-combined map records.
     metadata_file.start_new_record();
-    images_to_cis.serialize(metadata_file);
+    compiled_tech.image_map.serialize(metadata_file);
     metadata_file.start_new_record();
-    samplers_to_cis.serialize(metadata_file);
+    compiled_tech.sampler_map.serialize(metadata_file);
 
     // Write out user metadata record.
     metadata_file.start_new_record();

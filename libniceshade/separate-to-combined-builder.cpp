@@ -20,39 +20,24 @@
  * IN THE SOFTWARE.
  */
 
-#pragma once
-
-#include "libniceshade/common-types.h"
-#include "libniceshade/output.h"
-#include "libniceshade/pipeline-layout-builder.h"
 #include "libniceshade/separate-to-combined-builder.h"
-#include "libniceshade/technique-parser.h"
-#include "spirv_cross.hpp"
-#include "target.h"
-
-#include <memory>
-#include <stdint.h>
-#include <string>
-#include <vector>
 
 namespace libniceshade {
 
-class compilation {
-public:
-  compilation(pipeline_stage kind, const spirv_blob& spirv_code, const target_desc& target_info);
+void separate_to_combined_builder::add_resource(
+    uint32_t                     separate_id,
+    uint32_t                     combined_id,
+    const spirv_cross::Compiler& compiler) {
+  uint32_t set_id              = compiler.get_decoration(separate_id, spv::DecorationDescriptorSet);
+  uint32_t binding_id          = compiler.get_decoration(separate_id, spv::DecorationBinding);
+  uint32_t combined_binding_id = compiler.get_decoration(combined_id, spv::DecorationBinding);
+  map_[separate_to_combined_map::set_and_binding {set_id, binding_id}].insert(combined_binding_id);
+}
 
-  void add_resources_to_pipeline_layout(pipeline_layout_builder& builder) const;
-  void
-  add_cis_to_map(separate_to_combined_builder& image_map, separate_to_combined_builder& sampler_map) const;
-  pipeline_stage                     stage() const { return stage_; }
-  value_or_error<compilation_result> run(const pipeline_layout& pipeline_layout);
-  const target_desc&                 target() const { return target_info_; }
+separate_to_combined_map separate_to_combined_builder::build() {
+  separate_to_combined_map m;
+  m.map_ = std::move(map_);
+  return m;
+}
 
-private:
-  target_desc                            target_info_;
-  pipeline_stage                         stage_;
-  std::unique_ptr<spirv_cross::Compiler> spv_cross_compiler_;
-  const spirv_blob&                      original_spirv_;
-};
-
-}  // namespace libniceshade
+}
