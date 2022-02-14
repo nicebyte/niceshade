@@ -25,7 +25,9 @@
 #include "libniceshade/common-types.h"
 #include "libniceshade/pipeline-layout.h"
 #include "libniceshade/span.h"
+#include "libniceshade/target.h"
 #include "libniceshade/technique-parser.h"
+#include "libniceshade/separate-to-combined-map.h"
 
 #include <tuple>
 #include <variant>
@@ -46,7 +48,7 @@ public:
       const spirv_blob& blob = std::get<spirv_blob>(result_);
       return const_span<std::byte> {reinterpret_cast<const std::byte*>(blob.data()), blob.size()};
     } else {
-      const std::string str = std::get<std::string>(result_);
+      const std::string& str = std::get<std::string>(result_);
       return const_span<std::byte> {reinterpret_cast<const std::byte*>(str.data()), str.size()};
     }
   }
@@ -58,20 +60,28 @@ private:
 };
 
 struct compiled_stage {
-  compiled_stage() = default;
+  compiled_stage()                 = default;
   compiled_stage(compiled_stage&&) = default;
-  compiled_stage& operator=(compiled_stage&&) = default;
+  compiled_stage&    operator=(compiled_stage&&) = default;
   compilation_result result;
   pipeline_stage     stage;
 };
 
-struct compiled_technique {
-  compiled_technique() = default;
-  compiled_technique(compiled_technique&&) = default;
-  compiled_technique& operator=(compiled_technique&&) = default;
-  std::string                 name;
+struct targeted_output {
+  target_desc                 target;
   std::vector<compiled_stage> stages;
-  pipeline_layout             layout;
+};
+
+struct compiled_technique {
+  compiled_technique()                     = default;
+  compiled_technique(compiled_technique&&) = default;
+  compiled_technique&          operator=(compiled_technique&&) = default;
+  std::string                  name;
+  std::vector<targeted_output> targeted_outputs;
+  pipeline_layout              layout;
+  separate_to_combined_map     image_map;
+  separate_to_combined_map     sampler_map;
+  target_desc                  target;
 };
 
 using compiled_techniques           = std::vector<compiled_technique>;

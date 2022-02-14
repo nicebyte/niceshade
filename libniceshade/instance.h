@@ -45,9 +45,13 @@ public:
 
     explicit instance(const options& opts);
     value_or_error<compiled_techniques> compile(const_span<compiler_input> compiler_inputs, const_span<target_desc> targets);
-    value_or_error<descs_and_compiled_techniques> parse_techniques_and_compile(input_blob in_blob, const_span<target_desc> targets);
-    
-private:
+    value_or_error<descs_and_compiled_techniques> parse_techniques_and_compile(
+        input_blob              in_blob,
+        const char*             file_name,
+        const_span<target_desc> targets,
+        const define_container& global_defines);
+
+  private:
     dxc_wrapper dxc_;
 };
 

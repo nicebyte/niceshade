@@ -49,7 +49,7 @@ constexpr bool is_tab_space(char c) { return (c == ' '  || c == '\t'); }
 }
 
 value_or_error<std::vector<technique_desc>>
-parse_techniques(const std::string &input_source, const define_container &default_defines) {
+parse_techniques(input_blob input_source, const define_container &default_defines) {
   uint32_t last_four_chars = 0u;
   uint32_t line_num = 1u;
   const uint32_t technique_prefix = 0x2f2f543a; // `//T:'
@@ -59,10 +59,10 @@ parse_techniques(const std::string &input_source, const define_container &defaul
   bool have_vertex_stage = false;
   std::vector<technique_desc> techniques;
   for (uint32_t c_idx = 0u; c_idx < input_source.size(); ++c_idx) {
-    char c = input_source[c_idx];
+    const char c = static_cast<char>(input_source[c_idx]);
     // Collapse windows line endings into '\n'.
     if (c == '\r' && (c_idx == input_source.size() - 1u ||
-                      input_source[c_idx + 1u] != '\n')) {
+                      static_cast<char>(input_source[c_idx + 1u]) != '\n')) {
       NICESHADE_RETURN_ERROR("Stray carriage return in input on line %d\n", line_num);
     } else if (c == '\r') {
       continue;

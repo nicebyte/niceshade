@@ -48,6 +48,8 @@ add_library(
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/separate-to-combined-map.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/separate-to-combined-map.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/separate-to-combined-builder.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/separate-to-combined-builder.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/compilation.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/compilation.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/span.h

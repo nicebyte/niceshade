@@ -24,16 +24,6 @@
 
 namespace libniceshade {
 
-void separate_to_combined_map::add_resource(
-    uint32_t                     separate_id,
-    uint32_t                     combined_id,
-    const spirv_cross::Compiler& compiler) {
-  uint32_t set_id              = compiler.get_decoration(separate_id, spv::DecorationDescriptorSet);
-  uint32_t binding_id          = compiler.get_decoration(separate_id, spv::DecorationBinding);
-  uint32_t combined_binding_id = compiler.get_decoration(combined_id, spv::DecorationBinding);
-  map_[set_and_binding {set_id, binding_id}].insert(combined_binding_id);
-}
-
 void separate_to_combined_map::serialize(metadata_file_writer& metadata_file) const {
   metadata_file.write_field((uint32_t)map_.size());
   for (const auto& entry : map_) {

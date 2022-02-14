@@ -94,8 +94,8 @@ compilation::compilation(
 }
 
 void compilation::add_cis_to_map(
-    separate_to_combined_map& image_map,
-    separate_to_combined_map& sampler_map) const {
+    separate_to_combined_builder& image_map,
+    separate_to_combined_builder& sampler_map) const {
   for (const spirv_cross::CombinedImageSampler& cis :
        spv_cross_compiler_->get_combined_image_samplers()) {
     image_map.add_resource(cis.image_id, cis.combined_id, *spv_cross_compiler_);
@@ -118,28 +118,6 @@ void compilation::add_resources_to_pipeline_layout(pipeline_layout_builder& buil
   process_resources(resources.storage_buffers, descriptor_type::STORAGE_BUFFER);
   process_resources(resources.separate_samplers, descriptor_type::SAMPLER);
   process_resources(resources.separate_images, descriptor_type::TEXTURE);
-}
-
-void compilation::run(const std::string& out_file_path, const pipeline_layout& layout) {
-  const std::string full_out_file_path =
-      out_file_path + (stage_ == pipeline_stage::vertex ? ".vs." : ".ps.") + file_ext_for_target(target_info_);
-
-  FILE* out_file = fopen(full_out_file_path.c_str(), "wb");
-
-  if (out_file == nullptr) {
-    fprintf(stderr, "Failed to open output file %s\n", out_file_path.c_str());
-    exit(1);
-  }
-
-  std::string result;
-  if (target_info_.api != target_api::VULKAN) {
-    result = spv_cross_compiler_->compile();
-    fwrite(&result[0], sizeof(uint8_t), result.length(), out_file);
-    layout.dump_native_binding_map(out_file);
-  } else {
-    fwrite(original_spirv_.data(), sizeof(uint32_t), original_spirv_.size(), out_file);
-  }
-  fclose(out_file);
 }
 
 value_or_error<compilation_result> compilation::run(const pipeline_layout& layout) {
