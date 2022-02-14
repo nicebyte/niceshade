@@ -1,1 +1,2 @@
-line 10: unexpected character [ ] in definition name
+unexpected character   in definition name on line 10
+source file: C:\Users\nicebyte\home\TERMINAL\niceshade\libniceshade\impl\technique-parser.cpp, source line: 190

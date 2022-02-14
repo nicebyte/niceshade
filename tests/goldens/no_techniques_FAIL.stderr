@@ -1,1 +1,3 @@
-Input file does not appear to define any techniques. Define techniques with a special comment (`//T:').
+The input file does not appear to define any techniques. Define techniques with a special comment (`//T:').
+
+source file: C:\Users\nicebyte\home\TERMINAL\niceshade\libniceshade\impl\instance.cpp, source line: 111
