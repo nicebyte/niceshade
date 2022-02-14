@@ -1,1 +1,2 @@
-line 4: technique needs to define at least a vertex stage
+technique needs to define at least a vertex stage on line 4
+source file: C:\Users\nicebyte\home\TERMINAL\niceshade\libniceshade\impl\technique-parser.cpp, source line: 212

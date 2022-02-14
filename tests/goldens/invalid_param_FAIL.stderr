@@ -1,1 +1,2 @@
-line 3: unknown parameter [garbagarb]
+unknown parameter garbagarb on line 3
+source file: C:\Users\nicebyte\home\TERMINAL\niceshade\libniceshade\impl\technique-parser.cpp, source line: 130
