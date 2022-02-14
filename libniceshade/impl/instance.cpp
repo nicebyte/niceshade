@@ -22,15 +22,18 @@
 
 #include "libniceshade/instance.h"
 
-#include "libniceshade/compilation.h"
-#include "libniceshade/pipeline-layout-builder.h"
-#include "libniceshade/separate-to-combined-builder.h"
-#include "libniceshade/technique-parser.h"
+#include "libniceshade/impl/dxc-wrapper.h"
+#include "libniceshade/impl/compilation.h"
+#include "libniceshade/impl/pipeline-layout-builder.h"
+#include "libniceshade/impl/separate-to-combined-builder.h"
+#include "libniceshade/impl/technique-parser.h"
 
 namespace libniceshade {
 
 instance::instance(const instance::options& opts)
-    : dxc_ {opts.shader_model, opts.dxc_params, opts.dxc_lib_folder} {}
+    : dxc_ {new dxc_wrapper{opts.shader_model, opts.dxc_params, opts.dxc_lib_folder}} {}
+
+instance::~instance() { if (dxc_) delete dxc_; }
 
 value_or_error<compiled_techniques>
 instance::compile(const_span<compiler_input> inputs, const_span<target_desc> targets) {
@@ -42,7 +45,7 @@ instance::compile(const_span<compiler_input> inputs, const_span<target_desc> tar
       std::vector<spirv_blob> spirv_blobs;
       // Produce SPIR-V.
       for (const technique_desc::entry_point& ep : tech.entry_points) {
-        auto maybe_spirv_blob = dxc_.compile_hlsl2spv(
+        auto maybe_spirv_blob = dxc_->compile_hlsl2spv(
             (const char*)input.hlsl.cbegin(),
             input.hlsl.size(),
             input.file_name,

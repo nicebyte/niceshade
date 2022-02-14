@@ -22,37 +22,18 @@
 
 #pragma once
 
-#include "libniceshade/common-types.h"
-#include "libniceshade/output.h"
-#include "libniceshade/pipeline-layout-builder.h"
-#include "libniceshade/separate-to-combined-builder.h"
-#include "libniceshade/technique-parser.h"
-#include "spirv_cross.hpp"
-#include "target.h"
-
-#include <memory>
-#include <stdint.h>
-#include <string>
-#include <vector>
-
 namespace libniceshade {
 
-class compilation {
-public:
-  compilation(pipeline_stage kind, const spirv_blob& spirv_code, const target_desc& target_info);
-
-  void add_resources_to_pipeline_layout(pipeline_layout_builder& builder) const;
-  void
-  add_cis_to_map(separate_to_combined_builder& image_map, separate_to_combined_builder& sampler_map) const;
-  pipeline_stage                     stage() const { return stage_; }
-  value_or_error<compilation_result> run(const pipeline_layout& pipeline_layout);
-  const target_desc&                 target() const { return target_info_; }
-
-private:
-  target_desc                            target_info_;
-  pipeline_stage                         stage_;
-  std::unique_ptr<spirv_cross::Compiler> spv_cross_compiler_;
-  const spirv_blob&                      original_spirv_;
+// Technique description.
+struct technique_desc {
+  struct entry_point {
+    pipeline_stage stage;
+    std::string name;
+  };
+  std::string name;
+  define_container defines;
+  std::vector<entry_point> entry_points;
+  std::vector<std::pair<std::string, std::string>> additional_metadata;
 };
 
 }  // namespace libniceshade

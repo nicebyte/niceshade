@@ -24,7 +24,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "libniceshade/platform.h"
+#include "libniceshade/impl/platform.h"
 
 #include <type_traits>
 

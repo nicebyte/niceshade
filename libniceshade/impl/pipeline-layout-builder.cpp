@@ -20,7 +20,7 @@
  * IN THE SOFTWARE.
  */
 
-#include "libniceshade/pipeline-layout-builder.h"
+#include "libniceshade/impl/pipeline-layout-builder.h"
 
 namespace libniceshade {
 

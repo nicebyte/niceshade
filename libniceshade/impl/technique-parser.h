@@ -20,24 +20,17 @@
  * IN THE SOFTWARE.
  */
 
-#include "libniceshade/separate-to-combined-builder.h"
+#pragma once
+
+#include "libniceshade/common-types.h"
+#include "libniceshade/error.h"
+#include "libniceshade/technique.h"
+
+#include <string>
+#include <vector>
 
 namespace libniceshade {
+value_or_error<std::vector<technique_desc>>
+parse_techniques(input_blob input_source, const define_container& default_defines);
 
-void separate_to_combined_builder::add_resource(
-    uint32_t                     separate_id,
-    uint32_t                     combined_id,
-    const spirv_cross::Compiler& compiler) {
-  uint32_t set_id              = compiler.get_decoration(separate_id, spv::DecorationDescriptorSet);
-  uint32_t binding_id          = compiler.get_decoration(separate_id, spv::DecorationBinding);
-  uint32_t combined_binding_id = compiler.get_decoration(combined_id, spv::DecorationBinding);
-  map_[separate_to_combined_map::set_and_binding {set_id, binding_id}].insert(combined_binding_id);
-}
-
-separate_to_combined_map separate_to_combined_builder::build() {
-  separate_to_combined_map m;
-  m.map_ = std::move(map_);
-  return m;
-}
-
-}
+}  // namespace libniceshade
