@@ -20,7 +20,7 @@
  * IN THE SOFTWARE.
  */
 
-#include "libniceshade/technique-parser.h"
+#include "libniceshade/impl/technique-parser.h"
 
 #include <assert.h>
 #include <ctype.h>

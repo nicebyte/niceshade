@@ -24,19 +24,10 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "libniceshade/instance.h"
-#include "libniceshade/dxc-wrapper.h"
 #include "file_utils.h"
 #include "header_file_writer.h"
-#include "libniceshade/pipeline-layout.h"
-#include "libniceshade/pipeline-layout-builder.h"
-#include "libniceshade/metadata-file-writer.h"
-#include "libniceshade/separate-to-combined-map.h"
-#include "libniceshade/common-types.h"
 #include "target.h"
-#include "libniceshade/technique-parser.h"
 #include "spirv_reflect.hpp"
-#include "libniceshade/compilation.h"
-#include "libniceshade/span.h"
 
 #include <ctype.h>
 #include <memory>

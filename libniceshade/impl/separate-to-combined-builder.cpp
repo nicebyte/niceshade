@@ -20,22 +20,24 @@
  * IN THE SOFTWARE.
  */
 
-#pragma once
-
-#include "libniceshade/common-types.h"
-#include "libniceshade/span.h"
-#include "libniceshade/target.h"
-#include "libniceshade/technique.h"
-
-#include <cstddef>
-#include <stdint.h>
+#include "libniceshade/impl/separate-to-combined-builder.h"
 
 namespace libniceshade {
 
-struct compiler_input {
-  input_blob                 hlsl;
-  const_span<technique_desc> technique_descs;
-  const char*                file_name;
-};
+void separate_to_combined_builder::add_resource(
+    uint32_t                     separate_id,
+    uint32_t                     combined_id,
+    const spirv_cross::Compiler& compiler) {
+  uint32_t set_id              = compiler.get_decoration(separate_id, spv::DecorationDescriptorSet);
+  uint32_t binding_id          = compiler.get_decoration(separate_id, spv::DecorationBinding);
+  uint32_t combined_binding_id = compiler.get_decoration(combined_id, spv::DecorationBinding);
+  map_[separate_to_combined_map::set_and_binding {set_id, binding_id}].insert(combined_binding_id);
+}
+
+separate_to_combined_map separate_to_combined_builder::build() {
+  separate_to_combined_map m;
+  m.map_ = std::move(map_);
+  return m;
+}
 
 }

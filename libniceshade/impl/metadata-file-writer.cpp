@@ -22,7 +22,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "libniceshade/metadata-file-writer.h"
-#include "libniceshade/platform.h"
+#include "libniceshade/impl/platform.h"
 
 #include <assert.h>
 #include <stdio.h>

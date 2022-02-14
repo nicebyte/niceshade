@@ -22,38 +22,37 @@
 
 #pragma once
 
-#define _CRT_SECURE_NO_WARNINGS
+#include "libniceshade/common-types.h"
+#include "libniceshade/output.h"
+#include "libniceshade/impl/pipeline-layout-builder.h"
+#include "libniceshade/impl/separate-to-combined-builder.h"
+#include "libniceshade/impl/technique-parser.h"
+#include "spirv_cross.hpp"
+#include "target.h"
 
-#include "libniceshade/platform.h"
+#include <memory>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 namespace libniceshade {
 
-class dynamic_lib {
-  public:
-  dynamic_lib() = default;
+class compilation {
+public:
+  compilation(pipeline_stage kind, const spirv_blob& spirv_code, const target_desc& target_info);
 
-  dynamic_lib(const std::vector<std::string>& paths) {
-    for (size_t i = 0; h_ == nullptr && i < paths.size(); ++i) h_ = LoadLibraryA(paths[i].c_str());
-  }
+  void add_resources_to_pipeline_layout(pipeline_layout_builder& builder) const;
+  void
+  add_cis_to_map(separate_to_combined_builder& image_map, separate_to_combined_builder& sampler_map) const;
+  pipeline_stage                     stage() const { return stage_; }
+  value_or_error<compilation_result> run(const pipeline_layout& pipeline_layout);
+  const target_desc&                 target() const { return target_info_; }
 
-  ~dynamic_lib() {
-    if (h_) FreeModule(h_);
-  }
-
-  dynamic_lib(const dynamic_lib&) = delete;
-
-  dynamic_lib& operator=(const dynamic_lib&) = delete;
-
-  bool is_valid() const {
-    return h_ == nullptr;
-  }
-
-  LPVOID get_proc_address(LPCSTR name) const {
-    return GetProcAddress(h_, name);
-  }
-
-  private:
-  ModuleHandle h_ = NULL;
+private:
+  target_desc                            target_info_;
+  pipeline_stage                         stage_;
+  std::unique_ptr<spirv_cross::Compiler> spv_cross_compiler_;
+  const spirv_blob&                      original_spirv_;
 };
 
 }  // namespace libniceshade

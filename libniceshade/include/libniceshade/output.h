@@ -26,7 +26,7 @@
 #include "libniceshade/pipeline-layout.h"
 #include "libniceshade/span.h"
 #include "libniceshade/target.h"
-#include "libniceshade/technique-parser.h"
+#include "libniceshade/technique.h"
 #include "libniceshade/separate-to-combined-map.h"
 
 #include <tuple>

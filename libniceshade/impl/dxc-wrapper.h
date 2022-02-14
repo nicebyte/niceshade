@@ -24,13 +24,13 @@
 
 #define _CRT_SECURE_NO_WARNING
 
-#include "libniceshade/com-ptr.h"
 #include "libniceshade/common-types.h"
-#include "libniceshade/dynamic-library.h"
 #include "libniceshade/error.h"
-#include "libniceshade/platform.h"
+#include "libniceshade/impl/com-ptr.h"
+#include "libniceshade/impl/dynamic-library.h"
+#include "libniceshade/impl/platform.h"
+#include "libniceshade/impl/technique-parser.h"
 #include "libniceshade/span.h"
-#include "libniceshade/technique-parser.h"
 
 #include <stdint.h>
 #include <string>

@@ -22,27 +22,38 @@
 
 #pragma once
 
-#include "libniceshade/common-types.h"
-#include "libniceshade/error.h"
+#define _CRT_SECURE_NO_WARNINGS
 
-#include <string>
-#include <vector>
+#include "libniceshade/impl/platform.h"
 
 namespace libniceshade {
 
-// Technique description.
-struct technique_desc {
-  struct entry_point {
-    pipeline_stage stage;
-    std::string name;
-  };
-  std::string name;
-  define_container defines;
-  std::vector<entry_point> entry_points;
-  std::vector<std::pair<std::string, std::string>> additional_metadata;
-};
+class dynamic_lib {
+  public:
+  dynamic_lib() = default;
 
-value_or_error<std::vector<technique_desc>>
-parse_techniques(input_blob input_source, const define_container& default_defines);
+  dynamic_lib(const std::vector<std::string>& paths) {
+    for (size_t i = 0; h_ == nullptr && i < paths.size(); ++i) h_ = LoadLibraryA(paths[i].c_str());
+  }
+
+  ~dynamic_lib() {
+    if (h_) FreeModule(h_);
+  }
+
+  dynamic_lib(const dynamic_lib&) = delete;
+
+  dynamic_lib& operator=(const dynamic_lib&) = delete;
+
+  bool is_valid() const {
+    return h_ == nullptr;
+  }
+
+  LPVOID get_proc_address(LPCSTR name) const {
+    return GetProcAddress(h_, name);
+  }
+
+  private:
+  ModuleHandle h_ = NULL;
+};
 
 }  // namespace libniceshade

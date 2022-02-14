@@ -27,13 +27,14 @@
 #include "libniceshade/input.h"
 #include "libniceshade/span.h"
 #include "libniceshade/target.h"
-#include "libniceshade/dxc-wrapper.h"
 
 #include <string>
 #include <vector>
 #include <stdint.h>
 
 namespace libniceshade {
+
+class dxc_wrapper;
 
 class instance {
 public:
@@ -44,6 +45,10 @@ public:
     };
 
     explicit instance(const options& opts);
+    ~instance();
+    instance(const instance&) = delete;
+    instance& operator=(const instance&) = delete;
+
     value_or_error<compiled_techniques> compile(const_span<compiler_input> compiler_inputs, const_span<target_desc> targets);
     value_or_error<descs_and_compiled_techniques> parse_techniques_and_compile(
         input_blob              in_blob,
@@ -52,7 +57,7 @@ public:
         const define_container& global_defines);
 
   private:
-    dxc_wrapper dxc_;
+    dxc_wrapper* dxc_;
 };
 
 }
