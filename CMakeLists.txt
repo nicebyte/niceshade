@@ -32,11 +32,11 @@ target_include_directories(
 
 add_library(
   libniceshade
-  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/common-types.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/include/libniceshade/common-types.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/technique-parser.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/technique-parser.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/error.h
-  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/pipeline-layout.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/include/libniceshade/error.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/include/libniceshade/pipeline-layout.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/pipeline-layout.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/pipeline-layout-builder.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/pipeline-layout-builder.cpp
@@ -46,24 +46,27 @@ add_library(
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dynamic-library.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/dxc-wrapper.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/separate-to-combined-map.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/include/libniceshade/separate-to-combined-map.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/separate-to-combined-map.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/separate-to-combined-builder.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/separate-to-combined-builder.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/compilation.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/compilation.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/span.h
-  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/input.h
-  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/output.h
-  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/target.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/include/libniceshade/span.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/include/libniceshade/input.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/include/libniceshade/output.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/include/libniceshade/target.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/target.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/instance.h
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/include/libniceshade/instance.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/instance.cpp)
 
 target_include_directories(
   libniceshade PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}
-  ${CMAKE_CURRENT_LIST_DIR}/third_party/dxc/include)
+  ${CMAKE_CURRENT_LIST_DIR}/third_party/dxc/include
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/include
+  INTERFACE
+  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/include)
 
 target_link_libraries(libniceshade
     dxc-headers metadata-parser spirv-cross-core spirv-cross-reflect)
