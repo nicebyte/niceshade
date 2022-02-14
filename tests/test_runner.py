@@ -89,7 +89,9 @@ def main(argv):
     except FileNotFoundError:
       LOG.critical("File not found in output: " + golden.name)
       error = True
+  
   if error:
+    LOG.critical("Some tests have failed.")
     sys.exit(1)
   LOG.info("Done!")
     
