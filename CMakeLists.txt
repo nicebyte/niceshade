@@ -37,19 +37,16 @@ add_library(
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/pipeline-layout.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/pipeline-layout-builder.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/pipeline-layout-builder.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/metadata-file-writer.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/platform.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/dynamic-library.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/dxc-wrapper.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/dxc-wrapper.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/separate-to-combined-map.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/separate-to-combined-builder.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/separate-to-combined-builder.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/compilation.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/compilation.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/target.cpp
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/instance.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/libniceshade/include/libniceshade/metadata-file-writer.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/include/libniceshade/error.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/include/libniceshade/pipeline-layout.h
   ${CMAKE_CURRENT_LIST_DIR}/libniceshade/include/libniceshade/common-types.h
@@ -73,6 +70,8 @@ target_link_libraries(libniceshade
     dxc-headers metadata-parser spirv-cross-core spirv-cross-reflect)
 
 set(NICEGRAF_SHADERC_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/metadata-file-writer.h
+    ${CMAKE_CURRENT_LIST_DIR}/metadata-file-writer.cpp
 	  ${CMAKE_CURRENT_LIST_DIR}/header_file_writer.h
     ${CMAKE_CURRENT_LIST_DIR}/nicegraf_shaderc.cpp
     ${CMAKE_CURRENT_LIST_DIR}/file_utils.h 

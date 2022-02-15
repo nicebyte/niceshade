@@ -31,13 +31,11 @@ void separate_to_combined_builder::add_resource(
   uint32_t set_id              = compiler.get_decoration(separate_id, spv::DecorationDescriptorSet);
   uint32_t binding_id          = compiler.get_decoration(separate_id, spv::DecorationBinding);
   uint32_t combined_binding_id = compiler.get_decoration(combined_id, spv::DecorationBinding);
-  map_[separate_to_combined_map::set_and_binding {set_id, binding_id}].insert(combined_binding_id);
+  map_[set_and_binding {set_id, binding_id}].insert(combined_binding_id);
 }
 
 separate_to_combined_map separate_to_combined_builder::build() {
-  separate_to_combined_map m;
-  m.map_ = std::move(map_);
-  return m;
+  return std::move(map_);
 }
 
 }

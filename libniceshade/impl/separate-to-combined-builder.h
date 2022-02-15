@@ -33,7 +33,7 @@ public:
   separate_to_combined_map build();
 
 private:
-  std::map<separate_to_combined_map::set_and_binding, std::set<uint32_t>> map_;
+  separate_to_combined_map map_;
 };
 
 };

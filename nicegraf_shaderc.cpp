@@ -26,6 +26,7 @@
 #include "libniceshade/instance.h"
 #include "file_utils.h"
 #include "header_file_writer.h"
+#include "metadata-file-writer.h"
 #include "target.h"
 #include "spirv_reflect.hpp"
 
@@ -266,10 +267,21 @@ int main(int argc, const char *argv[]) {
     header_writer.end_technique();
 
     // Write out separate-to-combined map records.
-    metadata_file.start_new_record();
-    compiled_tech.image_map.serialize(metadata_file);
-    metadata_file.start_new_record();
-    compiled_tech.sampler_map.serialize(metadata_file);
+    auto serialize_separate_to_combined_map =
+        [&metadata_file](const separate_to_combined_map& map) {
+          metadata_file.start_new_record();
+          metadata_file.write_field((uint32_t)map.size());
+          for (const auto& entry : map) {
+            const set_and_binding&    sb                      = entry.first;
+            const std::set<uint32_t>& combined_image_samplers = entry.second;
+            metadata_file.write_field(sb.set);
+            metadata_file.write_field(sb.binding);
+            metadata_file.write_field((uint32_t)combined_image_samplers.size());
+            for (const auto& c : combined_image_samplers) { metadata_file.write_field(c); }
+          }
+        };
+    serialize_separate_to_combined_map(compiled_tech.image_map);
+    serialize_separate_to_combined_map(compiled_tech.sampler_map);
 
     // Write out user metadata record.
     metadata_file.start_new_record();

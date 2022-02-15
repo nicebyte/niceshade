@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include "metadata-parser/metadata-parser.h"
 #include <stdint.h>
 #include <string>
 #include <vector>
@@ -31,19 +30,19 @@
 namespace libniceshade {
 // Indicates the type of resource accessed by a programmable shader stage.
 enum class descriptor_type {
-  UNIFORM_BUFFER      = NGF_PLMD_DESC_UNIFORM_BUFFER,
-  STORAGE_BUFFER      = NGF_PLMD_DESC_STORAGE_BUFFER,
-  LOADSTORE_IMAGE     = NGF_PLMD_DESC_LOADSTORE_IMAGE,
-  TEXTURE             = NGF_PLMD_DESC_IMAGE,
-  SAMPLER             = NGF_PLMD_DESC_SAMPLER,
-  TEXTURE_AND_SAMPLER = NGF_PLMD_DESC_COMBINED_IMAGE_SAMPLER,
-  INVALID             = 0xff
+  UNIFORM_BUFFER      = 0, // NGF_PLMD_DESC_UNIFORM_BUFFER,
+  STORAGE_BUFFER      = 1, // NGF_PLMD_DESC_STORAGE_BUFFER,
+  LOADSTORE_IMAGE     = 2, // NGF_PLMD_DESC_LOADSTORE_IMAGE,
+  TEXTURE             = 3, // NGF_PLMD_DESC_IMAGE,
+  SAMPLER             = 4, // NGF_PLMD_DESC_SAMPLER,
+  TEXTURE_AND_SAMPLER = 5, // NGF_PLMD_DESC_COMBINED_IMAGE_SAMPLER,
+  INVALID             = 6
 };
 
 // Indicates which programmable shader stage a descriptor is visible from.
 enum stage_mask_bit {
-  STAGE_MASK_VERTEX   = NGF_PLMD_STAGE_VISIBILITY_VERTEX_BIT,
-  STAGE_MASK_FRAGMENT = NGF_PLMD_STAGE_VISIBILITY_FRAGMENT_BIT
+  STAGE_MASK_VERTEX   = 1, // NGF_PLMD_STAGE_VISIBILITY_VERTEX_BIT,
+  STAGE_MASK_FRAGMENT = 2, // NGF_PLMD_STAGE_VISIBILITY_FRAGMENT_BIT
 };
 
 // Descriptor data.
