@@ -25,7 +25,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "libniceshade/impl/platform.h"
-#include <stdio.h>
 
 namespace libniceshade {
 
@@ -36,9 +35,6 @@ class dynamic_lib {
   dynamic_lib(const std::vector<std::string>& paths) {
     for (size_t i = 0; h_ == nullptr && i < paths.size(); ++i) {
       h_ = LoadLibraryA(paths[i].c_str());
-#if !defined(_WIN32) && !defined(_WIN64)
-    if (h_ == nullptr) fprintf(stderr, "dynamic linker error: %s\n", dlerror());
-#endif
     }
   }
 
