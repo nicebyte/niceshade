@@ -68,7 +68,7 @@ dxc_wrapper::dxc_wrapper(
 
   // Verify that the dymamic library could be loaded.
   if (dxcompiler_dll_.is_valid()) {
-    fprintf(stderr, "dxcompiler library not loaded.\n");
+    fprintf(stderr, "dxcompiler library not loaded (exe dir was \"%s\").\n", exe_dir.c_str());
     exit(1);
   }
 
