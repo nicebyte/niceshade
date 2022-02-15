@@ -62,6 +62,6 @@ private:
 
 #define NICESHADE_RETURN_ERROR(...) return error(__VA_ARGS__)
 
-#define NICESHADE_RETURN_IF_ERROR(x) if (x.is_error()) return x
+#define NICESHADE_RETURN_IF_ERROR(x) if (x.is_error()) return std::move(x)
 
 }  // namespace libniceshade
