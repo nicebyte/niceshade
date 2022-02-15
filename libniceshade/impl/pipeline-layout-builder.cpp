@@ -72,7 +72,7 @@ error pipeline_layout_builder::process_resources(
 }
 
 void pipeline_layout_builder::remap_resources() {
-  uint32_t num_descriptors_of_type[NGF_PLMD_DESC_NUM_TYPES] = {0u};
+  uint32_t num_descriptors_of_type[(int)descriptor_type::INVALID] = {0u};
   for (auto& set_id_and_layout : sets_) {
     for (auto& binding_id_and_descriptor : set_id_and_layout.second.layout) {
       const uint32_t native_binding =

@@ -21,14 +21,12 @@
  */
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "libniceshade/metadata-file-writer.h"
+#include "metadata-file-writer.h"
 #include "libniceshade/impl/platform.h"
 
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-namespace libniceshade {
 
 metadata_file_writer::metadata_file_writer(const char* file_path) {
   f_ = fopen(file_path, "wb");
@@ -77,5 +75,3 @@ void metadata_file_writer::finalize() {
   fclose(f_);
   f_ = nullptr;
 }
-
-}  // namespace libniceshade

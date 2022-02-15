@@ -27,8 +27,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-namespace libniceshade {
-
 // Convenience class for generating pipeline metadata in binary format.
 class metadata_file_writer {
 public:
@@ -53,5 +51,3 @@ private:
   uint32_t*       current_section_offset_ptr_;
   uint32_t        current_offset_ = sizeof(ngf_plmd_header);
 };
-
-}  // namespace libniceshade
