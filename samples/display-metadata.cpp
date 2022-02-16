@@ -18,7 +18,7 @@ SOFTWARE.
 */
 #define _CRT_SECURE_NO_WARNINGS
 #include "metadata-parser/metadata-parser.h"
-#include "file_utils.h"
+#include "cmdline-tool/file-utils.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>

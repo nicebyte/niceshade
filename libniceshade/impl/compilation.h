@@ -24,10 +24,10 @@
 
 #include "libniceshade/common-types.h"
 #include "libniceshade/output.h"
+#include "libniceshade/target.h"
 #include "libniceshade/impl/pipeline-layout-builder.h"
 #include "libniceshade/impl/separate-to-combined-builder.h"
 #include "spirv_cross.hpp"
-#include "target.h"
 
 #include <memory>
 #include <stdint.h>
