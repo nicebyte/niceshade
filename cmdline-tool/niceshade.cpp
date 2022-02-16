@@ -40,7 +40,7 @@
 #include <vector>
 
 const char *USAGE = R"RAW(
-Usage: ngf_shaderc <input file name> [options] -- [dxc options]
+Usage: niceshade <input file name> [options] -- [dxc options]
 
 A wrapper for Microsoft DirectX Shader Compiler and SPIRV-Cross that compiles
 HLSL shaders for multiple different targets.
