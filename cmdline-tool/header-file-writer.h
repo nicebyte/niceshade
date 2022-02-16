@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <algorithm>
 #include <string>
-#include "file_utils.h"
+#include "cmdline-tool/file-utils.h"
 #include "libniceshade/pipeline-layout.h"
 
 using namespace libniceshade;
