@@ -1,6 +1,6 @@
 # niceshade
 
-[![Build status](https://ci.appveyor.com/api/projects/status/ny9j8k6869artsrd?svg=true)](https://ci.appveyor.com/project/nicebyte/nicegraf-shaderc)
+[![Build status](https://ci.appveyor.com/api/projects/status/ny9j8k6869artsrd?svg=true)](https://ci.appveyor.com/project/nicebyte/niceshade)
 
 # User Manual
 
@@ -31,7 +31,7 @@ The input HLSL files may contain definitions of several entry points for differe
 As an example, here is a shader that calculates the relative luminance of each pixel in an image. For demonstration purposes, it allows to optionally apply gamma correction to input and/or output.
 
 ```cpp
-// The comments below are recognized by nicegraf-shaderc as technique definitions.
+// The comments below are recognized by niceshade as technique definitions.
 //T: relative-luminance vs:VSMain ps:PSMain define:OUTPUT_NEEDS_GAMMA_CORRECTION=1 define:INPUT_NEEDS_GAMMA_CORRECTION=1
 //T: relative-luminance-srgb-texture vs:VSMain ps:PSMain define:OUTPUT_NEEDS_GAMMA_CORRECTION=1
 //T: relative-luminance-srgb-framebuffer vs:VSMain ps:PSMain define:INPUT_NEEDS_GAMMA_CORRECTION=1
@@ -82,7 +82,7 @@ You will need to have `git` and `cmake` installed on your system.  On Windows, b
 
 Execute the following command to clone the project's repository:
 
-`git clone https://github.com/nicebyte/nicegraf-shaderc.git`
+`git clone https://github.com/nicebyte/niceshade.git`
 
 Once the cloning process is complete, execute the following commands from the root of the repository:
 
@@ -242,7 +242,7 @@ See [here](https://github.com/Microsoft/DirectXShaderCompiler/blob/master/docs/S
 <a name="metadata-format"></a>
 ## Pipeline Metadata File Format
 
-For each technique described in the input file, `nicegraf-shaderc` emits a file containing information that can be leveraged to simplify pipeline creation. This data includes:
+For each technique described in the input file, `niceshade` emits a file containing information that can be leveraged to simplify pipeline creation. This data includes:
 
 * Description of the pipeline layout;
 * Mapping from separate image and sampler bindings to their corresponding auto-generated combined image/sampler bindings (for platforms that don't have full separation between textures and samplers, i.e. OpenGL);
