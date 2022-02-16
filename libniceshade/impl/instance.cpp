@@ -30,9 +30,14 @@
 
 namespace libniceshade {
 
-instance::instance(const instance::options& opts)
-    : dxc_ {new dxc_wrapper{}} {
-  *dxc_ = std::move(dxc_wrapper::create(opts.shader_model, opts.dxc_params, opts.dxc_lib_folder).get());
+value_or_error<instance> instance::create(const instance::options& opts) {
+  instance result;
+  result.dxc_ = new dxc_wrapper{};
+  NICESHADE_DECLARE_OR_RETURN(
+      dxc,
+      dxc_wrapper::create(opts.shader_model, opts.dxc_params, opts.dxc_lib_folder));
+  *(result.dxc_) = std::move(dxc);
+  return result;
 }
 
 instance::~instance() { if (dxc_) delete dxc_; }

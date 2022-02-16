@@ -50,8 +50,10 @@ private:
 
 template<class ValueT> class value_or_error : public error {
 public:
-  value_or_error(ValueT&& val) : val_ {std::forward<ValueT>(val)} {}
+  value_or_error(ValueT&& val) : val_ {std::move(val)} {}
   value_or_error(error&& err) : error {std::move(err)} {}
+  value_or_error(value_or_error&) = delete;
+  value_or_error& operator=(value_or_error&) = delete;
 
   ValueT&       get() { return val_; }
   const ValueT& get() const { return val_; }

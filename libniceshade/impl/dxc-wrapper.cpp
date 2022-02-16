@@ -86,7 +86,7 @@ value_or_error<dxc_wrapper> dxc_wrapper::create(
   });
 
   result.include_handler_ = com_ptr<IDxcIncludeHandler>(
-      [&](auto ptr) { return library_instance_->CreateIncludeHandler(ptr); });
+      [&](auto ptr) { return result.library_instance_->CreateIncludeHandler(ptr); });
   return result;
 }
 

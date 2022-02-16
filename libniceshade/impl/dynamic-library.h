@@ -50,6 +50,7 @@ class dynamic_lib {
   dynamic_lib& operator=(dynamic_lib&& other) {
     h_ = other.h_;
     other.h_ = nullptr;
+    return *this;
   }
 
   bool is_valid() const { return h_ == nullptr; }

@@ -189,7 +189,15 @@ int main(int argc, const char *argv[]) {
   std::string input_source = read_file(input_file_path.c_str());
   input_source.push_back('\n');
 
-  instance inst{instance::options{shader_model, span<std::string>{dxc_options.data(), dxc_options.size()}, exe_dir}};
+  value_or_error<instance> maybe_inst = instance::create(instance::options {
+      shader_model,
+      span<std::string> {dxc_options.data(), dxc_options.size()},
+      exe_dir});
+  if (maybe_inst.is_error()) {
+    fprintf(stderr, "%s", maybe_inst.error_message().c_str());
+    exit(1);
+  }
+  instance& inst = maybe_inst.get();
 
   auto maybe_results = inst.parse_techniques_and_compile(
       const_span<std::byte> {(std::byte*)input_source.data(), input_source.size()},

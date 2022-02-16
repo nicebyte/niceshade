@@ -44,10 +44,17 @@ public:
         std::string dxc_lib_folder = "./";
     };
 
-    explicit instance(const options& opts);
+    static value_or_error<instance> create(const options& opts);
+    instance() = default;
     ~instance();
     instance(const instance&) = delete;
     instance& operator=(const instance&) = delete;
+    instance(instance&& other) { *this = std::move(other); }
+    instance& operator=(instance&& other) {
+      dxc_       = other.dxc_;
+      other.dxc_ = nullptr;
+      return *this;
+    }
 
     value_or_error<compiled_techniques> compile(const_span<compiler_input> compiler_inputs, const_span<target_desc> targets);
     value_or_error<descs_and_compiled_techniques> parse_techniques_and_compile(
