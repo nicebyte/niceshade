@@ -1,4 +1,4 @@
-<img src="https://github.com/nicebyte/nicegraf-shaderc/blob/master/nicegraf-shaderc.png?raw=true"/>
+# niceshade
 
 [![Build status](https://ci.appveyor.com/api/projects/status/ny9j8k6869artsrd?svg=true)](https://ci.appveyor.com/project/nicebyte/nicegraf-shaderc)
 
@@ -19,7 +19,7 @@
 <a name="intro"></a>
 ## Introduction
 
-**nicegraf-shaderc** is a command-line tool that transforms HLSL code into shaders for various graphics APIs. Presently, the following APIs can be targeted:
+**niceshade** is a library and a command-line tool that transforms HLSL code into shaders for various graphics APIs. Presently, the following APIs can be targeted:
 
 * OpenGL 4.3
 * OpenGL ES 3.1+
