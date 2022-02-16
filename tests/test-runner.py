@@ -18,7 +18,7 @@ def main(argv):
     LOG.critical("missing the golden folder")
     sys.exit(1)
   exe_ext = '.exe' if platform.system() == 'Windows' else ''
-  compiler_binary = cwd / '..' / ('nicegraf_shaderc' + exe_ext)
+  compiler_binary = cwd / '..' / ('niceshade' + exe_ext)
   if not compiler_binary.is_file():
     LOG.critical("missing compiler binary")
     sys.exit(1)
