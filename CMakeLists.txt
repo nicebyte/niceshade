@@ -90,7 +90,7 @@ if (NOT WIN32)
 endif()
 set_output_dir(niceshade ${CMAKE_CURRENT_LIST_DIR})
 
-add_executable(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples/display_metadata.cpp ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/file-utils.cpp)
+add_executable(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples/display-metadata.cpp ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/file-utils.cpp)
 target_include_directories(display_metadata PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(display_metadata PRIVATE metadata-parser)
 set_output_dir(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples)
