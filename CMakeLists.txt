@@ -70,16 +70,18 @@ target_link_libraries(libniceshade
     dxc-headers metadata-parser spirv-cross-core spirv-cross-reflect)
 
 set(NICEGRAF_SHADERC_SOURCES
-    ${CMAKE_CURRENT_LIST_DIR}/metadata-file-writer.h
-    ${CMAKE_CURRENT_LIST_DIR}/metadata-file-writer.cpp
-	  ${CMAKE_CURRENT_LIST_DIR}/header_file_writer.h
-    ${CMAKE_CURRENT_LIST_DIR}/nicegraf_shaderc.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/file_utils.h 
-    ${CMAKE_CURRENT_LIST_DIR}/file_utils.cpp)
+    ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/metadata-file-writer.h
+    ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/metadata-file-writer.cpp
+	  ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/header-file-writer.h
+    ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/niceshade.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/target-list.h
+    ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/file-utils.h 
+    ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/file-utils.cpp)
 
 add_executable(nicegraf_shaderc ${NICEGRAF_SHADERC_SOURCES})
 target_include_directories(nicegraf_shaderc PRIVATE 
-    ${CMAKE_CURRENT_LIST_DIR}/../library/include)
+    ${CMAKE_CURRENT_LIST_DIR}/../library/include
+    ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(nicegraf_shaderc
   libniceshade
   spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl)
@@ -88,7 +90,7 @@ if (NOT WIN32)
 endif()
 set_output_dir(nicegraf_shaderc ${CMAKE_CURRENT_LIST_DIR})
 
-add_executable(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples/display_metadata.cpp ${CMAKE_CURRENT_LIST_DIR}/file_utils.cpp)
+add_executable(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples/display_metadata.cpp ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/file-utils.cpp)
 target_include_directories(display_metadata PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(display_metadata PRIVATE metadata-parser)
 set_output_dir(display_metadata ${CMAKE_CURRENT_LIST_DIR}/samples)

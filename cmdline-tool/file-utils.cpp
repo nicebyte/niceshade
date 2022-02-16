@@ -17,7 +17,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #define _CRT_SECURE_NO_WARNINGS
-#include "file_utils.h"
+#include "cmdline-tool/file-utils.h"
 
 #include <stdlib.h>
 #include <stdio.h>
