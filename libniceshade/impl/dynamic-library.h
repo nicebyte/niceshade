@@ -46,16 +46,20 @@ class dynamic_lib {
 
   dynamic_lib& operator=(const dynamic_lib&) = delete;
 
-  bool is_valid() const {
-    return h_ == nullptr;
+  dynamic_lib(dynamic_lib&& other) { *this = std::move(other); }
+  dynamic_lib& operator=(dynamic_lib&& other) {
+    h_ = other.h_;
+    other.h_ = nullptr;
   }
+
+  bool is_valid() const { return h_ == nullptr; }
 
   LPVOID get_proc_address(LPCSTR name) const {
     return GetProcAddress(h_, name);
   }
 
   private:
-  ModuleHandle h_ = NULL;
+  ModuleHandle h_ = nullptr;
 };
 
 }  // namespace libniceshade
