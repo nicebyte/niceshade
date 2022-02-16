@@ -91,14 +91,14 @@ mkdir build
 cd build
 cmake .. -Ax64
 ```
-This will generate project files specific to your system in the `build` folder. After building the generated project, the `nicegraf_shaderc` binary can be found in the repository's root folder.
+This will generate project files specific to your system in the `build` folder. After building the generated project, the `niceshade` binary can be found in the repository's root folder.
 
 <a name="running"></a>
 ## Running
 
 To transform an input HLSL file to platform-specific shaders, execute:
 
-`nicegraf_shaderc <input file name> <options>`
+`niceshade <input file name> <options>`
 
 Valid command line options are:
 
@@ -128,7 +128,7 @@ Shaders will be generated for each of the techniques specified in the input file
 
 For example, the following line will produce OpenGL 4.3 and Metal 1.2 shaders for each technique defined in `input.hlsl`, in the `generated_shaders/` subfolder:
 
-`nicegraf_shaderc input.hlsl -O generated_shaders/ -t gl430 -t msl12`
+`niceshade input.hlsl -O generated_shaders/ -t gl430 -t msl12`
 
 <a name="techniques"></a>
 ## Defining Techniques
@@ -213,7 +213,7 @@ namespace imgui {
 <a name="pipeline-metadata"></a>
 ## Pipeline Metadata
 
-For each technique defined in the input file, **nicegraf_shaderc** will produce a corresponding `.pipeline` file, which contains the following information:
+For each technique defined in the input file, **niceshade** will produce a corresponding `.pipeline` file, which contains the following information:
 
 * List of all resources consumed by the technique, including their types, bindings and which pipeline stages they are used by;
 * A mapping from separate image and sampler bindings to auto-generated combined image/sampler bindings (relevant for targets which don't have full separation between textures and samplers at the shader level, i.e. OpenGL);
