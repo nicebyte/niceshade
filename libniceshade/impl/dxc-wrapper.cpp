@@ -52,40 +52,42 @@ std::wstring towstring(const char* src, size_t len) {
 
 namespace libniceshade {
 
-dxc_wrapper::dxc_wrapper(
+value_or_error<dxc_wrapper> dxc_wrapper::create(
     const std::string& sm,
     span<std::string>  dxc_params,
-    const std::string& exe_dir)
-    : shader_model_(towstring(sm.c_str(), sm.length())),
-      dxcompiler_dll_(get_dxc_lib_path_candidates(exe_dir)) {
-  dxc_params_.emplace_back(L"-spirv"); // always enable spir-v codegen.
+    const std::string& exe_dir) {
+  dxc_wrapper result;
+  result.shader_model_ = towstring(sm.c_str(), sm.length());
+  result.dxcompiler_dll_ = get_dxc_lib_path_candidates(exe_dir);
+  result.dxc_params_.emplace_back(L"-spirv"); // always enable spir-v codegen.
   // Convert dxc parameters to wide string.
   for (const std::string& dxc_param : dxc_params) {
     wchar_t* wide_dxc_param = new wchar_t[dxc_param.size() + 1u];
     std::mbstowcs(wide_dxc_param, dxc_param.c_str(), dxc_param.length() + 1u);
-    dxc_params_.emplace_back(wide_dxc_param);
+    result.dxc_params_.emplace_back(wide_dxc_param);
   }
 
   // Verify that the dymamic library could be loaded.
-  if (dxcompiler_dll_.is_valid()) {
+  if (result.dxcompiler_dll_.is_valid()) {
     fprintf(stderr, "dxcompiler library not loaded (exe dir was \"%s\").\n", exe_dir.c_str());
     exit(1);
   }
 
   // Look up the function for creating an instance of the library.
-  auto create_proc = (DxcCreateInstanceProc)dxcompiler_dll_.get_proc_address("DxcCreateInstance");
-  if (nullptr == create_proc) { exit(1); }
+  auto create_proc = (DxcCreateInstanceProc)result.dxcompiler_dll_.get_proc_address("DxcCreateInstance");
+  if (nullptr == create_proc) { NICESHADE_RETURN_ERROR("failed to load DxcCreateInstance"); }
 
   // Instantiate library, compiler and include handler.
-  library_instance_ = com_ptr<IDxcLibrary>(
+  result.library_instance_ = com_ptr<IDxcLibrary>(
       [&](auto ptr) { return create_proc(CLSID_DxcLibrary, __uuidof(IDxcLibrary), (LPVOID*)ptr); });
 
-  compiler_instance_ = com_ptr<IDxcCompiler>([&](auto ptr) {
+  result.compiler_instance_ = com_ptr<IDxcCompiler>([&](auto ptr) {
     return create_proc(CLSID_DxcCompiler, __uuidof(IDxcCompiler), (LPVOID*)ptr);
   });
 
-  include_handler_ = com_ptr<IDxcIncludeHandler>(
+  result.include_handler_ = com_ptr<IDxcIncludeHandler>(
       [&](auto ptr) { return library_instance_->CreateIncludeHandler(ptr); });
+  return result;
 }
 
 value_or_error<spirv_blob> dxc_wrapper::compile_hlsl2spv(
