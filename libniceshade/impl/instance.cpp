@@ -64,7 +64,9 @@ instance::compile(const_span<compiler_input> inputs, const_span<target_desc> tar
       for (const target_desc& target_info : targets) {
         for (const technique_desc::entry_point& ep : tech.entry_points) {
           const intptr_t ep_idx = &ep - tech.entry_points.data();
-          compilations.emplace_back(ep.stage, spirv_blobs[ep_idx], target_info);
+          NICESHADE_DECLARE_OR_RETURN(new_compilation,
+                                      compilation::create(ep.stage, spirv_blobs[ep_idx], target_info));
+          compilations.emplace_back(std::move(new_compilation));
           compilations.back().add_resources_to_pipeline_layout(res_layout_builder);
           compilations.back().add_cis_to_map(image_map_builder, sampler_map_builder);
         }

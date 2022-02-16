@@ -60,6 +60,7 @@ private:
   ValueT val_ {};
 };
 
+#define NICESHADE_DECLARE_OR_RETURN(var_name, expr) auto maybe_##var_name = expr; if (maybe_##var_name.is_error()) return std::move(maybe_##var_name); auto var_name = std::move(maybe_##var_name.get())
 #define NICESHADE_RETURN_ERROR(...) return error(__VA_ARGS__)
 
 #define NICESHADE_RETURN_IF_ERROR(x) if (x.is_error()) return std::move(x)

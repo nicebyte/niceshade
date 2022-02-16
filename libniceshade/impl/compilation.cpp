@@ -29,14 +29,13 @@
 
 namespace libniceshade {
 
-compilation::compilation(
-    pipeline_stage     stage,
-    const spirv_blob&       spirv_code,
-    const target_desc& target_info)
-    : target_info_(target_info),
-      stage_(stage),
-      original_spirv_(std::move(spirv_code)) {
-  switch (target_info_.api) {
+value_or_error<compilation>
+compilation::create(pipeline_stage stage, const spirv_blob& spirv_code, const target_desc& target_info) {
+  compilation result;
+  result.target_info_ = target_info;
+  result.stage_ = stage;
+  result.original_spirv_ = &spirv_code;
+  switch (result.target_info_.api) {
   case target_api::GL: {
     auto gl_compiler =
         std::make_unique<spirv_cross::CompilerGLSL>(spirv_code.data(), spirv_code.size());
@@ -47,11 +46,11 @@ compilation::compilation(
     gl_compiler->set_common_options(opts);
     gl_compiler->build_dummy_sampler_for_combined_images();
     gl_compiler->build_combined_image_samplers();
-    spv_cross_compiler_ = std::move(gl_compiler);
+    result.spv_cross_compiler_ = std::move(gl_compiler);
     break;
   }
   case target_api::VULKAN: {
-    spv_cross_compiler_ =
+    result.spv_cross_compiler_ =
         std::make_unique<spirv_cross::CompilerReflection>(spirv_code.data(), spirv_code.size());
     break;
   }
@@ -69,28 +68,29 @@ compilation::compilation(
         ios ? spirv_cross::CompilerMSL::Options::iOS : spirv_cross::CompilerMSL::Options::macOS;
     opts.enable_decoration_binding = true;
     msl_compiler->set_msl_options(opts);
-    spv_cross_compiler_ = std::move(msl_compiler);
+    result.spv_cross_compiler_ = std::move(msl_compiler);
     break;
   }
-  default: assert(false);
+  default: NICESHADE_RETURN_ERROR("unsupported API target");
   }
 
   // Assign human-readable names to combined image samplers, and set appropriate
   // binding and set decorations for them.
   const spirv_cross::SmallVector<spirv_cross::CombinedImageSampler>& cis_array =
-      spv_cross_compiler_->get_combined_image_samplers();
+      result.spv_cross_compiler_->get_combined_image_samplers();
   for (uint32_t cis_idx = 0u; cis_idx < cis_array.size(); ++cis_idx) {
     const spirv_cross::CombinedImageSampler& cis = cis_array[cis_idx];
-    spv_cross_compiler_->set_name(
+    result.spv_cross_compiler_->set_name(
         cis.combined_id,
-        spv_cross_compiler_->get_name(cis.image_id) + "_" +
-            spv_cross_compiler_->get_name(cis.sampler_id));
-    spv_cross_compiler_->set_decoration(cis.combined_id, spv::DecorationBinding, cis_idx);
-    spv_cross_compiler_->set_decoration(
+        result.spv_cross_compiler_->get_name(cis.image_id) + "_" +
+            result.spv_cross_compiler_->get_name(cis.sampler_id));
+    result.spv_cross_compiler_->set_decoration(cis.combined_id, spv::DecorationBinding, cis_idx);
+    result.spv_cross_compiler_->set_decoration(
         cis.combined_id,
         spv::DecorationDescriptorSet,
         AUTOGEN_CIS_DESCRIPTOR_SET);
   }
+  return result;
 }
 
 void compilation::add_cis_to_map(
@@ -124,7 +124,7 @@ value_or_error<compilation_result> compilation::run(const pipeline_layout& layou
   try {
     return (target_info_.api != target_api::VULKAN)
                ? compilation_result {spv_cross_compiler_->compile() + layout.native_binding_map_string()}
-               : compilation_result {original_spirv_};
+               : compilation_result {*original_spirv_};
   } catch (spirv_cross::CompilerError& ce) { NICESHADE_RETURN_ERROR(ce.what()); }
 }
 

@@ -26,7 +26,6 @@
 #include "libniceshade/output.h"
 #include "libniceshade/impl/pipeline-layout-builder.h"
 #include "libniceshade/impl/separate-to-combined-builder.h"
-#include "libniceshade/impl/technique-parser.h"
 #include "spirv_cross.hpp"
 #include "target.h"
 
@@ -39,7 +38,8 @@ namespace libniceshade {
 
 class compilation {
 public:
-  compilation(pipeline_stage kind, const spirv_blob& spirv_code, const target_desc& target_info);
+  static value_or_error<compilation>
+  create(pipeline_stage kind, const spirv_blob& spirv_code, const target_desc& target_info);
 
   void add_resources_to_pipeline_layout(pipeline_layout_builder& builder) const;
   void
@@ -52,7 +52,7 @@ private:
   target_desc                            target_info_;
   pipeline_stage                         stage_;
   std::unique_ptr<spirv_cross::Compiler> spv_cross_compiler_;
-  const spirv_blob&                      original_spirv_;
+  const spirv_blob*                      original_spirv_ = nullptr;
 };
 
 }  // namespace libniceshade
