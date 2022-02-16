@@ -49,7 +49,8 @@ public:
     bool has_diag_msg() const { return diag_message.size() > 0; }
   };
 
-  dxc_wrapper(const std::string& sm, span<std::string> dxc_params, const std::string& exe_dir);
+  static value_or_error<dxc_wrapper>
+  create(const std::string& sm, span<std::string> dxc_params, const std::string& exe_dir);
 
   value_or_error<spirv_blob> compile_hlsl2spv(
       const char*                        source,
