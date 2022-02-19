@@ -58,13 +58,13 @@ nmk_static_library(NAME libniceshade
 
 
 nmk_binary(NAME niceshade
-           SRCS ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/metadata-file-writer.h
-                ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/metadata-file-writer.cpp
-                ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/header-file-writer.h
-                ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/niceshade.cpp
-                ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/target-list.h
-                ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/file-utils.h 
-                ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/file-utils.cpp
+           SRCS ${CMAKE_CURRENT_LIST_DIR}/cli-tool/metadata-file-writer.h
+                ${CMAKE_CURRENT_LIST_DIR}/cli-tool/metadata-file-writer.cpp
+                ${CMAKE_CURRENT_LIST_DIR}/cli-tool/header-file-writer.h
+                ${CMAKE_CURRENT_LIST_DIR}/cli-tool/niceshade.cpp
+                ${CMAKE_CURRENT_LIST_DIR}/cli-tool/target-list.h
+                ${CMAKE_CURRENT_LIST_DIR}/cli-tool/file-utils.h 
+                ${CMAKE_CURRENT_LIST_DIR}/cli-tool/file-utils.cpp
            PVT_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/../library/include
                         ${CMAKE_CURRENT_LIST_DIR}
            DEPS libniceshade "$<IF:$<BOOL:${WIN32}>,,dl>"
@@ -73,7 +73,7 @@ nmk_binary(NAME niceshade
 
 nmk_binary(NAME display_metadata
            SRCS ${CMAKE_CURRENT_LIST_DIR}/samples/display-metadata.cpp
-                ${CMAKE_CURRENT_LIST_DIR}/cmdline-tool/file-utils.cpp
+                ${CMAKE_CURRENT_LIST_DIR}/cli-tool/file-utils.cpp
            DEPS metadata-parser
            PVT_INCLUDES ${CMAKE_CURRENT_LIST_DIR}
            OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/samples)

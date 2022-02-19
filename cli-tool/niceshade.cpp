@@ -24,10 +24,10 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "libniceshade/instance.h"
-#include "cmdline-tool/file-utils.h"
-#include "cmdline-tool/header-file-writer.h"
-#include "cmdline-tool/metadata-file-writer.h"
-#include "cmdline-tool/target-list.h"
+#include "cli-tool/file-utils.h"
+#include "cli-tool/header-file-writer.h"
+#include "cli-tool/metadata-file-writer.h"
+#include "cli-tool/target-list.h"
 #include "spirv_reflect.hpp"
 
 #include <ctype.h>
