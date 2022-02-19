@@ -232,6 +232,7 @@ int main(int argc, const char *argv[]) {
 
     std::string out_file_path = out_folder + PATH_SEPARATOR + tech.name;
     for (const targeted_output& target_out : compiled_tech.targeted_outputs) {
+      std::string native_binding_map_str;
       for (const compiled_stage& out_stage : target_out.stages) {
         const std::string full_out_file_path =
             out_file_path + (out_stage.stage == pipeline_stage::vertex ? ".vs." : ".ps.") +
@@ -242,6 +243,19 @@ int main(int argc, const char *argv[]) {
           exit(1);
         }
         fwrite(out_stage.result.data().begin(), 1u, out_stage.result.data().size(), out_file);
+        if (native_binding_map_str.empty()) {
+          std::ostringstream os;
+          os << "/**NGF_NATIVE_BINDING_MAP\n";
+          for (const auto& set_id_and_layout : compiled_tech.layout) {
+            for (const auto& binding_id_and_descriptor : set_id_and_layout.second) {
+              os << "(" << set_id_and_layout.first << " " << binding_id_and_descriptor.first
+                 << ") : " << binding_id_and_descriptor.second.native_binding << "\n";
+            }
+          }
+          os << "(-1 -1) : -1\n**/";
+          native_binding_map_str = os.str();
+        }
+        fwrite(native_binding_map_str.data(), 1u, native_binding_map_str.size(), out_file);
         fclose(out_file);
       }
     }

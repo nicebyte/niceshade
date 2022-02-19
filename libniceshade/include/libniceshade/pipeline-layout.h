@@ -77,10 +77,11 @@ public:
   uint32_t res_count() const { return nres_; }
 
   /// @return The layout of the n-th descriptor set.
-  const descriptor_set_layout& set(uint32_t set_id) const;
-
-  /// @return A string representation of the descriptor/set to native resource mapping.
-  std::string native_binding_map_string() const;
+  const descriptor_set_layout& set(uint32_t set_id) const {
+    static const descriptor_set_layout empty_layout {};
+    auto it = sets_.find(set_id);
+    return (it != sets_.cend()) ? it->second : empty_layout;
+  }
 
   iterator begin() const { return sets_.begin(); }
   iterator end() const { return sets_.end(); }
