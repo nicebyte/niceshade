@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <algorithm>
 #include <string>
-#include "cmdline-tool/file-utils.h"
+#include "cli-tool/file-utils.h"
 #include "libniceshade/pipeline-layout.h"
 
 class header_file_writer {
