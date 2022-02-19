@@ -27,7 +27,6 @@ nmk_header_library(NAME dxc-headers
 nmk_static_library(NAME libniceshade
                    SRCS ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/technique-parser.h
                         ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/technique-parser.cpp
-                        ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/pipeline-layout.cpp
                         ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/pipeline-layout-builder.h
                         ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/pipeline-layout-builder.cpp
                         ${CMAKE_CURRENT_LIST_DIR}/libniceshade/impl/platform.h

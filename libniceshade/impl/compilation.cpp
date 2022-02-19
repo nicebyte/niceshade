@@ -123,7 +123,7 @@ void compilation::add_resources_to_pipeline_layout(pipeline_layout_builder& buil
 value_or_error<compilation_result> compilation::run(const pipeline_layout& layout) {
   try {
     return (target_info_.api != target_api::VULKAN)
-               ? compilation_result {spv_cross_compiler_->compile() + layout.native_binding_map_string()}
+               ? compilation_result {spv_cross_compiler_->compile()}
                : compilation_result {*original_spirv_};
   } catch (spirv_cross::CompilerError& ce) { NICESHADE_RETURN_ERROR(ce.what()); }
 }
