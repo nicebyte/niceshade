@@ -63,7 +63,7 @@ private:
     std::map<uint64_t, std::vector<descriptor_usage>> descriptor_usages_;
   };
 
-  std::map<uint32_t, pipeline_layout::descriptor_set>
+  std::map<uint32_t, descriptor_set_layout>
                        sets_;  // shouldn't be undordered_map to guarantee consistent order.
   descriptor_usage_map desc_usages_;
   uint32_t             max_set_ = 0u;  // Max set number encountered.

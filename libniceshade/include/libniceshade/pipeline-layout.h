@@ -66,6 +66,10 @@ using descriptor_set_layout = std::map<uint32_t, descriptor>;
 class pipeline_layout {
   friend class pipeline_layout_builder;
 public:
+  /// Iterator for the contents for the pipeline layout. Points to a pair of descriptor set index
+  /// and descriptor set layout.
+  using iterator = std::map<uint32_t, descriptor_set_layout>::const_iterator;
+
   /// @return The total number of descriptor sets in the layout.
   uint32_t set_count() const { return max_set_ + 1; }
 
@@ -78,12 +82,10 @@ public:
   /// @return A string representation of the descriptor/set to native resource mapping.
   std::string native_binding_map_string() const;
 
+  iterator begin() const { return sets_.begin(); }
+  iterator end() const { return sets_.end(); }
 private:
-  struct descriptor_set {
-    uint32_t              slot = 0u;
-    descriptor_set_layout layout;
-  };
-  std::map<uint32_t, descriptor_set> sets_; // shouldn't be unordered_map to guarantee consistent order.
+  std::map<uint32_t, descriptor_set_layout> sets_;   // shouldn't be unordered_map to guarantee consistent order.
   uint32_t                           max_set_ = 0u;  // Max set number encountered.
   uint32_t                           nres_    = 0u;  // Total number of resources.
 };

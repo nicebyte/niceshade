@@ -43,9 +43,7 @@ error pipeline_layout_builder::process_resources(
     uint32_t set_idx     = refl.get_decoration(r.id, spv::DecorationDescriptorSet);
     uint32_t binding_idx = refl.get_decoration(r.id, spv::DecorationBinding);
     max_set_            = max_set_ < set_idx ? set_idx : max_set_;
-    pipeline_layout::descriptor_set& set = sets_[set_idx];
-    set.slot            = set_idx;
-    descriptor& desc    = set.layout[binding_idx];
+    descriptor& desc    = sets_[set_idx][binding_idx];
     if (desc.type == descriptor_type::INVALID) {
       // This resource hasn't been encountered before.
       desc.slot = binding_idx;
@@ -74,7 +72,7 @@ error pipeline_layout_builder::process_resources(
 void pipeline_layout_builder::remap_resources() {
   uint32_t num_descriptors_of_type[(int)descriptor_type::INVALID] = {0u};
   for (auto& set_id_and_layout : sets_) {
-    for (auto& binding_id_and_descriptor : set_id_and_layout.second.layout) {
+    for (auto& binding_id_and_descriptor : set_id_and_layout.second) {
       const uint32_t native_binding =
           (num_descriptors_of_type[(int)binding_id_and_descriptor.second.type])++;
       binding_id_and_descriptor.second.native_binding = native_binding;
