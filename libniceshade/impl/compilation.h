@@ -34,7 +34,7 @@
 #include <string>
 #include <vector>
 
-namespace libniceshade {
+namespace niceshade {
 
 class compilation {
 public:
@@ -55,4 +55,4 @@ private:
   const spirv_blob*                      original_spirv_ = nullptr;
 };
 
-}  // namespace libniceshade
+}  // namespace niceshade

@@ -22,7 +22,7 @@
 
 #pragma once
 
-namespace libniceshade {
+namespace niceshade {
 
 // Technique description.
 struct technique_desc {
@@ -36,4 +36,4 @@ struct technique_desc {
   std::vector<std::pair<std::string, std::string>> additional_metadata;
 };
 
-}  // namespace libniceshade
+}  // namespace niceshade

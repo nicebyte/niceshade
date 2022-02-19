@@ -28,7 +28,7 @@
 #include <utility>
 #include <vector>
 
-namespace libniceshade {
+namespace niceshade {
 
 enum class pipeline_stage { vertex, fragment };
 
@@ -40,4 +40,4 @@ using spirv_blob = std::vector<uint32_t>;
 
 using input_blob = const_span<std::byte>;
 
-}  // namespace libniceshade
+}  // namespace niceshade

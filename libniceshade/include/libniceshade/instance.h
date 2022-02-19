@@ -32,7 +32,7 @@
 #include <vector>
 #include <stdint.h>
 
-namespace libniceshade {
+namespace niceshade {
 
 class dxc_wrapper;
 

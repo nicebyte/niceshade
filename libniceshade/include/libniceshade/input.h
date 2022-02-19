@@ -30,7 +30,7 @@
 #include <cstddef>
 #include <stdint.h>
 
-namespace libniceshade {
+namespace niceshade {
 
 struct compiler_input {
   input_blob                 hlsl;

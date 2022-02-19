@@ -27,7 +27,7 @@
 #include <utility>
 #include <assert.h>
 
-namespace libniceshade {
+namespace niceshade {
 
 class error {
 public:
@@ -67,4 +67,4 @@ private:
 
 #define NICESHADE_RETURN_IF_ERROR(x) if (x.is_error()) return std::move(x)
 
-}  // namespace libniceshade
+}  // namespace niceshade

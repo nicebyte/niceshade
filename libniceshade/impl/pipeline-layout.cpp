@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-namespace libniceshade {
+namespace niceshade {
 
 void pipeline_layout::dump_native_binding_map(FILE* f) const {
   fprintf(f, "/**NGF_NATIVE_BINDING_MAP\n");
@@ -68,4 +68,4 @@ const descriptor_set_layout& pipeline_layout::set(uint32_t set_id) const {
 }
 
 
-}  // namespace libniceshade
+}  // namespace niceshade

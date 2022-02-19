@@ -26,7 +26,7 @@
 
 #include "libniceshade/impl/platform.h"
 
-namespace libniceshade {
+namespace niceshade {
 
 class dynamic_lib {
   public:
@@ -63,4 +63,4 @@ class dynamic_lib {
   ModuleHandle h_ = nullptr;
 };
 
-}  // namespace libniceshade
+}  // namespace niceshade

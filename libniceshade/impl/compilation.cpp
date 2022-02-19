@@ -27,7 +27,7 @@
 #include "spirv_glsl.hpp"
 #include "spirv_msl.hpp"
 
-namespace libniceshade {
+namespace niceshade {
 
 value_or_error<compilation>
 compilation::create(pipeline_stage stage, const spirv_blob& spirv_code, const target_desc& target_info) {
@@ -128,4 +128,4 @@ value_or_error<compilation_result> compilation::run(const pipeline_layout& layou
   } catch (spirv_cross::CompilerError& ce) { NICESHADE_RETURN_ERROR(ce.what()); }
 }
 
-}  // namespace libniceshade
+}  // namespace niceshade

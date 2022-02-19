@@ -25,7 +25,7 @@
 #include <stdint.h>
 #include <string>
 
-namespace libniceshade {
+namespace niceshade {
 // Target API class.
 enum class target_api { GL, METAL, VULKAN };
 
@@ -49,4 +49,4 @@ struct target_desc {
 
 std::string file_ext_for_target(const target_desc& target);
 
-}  // namespace libniceshade
+}  // namespace niceshade

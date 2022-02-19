@@ -22,7 +22,7 @@
 
 #include "libniceshade/impl/pipeline-layout-builder.h"
 
-namespace libniceshade {
+namespace niceshade {
 
 namespace {
 
@@ -105,4 +105,4 @@ value_or_error<pipeline_layout> pipeline_layout_builder::build() {
   return std::move(layout);
 }
 
-}  // namespace libniceshade
+}  // namespace niceshade

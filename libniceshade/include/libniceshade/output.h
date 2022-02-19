@@ -33,7 +33,7 @@
 #include <variant>
 #include <vector>
 
-namespace libniceshade {
+namespace niceshade {
 
 class compilation_result {
   friend class compilation;
@@ -87,4 +87,4 @@ struct compiled_technique {
 using compiled_techniques           = std::vector<compiled_technique>;
 using parsed_technique_descs        = std::vector<technique_desc>;
 using descs_and_compiled_techniques = std::tuple<parsed_technique_descs, compiled_techniques>;
-}  // namespace libniceshade
+}  // namespace niceshade
