@@ -39,6 +39,8 @@
 #include <string>
 #include <vector>
 
+using namespace niceshade;
+
 const char *USAGE = R"RAW(
 Usage: niceshade <input file name> [options] -- [dxc options]
 

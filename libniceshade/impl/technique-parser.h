@@ -29,8 +29,8 @@
 #include <string>
 #include <vector>
 
-namespace libniceshade {
+namespace niceshade {
 value_or_error<std::vector<technique_desc>>
 parse_techniques(input_blob input_source, const define_container& default_defines);
 
-}  // namespace libniceshade
+}  // namespace niceshade

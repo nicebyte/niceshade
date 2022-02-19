@@ -28,8 +28,6 @@
 #include "cmdline-tool/file-utils.h"
 #include "libniceshade/pipeline-layout.h"
 
-using namespace libniceshade;
-
 class header_file_writer {
 public:
   header_file_writer(const std::string &f,
@@ -65,12 +63,12 @@ public:
     if(file_) fprintf(file_, "}\n");
   }
 
-  void write_descriptor(const descriptor &d, uint32_t set_id) {
+  void write_descriptor(const niceshade::descriptor &d, uint32_t set_id) {
     if(file_) {
       // HACK remove `type.` prefix inserted by DXC from uniform buffer
       // names.
       const bool is_ubo = 
-        d.type == descriptor_type::UNIFORM_BUFFER;
+        d.type == niceshade::descriptor_type::UNIFORM_BUFFER;
       const char *descriptor_name =
           is_ubo && d.name.substr(0, 5) == "type." ? &d.name[5] : d.name.c_str();
 

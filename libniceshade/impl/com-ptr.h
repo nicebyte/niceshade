@@ -28,7 +28,7 @@
 
 #include <type_traits>
 
-namespace libniceshade {
+namespace niceshade {
 
 /* COM pointer wrapper. */
 template<class T> class com_ptr {
@@ -91,4 +91,4 @@ template<class T> class com_ptr {
   T* ptr_ = nullptr;
 };
 
-}  // namespace libniceshade
+}  // namespace niceshade

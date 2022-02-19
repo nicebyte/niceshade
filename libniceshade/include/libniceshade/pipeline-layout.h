@@ -27,7 +27,7 @@
 #include <vector>
 #include <map>
 
-namespace libniceshade {
+namespace niceshade {
 // Indicates the type of resource accessed by a programmable shader stage.
 enum class descriptor_type {
   UNIFORM_BUFFER      = 0, // NGF_PLMD_DESC_UNIFORM_BUFFER,
@@ -87,4 +87,4 @@ private:
 };
 
 constexpr uint32_t AUTOGEN_CIS_DESCRIPTOR_SET = 9999u;
-}  // namespace libniceshade
+}  // namespace niceshade

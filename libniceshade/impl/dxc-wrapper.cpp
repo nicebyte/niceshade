@@ -50,7 +50,7 @@ std::wstring towstring(const char* src, size_t len) {
 }
 }  // namespace
 
-namespace libniceshade {
+namespace niceshade {
 
 value_or_error<dxc_wrapper> dxc_wrapper::create(
     const std::string& sm,
@@ -167,4 +167,4 @@ value_or_error<spirv_blob> dxc_wrapper::compile_hlsl2spv(
   }
 }
 
-}  // namespace libniceshade
+}  // namespace niceshade

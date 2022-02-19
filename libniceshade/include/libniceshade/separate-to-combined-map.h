@@ -28,7 +28,7 @@
 #include <set>
 #include <stdint.h>
 
-namespace libniceshade {
+namespace niceshade {
 
 struct set_and_binding {
   uint32_t set;
@@ -40,4 +40,4 @@ struct set_and_binding {
 
 using separate_to_combined_map =  std::map<set_and_binding, std::set<uint32_t>>;
 
-}  // namespace libniceshade
+}  // namespace niceshade

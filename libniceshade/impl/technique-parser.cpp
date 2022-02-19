@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-namespace libniceshade {
+namespace niceshade {
 
 // States of the technique parser.
 enum class technique_parser_state {
@@ -219,4 +219,4 @@ parse_techniques(input_blob input_source, const define_container &default_define
   return techniques;
 }
 
-}  // namespace libniceshade
+}  // namespace niceshade

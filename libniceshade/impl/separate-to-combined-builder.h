@@ -24,7 +24,7 @@
 
 #include "libniceshade/separate-to-combined-map.h"
 
-namespace libniceshade {
+namespace niceshade {
 
 class separate_to_combined_builder {
 public:

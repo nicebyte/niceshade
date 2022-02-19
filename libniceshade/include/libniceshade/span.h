@@ -24,7 +24,7 @@
 
 #include <stddef.h>
 
-namespace libniceshade {
+namespace niceshade {
 
 template<class T> class span {
 public:
@@ -50,4 +50,4 @@ private:
 
 template<class T> using const_span = span<const T>;
 
-}  // namespace libniceshade
+}  // namespace niceshade

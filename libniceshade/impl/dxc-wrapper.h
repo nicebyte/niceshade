@@ -36,7 +36,7 @@
 #include <string>
 #include <vector>
 
-namespace libniceshade {
+namespace niceshade {
 
 class dxc_wrapper {
 public:
@@ -68,4 +68,4 @@ private:
   std::vector<LPCWSTR>        dxc_params_;
 };
 
-}  // namespace libniceshade
+}  // namespace niceshade

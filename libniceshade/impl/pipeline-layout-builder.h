@@ -29,7 +29,7 @@
 #include <map>
 #include <vector>
 
-namespace libniceshade {
+namespace niceshade {
 
 class pipeline_layout_builder {
 public:
@@ -70,4 +70,4 @@ private:
   uint32_t             nres_    = 0u;  // Total number of resources.
 };
 
-}  // namespace libniceshade
+}  // namespace niceshade

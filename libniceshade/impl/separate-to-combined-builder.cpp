@@ -22,7 +22,7 @@
 
 #include "libniceshade/impl/separate-to-combined-builder.h"
 
-namespace libniceshade {
+namespace niceshade {
 
 void separate_to_combined_builder::add_resource(
     uint32_t                     separate_id,

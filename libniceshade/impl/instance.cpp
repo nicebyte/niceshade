@@ -28,7 +28,7 @@
 #include "libniceshade/impl/separate-to-combined-builder.h"
 #include "libniceshade/impl/technique-parser.h"
 
-namespace libniceshade {
+namespace niceshade {
 
 value_or_error<instance> instance::create(const instance::options& opts) {
   instance result;
@@ -134,4 +134,4 @@ value_or_error<descs_and_compiled_techniques> instance::parse_techniques_and_com
       std::move(maybe_compiled_techniques.get()));
 }
 
-}  // namespace libniceshade
+}  // namespace niceshade

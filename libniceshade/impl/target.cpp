@@ -22,7 +22,7 @@
 
 #include "libniceshade/target.h"
 
-namespace libniceshade {
+namespace niceshade {
 
 std::string file_ext_for_target(const target_desc& target) {
   const bool is_mobile = target.platform == target_platform_class::MOBILE;
@@ -38,4 +38,4 @@ std::string file_ext_for_target(const target_desc& target) {
   return "unknown";
 }
 
-}  // namespace libniceshade
+}  // namespace niceshade
