@@ -30,14 +30,16 @@
 
 namespace niceshade {
 
+/// Enumerates the supported types of programmable pipeline stages.
 enum class pipeline_stage { vertex, fragment };
 
-// Stores a sequence of preprocessor definitions.
+/// Stores a sequence of preprocessor definitions.
 using define_container = std::vector<std::pair<std::string, std::string>>;
 
-// A blob of spirv code.
+/// A blob of spirv code.
 using spirv_blob = std::vector<uint32_t>;
 
+/// A blob of input data.
 using input_blob = const_span<std::byte>;
 
 }  // namespace niceshade
