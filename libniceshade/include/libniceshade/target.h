@@ -26,7 +26,8 @@
 #include <string>
 
 namespace niceshade {
-// Target API class.
+
+/// Target API class.
 enum class target_api { GL, METAL, VULKAN };
 
 // Device type that a target API runs on.
@@ -34,12 +35,12 @@ enum class target_platform_class { DONTCARE, DESKTOP, MOBILE };
 
 // Information about a compilation target.
 struct target_desc {
-  target_api            api;          // API class.
-  uint32_t              version_maj;  // Major version number.
-  uint32_t              version_min;  // Minor version number.
-  target_platform_class platform;     // Device types that the target API runs on.
+  target_api            api;          /// API class.
+  uint32_t              version_maj;  /// Major version number.
+  uint32_t              version_min;  /// Minor version number.
+  target_platform_class platform;     /// Device types that the target API runs on.
 
-  bool                  operator==(const target_desc& other) {
+  bool operator==(const target_desc& other) {
     return api == other.api && version_maj == other.version_maj &&
            version_min == other.version_min && platform == other.platform;
   }
@@ -47,6 +48,8 @@ struct target_desc {
   bool operator!=(const target_desc& other) { return !(*this == other); }
 };
 
+/// @param target A target description.
+/// @return File extension for the given target description.
 std::string file_ext_for_target(const target_desc& target);
 
 }  // namespace niceshade

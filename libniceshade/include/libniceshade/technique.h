@@ -24,16 +24,18 @@
 
 namespace niceshade {
 
-// Technique description.
+/// Specifies details about a technique.
 struct technique_desc {
+  /// Specifies details about a pipeline stage entry point.
   struct entry_point {
-    pipeline_stage stage;
-    std::string name;
+    pipeline_stage stage;  /// The pipeline stage type.
+    std::string    name;   /// The name of the entry point.
   };
-  std::string name;
-  define_container defines;
-  std::vector<entry_point> entry_points;
-  std::vector<std::pair<std::string, std::string>> additional_metadata;
+
+  std::string              name;          /// The name of the technique.
+  define_container         defines;       /// Additional preprocessor definitions.
+  std::vector<entry_point> entry_points;  /// Entry point specifications for the technique.
+  std::vector<std::pair<std::string, std::string>> additional_metadata;  /// User-provided metadata.
 };
 
 }  // namespace niceshade

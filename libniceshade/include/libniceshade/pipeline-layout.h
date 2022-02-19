@@ -28,7 +28,8 @@
 #include <map>
 
 namespace niceshade {
-// Indicates the type of resource accessed by a programmable shader stage.
+
+/// Enumerates the types of resources that can be accessed by a programmable shader stage.
 enum class descriptor_type {
   UNIFORM_BUFFER      = 0, // NGF_PLMD_DESC_UNIFORM_BUFFER,
   STORAGE_BUFFER      = 1, // NGF_PLMD_DESC_STORAGE_BUFFER,
@@ -39,41 +40,42 @@ enum class descriptor_type {
   INVALID             = 6
 };
 
-// Indicates which programmable shader stage a descriptor is visible from.
+/// Enumerates bits corresponding ti programmable shader stages.
+/// The values of individual enumerants can be combined together using the logical OR
+/// operation to form a bitmask indicating which stages of the pipeline a particular 
+/// resource is visible/used from.
 enum stage_mask_bit {
   STAGE_MASK_VERTEX   = 1, // NGF_PLMD_STAGE_VISIBILITY_VERTEX_BIT,
   STAGE_MASK_FRAGMENT = 2, // NGF_PLMD_STAGE_VISIBILITY_FRAGMENT_BIT
 };
 
-// Descriptor data.
+/// Descriptor data.
 struct descriptor {
-  uint32_t        slot;                                   // A descriptor's binding within its set.
-  descriptor_type type       = descriptor_type::INVALID;  // Type of resorce accessed.
-  uint32_t        stage_mask = 0u;  // Which stages the descriptor is used from.
-  std::string     name;             // The name used to refer to it in the source code.
-  uint32_t        native_binding;
+  uint32_t        slot;                                   /// A descriptor's binding within its set.
+  descriptor_type type       = descriptor_type::INVALID;  /// Type of resorce accessed.
+  uint32_t        stage_mask = 0u;  /// A bitmask indicating the pipeline stages that the descriptor is used from.
+  std::string     name;             /// The name used to refer to the descriptor in the source code.
+  uint32_t        native_binding;   /// Binding used by the target API (if a remapping from descriptor/set model is needed).
 };
 
+/// Specifies the layout of a descriptor set. Key is descriptor index, value is descriptor-related
+/// data.
 using descriptor_set_layout = std::map<uint32_t, descriptor>;
 
-// Stores information about shader resources accessed by a technique.
+/// Stores information about all shader resources accessed by a technique.
 class pipeline_layout {
   friend class pipeline_layout_builder;
 public:
-  // Returns the total number of descriptor sets in the layout.
+  /// @return The total number of descriptor sets in the layout.
   uint32_t set_count() const { return max_set_ + 1; }
 
-  // Returns the total number of descriptors across all descriptor sets in the
-  // layout.
+  /// @return The total number of descriptors across all descriptor sets in the layout.
   uint32_t res_count() const { return nres_; }
 
-  // Returns the layout of the n-th descriptor set.
+  /// @return The layout of the n-th descriptor set.
   const descriptor_set_layout& set(uint32_t set_id) const;
 
-  // Dumps out the (set, binding) => (native binding) map as a comment to
-  // the output file.
-  void dump_native_binding_map(FILE* f) const;
-
+  /// @return A string representation of the descriptor/set to native resource mapping.
   std::string native_binding_map_string() const;
 
 private:

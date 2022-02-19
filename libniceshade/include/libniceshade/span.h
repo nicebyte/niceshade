@@ -26,6 +26,7 @@
 
 namespace niceshade {
 
+/// Replacement for std::span to avoid requiring C++20.
 template<class T> class span {
 public:
   using iterator       = T*;
@@ -48,6 +49,7 @@ private:
   size_t size_ = 0u;
 };
 
+/// Constant \ref span
 template<class T> using const_span = span<const T>;
 
 }  // namespace niceshade
