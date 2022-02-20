@@ -22,11 +22,16 @@
 
 #pragma once
 
+/**
+ * @file
+ * @brief
+ */
+
 #include "libniceshade/common-types.h"
 #include "libniceshade/output.h"
 #include "libniceshade/target.h"
-#include "libniceshade/impl/pipeline-layout-builder.h"
-#include "libniceshade/impl/separate-to-combined-builder.h"
+#include "impl/pipeline-layout-builder.h"
+#include "impl/separate-to-combined-builder.h"
 #include "spirv_cross.hpp"
 
 #include <memory>

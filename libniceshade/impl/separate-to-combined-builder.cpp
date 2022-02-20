@@ -20,7 +20,7 @@
  * IN THE SOFTWARE.
  */
 
-#include "libniceshade/impl/separate-to-combined-builder.h"
+#include "impl/separate-to-combined-builder.h"
 
 namespace niceshade {
 
