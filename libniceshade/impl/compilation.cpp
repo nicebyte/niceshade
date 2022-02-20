@@ -22,7 +22,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "libniceshade/impl/compilation.h"
+#include "impl/compilation.h"
 
 #include "spirv_glsl.hpp"
 #include "spirv_msl.hpp"

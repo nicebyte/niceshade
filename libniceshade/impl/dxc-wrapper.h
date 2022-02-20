@@ -26,10 +26,10 @@
 
 #include "libniceshade/common-types.h"
 #include "libniceshade/error.h"
-#include "libniceshade/impl/com-ptr.h"
-#include "libniceshade/impl/dynamic-library.h"
-#include "libniceshade/impl/platform.h"
-#include "libniceshade/impl/technique-parser.h"
+#include "impl/com-ptr.h"
+#include "impl/dynamic-library.h"
+#include "impl/platform.h"
+#include "impl/technique-parser.h"
 #include "libniceshade/span.h"
 
 #include <stdint.h>

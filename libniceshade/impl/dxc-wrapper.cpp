@@ -21,7 +21,7 @@
  */
 
 #define _CRT_SECURE_NO_WARNINGS
-#include "libniceshade/impl/dxc-wrapper.h"
+#include "impl/dxc-wrapper.h"
 
 #include <stdlib.h>
 #include <string>

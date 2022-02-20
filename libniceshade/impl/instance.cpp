@@ -22,11 +22,11 @@
 
 #include "libniceshade/instance.h"
 
-#include "libniceshade/impl/dxc-wrapper.h"
-#include "libniceshade/impl/compilation.h"
-#include "libniceshade/impl/pipeline-layout-builder.h"
-#include "libniceshade/impl/separate-to-combined-builder.h"
-#include "libniceshade/impl/technique-parser.h"
+#include "impl/dxc-wrapper.h"
+#include "impl/compilation.h"
+#include "impl/pipeline-layout-builder.h"
+#include "impl/separate-to-combined-builder.h"
+#include "impl/technique-parser.h"
 
 namespace niceshade {
 
