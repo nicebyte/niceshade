@@ -53,7 +53,7 @@ nmk_static_library(NAME libniceshade
                                 ${CMAKE_CURRENT_LIST_DIR}/third_party/dxc/include
                                 ${CMAKE_CURRENT_LIST_DIR}/libniceshade/include
                    PUB_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/libniceshade/include
-                   DEPS dxc-headers metadata-parser spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl)
+                   DEPS dxc-headers spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl)
 
 
 nmk_binary(NAME niceshade
