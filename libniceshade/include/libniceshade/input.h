@@ -47,9 +47,11 @@ struct compiler_input {
   /** A list of technique definitions.*/
   const_span<technique_desc> technique_descs;
 
-  /** The name of the source HLSL file. It is important for this to be correct if the code contains
-   * any `#include` statements. */
+  /**
+   * The name of the source HLSL file. It is important for this to be correct if the code contains
+   * any `#include` statements.
+   */
   const char* file_name;
 };
 
-}
+}  // namespace niceshade
