@@ -4,6 +4,8 @@ A wrapper for the Microsoft DirectXShaderCompiler and SPIRV-Cross
 
 [![Build status](https://ci.appveyor.com/api/projects/status/ny9j8k6869artsrd?svg=true)](https://ci.appveyor.com/project/nicebyte/niceshade)
 
+See the reference documentation for `libniceshade` at https://wiki.gpfault.net/docs/niceshade/
+
 # User Manual
 
 ## Table of Contents
