@@ -30,12 +30,26 @@
 #include <cstddef>
 #include <stdint.h>
 
+/**
+ * @file
+ * @brief
+ */
+
 namespace niceshade {
 
+/**
+ * A description of a single input unit - a block of HLSL code with a list of techniques.
+ */
 struct compiler_input {
-  input_blob                 hlsl;
+  /** A span of memory containing the HLSL code to be compiled. */
+  input_blob hlsl;
+
+  /** A list of technique definitions.*/
   const_span<technique_desc> technique_descs;
-  const char*                file_name;
+
+  /** The name of the source HLSL file. It is important for this to be correct if the code contains
+   * any `#include` statements. */
+  const char* file_name;
 };
 
 }
