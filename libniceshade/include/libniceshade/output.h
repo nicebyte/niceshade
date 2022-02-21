@@ -33,8 +33,16 @@
 #include <variant>
 #include <vector>
 
+/**
+ * @file
+ * @brief
+ */
+
 namespace niceshade {
 
+/**
+ * Container for generated output data.
+ */
 class compilation_result {
   friend class compilation;
 
@@ -43,6 +51,9 @@ public:
   compilation_result(compilation_result&&) = default;
   compilation_result& operator=(compilation_result&&) = default;
 
+  /**
+   * A span of memory containing raw output bytes (GLSL, Metal Shading Language, or SPIR-V...).
+   */
   const_span<std::byte> data() const {
     if (std::holds_alternative<spirv_blob>(result_)) {
       const spirv_blob& blob = std::get<spirv_blob>(result_);
@@ -59,32 +70,85 @@ private:
   std::variant<spirv_blob, std::string> result_;
 };
 
+/**
+ * Compilation result for a specific pipeline stage.
+ */
 struct compiled_stage {
   compiled_stage()                 = default;
   compiled_stage(compiled_stage&&) = default;
   compiled_stage&    operator=(compiled_stage&&) = default;
+
+  /**
+   * The pipeline stage for which the output was generated.
+   */
   compilation_result result;
+
+  /**
+   * The generated output.
+   */
   pipeline_stage     stage;
 };
 
+/**
+ * A container for target-specific output.
+ */
 struct targeted_output {
+  /**
+   * The description of the target for which the output was generated.
+   */
   target_desc                 target;
+
+  /**
+   * A vector of generated target-specific shaders. Each element corresponds to a single pipeline stage.
+   */
   std::vector<compiled_stage> stages;
 };
 
+/**
+ * A container with the shader code generated for a requested target.
+ */
 struct compiled_technique {
   compiled_technique()                     = default;
   compiled_technique(compiled_technique&&) = default;
   compiled_technique&          operator=(compiled_technique&&) = default;
+
+  /** The name of the technique for which the shaders were generated. */
   std::string                  name;
+
+  /** A vector of per-target output. Each element corresponds to a single target. */
   std::vector<targeted_output> targeted_outputs;
+
+  /**
+   * The pipeline layout, containing information about all resources used by all pipeline stages.
+   */
   pipeline_layout              layout;
+
+  /**
+   * For targets that do not have a separation between images and samplers at the shader level (i.e. OpenGL),
+   * this contains a mapping from a separate image ID to an auto-generated combined image+sampler ID.
+   */
   separate_to_combined_map     image_map;
+
+  /**
+   * For targets that do not have a separation between images and samplers at the shader level (i.e. OpenGL),
+   * this contains a mapping from a separate sampler ID to an auto-generated combined image+sampler ID.
+   */
   separate_to_combined_map     sampler_map;
-  target_desc                  target;
 };
 
+/** A vector of \ref compiled_technique objects. */
 using compiled_techniques           = std::vector<compiled_technique>;
+
+/** 
+ * A sequence of \ref technique_desc objects parsed out of inline technique definitions in the
+ * input HLSL code.
+ */
 using parsed_technique_descs        = std::vector<technique_desc>;
+
+/**
+ * A tuple where the first element is a sequence of parsed technique descriptions and the second
+ * element is a sequence of corresponding \ref compiled_technique objects.
+ */
 using descs_and_compiled_techniques = std::tuple<parsed_technique_descs, compiled_techniques>;
+
 }  // namespace niceshade
