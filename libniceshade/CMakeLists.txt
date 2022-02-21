@@ -38,6 +38,7 @@ nmk_static_library(NAME libniceshade
                         ${CMAKE_CURRENT_LIST_DIR}/impl/compilation.cpp
                         ${CMAKE_CURRENT_LIST_DIR}/impl/target.cpp
                         ${CMAKE_CURRENT_LIST_DIR}/impl/instance.cpp
+                        ${CMAKE_CURRENT_LIST_DIR}/include/libniceshade/niceshade.h
                         ${CMAKE_CURRENT_LIST_DIR}/include/libniceshade/error.h
                         ${CMAKE_CURRENT_LIST_DIR}/include/libniceshade/pipeline-layout.h
                         ${CMAKE_CURRENT_LIST_DIR}/include/libniceshade/common-types.h
