@@ -24,18 +24,34 @@
 
 namespace niceshade {
 
-/// Specifies details about a technique.
+/**
+ * A _technique_ is a particular configuration of graphics pipeline stages.
+ */
 struct technique_desc {
-  /// Specifies details about a pipeline stage entry point.
+  /**
+   * Specifies details about a pipeline stage entry point.
+   */
   struct entry_point {
-    pipeline_stage stage;  /// The pipeline stage type.
-    std::string    name;   /// The name of the entry point.
+    pipeline_stage stage; /**< The pipeline stage type. */
+    std::string    name;  /**< The name of the entry point. */
   };
 
-  std::string              name;          /// The name of the technique.
-  define_container         defines;       /// Additional preprocessor definitions.
-  std::vector<entry_point> entry_points;  /// Entry point specifications for the technique.
-  std::vector<std::pair<std::string, std::string>> additional_metadata;  /// User-provided metadata.
+  std::string      name;    /**< The name of the technique.*/
+  define_container defines; /**< Additional definitions to be added to the preprocessor while
+                                 compiling this technique. */
+  std::vector<entry_point> entry_points; /**< Entry point specifications for the technique. */
+
+  /**
+   * User-provided metadata.
+   * 
+   * This is only really useful when the techniques are specified directly inside the HLSL code
+   * using the special `//T:` comment. In that case, the additional metadata shall be parsed out
+   * and made available to the application, which can then use it for its own purposes (for example,
+   * enable or disable depth write for particular techniques based on user metadata values). See the
+   * <a href="https://github.com/nicebyte/niceshade#techniques">README</a> for more details on
+   * inline technique definition.
+   */
+  std::vector<std::pair<std::string, std::string>> additional_metadata;  
 };
 
 }  // namespace niceshade
