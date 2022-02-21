@@ -22,8 +22,9 @@
 
 #include "libniceshade/instance.h"
 
-#include "impl/dxc-wrapper.h"
 #include "impl/compilation.h"
+#include "impl/dxc-wrapper.h"
+#include "impl/error-macros.h"
 #include "impl/pipeline-layout-builder.h"
 #include "impl/separate-to-combined-builder.h"
 #include "impl/technique-parser.h"
@@ -32,7 +33,7 @@ namespace niceshade {
 
 value_or_error<instance> instance::create(const instance::options& opts) {
   instance result;
-  result.dxc_ = new dxc_wrapper{};
+  result.dxc_ = new dxc_wrapper {};
   NICESHADE_DECLARE_OR_RETURN(
       dxc,
       dxc_wrapper::create(opts.shader_model, opts.dxc_params, opts.dxc_lib_folder));
@@ -40,7 +41,9 @@ value_or_error<instance> instance::create(const instance::options& opts) {
   return result;
 }
 
-instance::~instance() { if (dxc_) delete dxc_; }
+instance::~instance() {
+  if (dxc_) delete dxc_;
+}
 
 value_or_error<compiled_techniques>
 instance::compile(const_span<compiler_input> inputs, const_span<target_desc> targets) {
@@ -52,15 +55,16 @@ instance::compile(const_span<compiler_input> inputs, const_span<target_desc> tar
       std::vector<spirv_blob> spirv_blobs;
       // Produce SPIR-V.
       for (const technique_desc::entry_point& ep : tech.entry_points) {
-        auto maybe_spirv_blob = dxc_->compile_hlsl2spv(
-            (const char*)input.hlsl.cbegin(),
-            input.hlsl.size(),
-            input.file_name,
-            ep,
-            tech.defines);
-        NICESHADE_RETURN_IF_ERROR(maybe_spirv_blob);
-        if (maybe_spirv_blob.get().size() == 0) { NICESHADE_RETURN_ERROR("no SPIR-V generated"); }
-        spirv_blobs.emplace_back(std::move(maybe_spirv_blob.get()));
+        NICESHADE_DECLARE_OR_RETURN(
+            spirv_blob,
+            dxc_->compile_hlsl2spv(
+                (const char*)input.hlsl.cbegin(),
+                input.hlsl.size(),
+                input.file_name,
+                ep,
+                tech.defines));
+        if (spirv_blob.size() == 0) { NICESHADE_RETURN_ERROR("no SPIR-V generated"); }
+        spirv_blobs.emplace_back(std::move(spirv_blob));
       }
 
       // Create compilations and populate the pipeline layout.
@@ -71,21 +75,21 @@ instance::compile(const_span<compiler_input> inputs, const_span<target_desc> tar
       for (const target_desc& target_info : targets) {
         for (const technique_desc::entry_point& ep : tech.entry_points) {
           const intptr_t ep_idx = &ep - tech.entry_points.data();
-          NICESHADE_DECLARE_OR_RETURN(new_compilation,
-                                      compilation::create(ep.stage, spirv_blobs[ep_idx], target_info));
+          NICESHADE_DECLARE_OR_RETURN(
+              new_compilation,
+              compilation::create(ep.stage, spirv_blobs[ep_idx], target_info));
           compilations.emplace_back(std::move(new_compilation));
           compilations.back().add_resources_to_pipeline_layout(res_layout_builder);
           compilations.back().add_cis_to_map(image_map_builder, sampler_map_builder);
         }
       }
-      auto maybe_res_layout = res_layout_builder.build();
-      NICESHADE_RETURN_IF_ERROR(maybe_res_layout);
+      NICESHADE_DECLARE_OR_RETURN(res_layout, res_layout_builder.build());
 
       // Create a new compiled technique.
       result.emplace_back();
       compiled_technique& compiled_tech = result.back();
       compiled_tech.name                = tech.name;
-      compiled_tech.layout              = std::move(maybe_res_layout.get());
+      compiled_tech.layout              = std::move(res_layout);
       compiled_tech.image_map           = std::move(image_map_builder.build());
       compiled_tech.sampler_map         = std::move(sampler_map_builder.build());
 
@@ -96,11 +100,10 @@ instance::compile(const_span<compiler_input> inputs, const_span<target_desc> tar
           compiled_tech.targeted_outputs.emplace_back();
           compiled_tech.targeted_outputs.back().target = c.target();
         }
-        targeted_output& target_out               = compiled_tech.targeted_outputs.back();
-        auto             maybe_compilation_result = c.run(compiled_tech.layout);
-        NICESHADE_RETURN_IF_ERROR(maybe_compilation_result);
+        targeted_output& target_out = compiled_tech.targeted_outputs.back();
+        NICESHADE_DECLARE_OR_RETURN(compilation_result, c.run(compiled_tech.layout));
         target_out.stages.emplace_back();
-        target_out.stages.back().result = std::move(maybe_compilation_result.get());
+        target_out.stages.back().result = std::move(compilation_result);
         target_out.stages.back().stage  = c.stage();
       }
     }
@@ -113,25 +116,22 @@ value_or_error<descs_and_compiled_techniques> instance::parse_techniques_and_com
     const char*             file_name,
     const_span<target_desc> targets,
     const define_container& global_defines) {
-  auto maybe_parsed_techniques = parse_techniques(in_blob, global_defines);
-  NICESHADE_RETURN_IF_ERROR(maybe_parsed_techniques);
-  if (maybe_parsed_techniques.get().size() == 0) {
+  NICESHADE_DECLARE_OR_RETURN(parsed_techniques, parse_techniques(in_blob, global_defines));
+  if (parsed_techniques.size() == 0) {
     NICESHADE_RETURN_ERROR("The input file does not appear to define any techniques. "
                            "Define techniques with a special comment (`//T:').\n");
   }
   std::vector<compiler_input> inputs;
   compiler_input              input;
-  input.technique_descs = const_span<technique_desc>(
-      maybe_parsed_techniques.get().data(),
-      maybe_parsed_techniques.get().size());
-  input.file_name                = file_name;
-  input.hlsl                     = in_blob;
-  auto maybe_compiled_techniques = compile(const_span<compiler_input> {&input, 1u}, targets);
-  NICESHADE_RETURN_IF_ERROR(maybe_compiled_techniques);
-  assert(maybe_compiled_techniques.get().size() == maybe_compiled_techniques.get().size());
-  return std::make_tuple(
-      std::move(maybe_parsed_techniques.get()),
-      std::move(maybe_compiled_techniques.get()));
+  input.technique_descs =
+      const_span<technique_desc>(parsed_techniques.data(), parsed_techniques.size());
+  input.file_name = file_name;
+  input.hlsl      = in_blob;
+  NICESHADE_DECLARE_OR_RETURN(
+      compd_techniques,
+      compile(const_span<compiler_input> {&input, 1u}, targets));
+  assert(compd_techniques.size() == parsed_techniques.size());
+  return std::make_tuple(std::move(parsed_techniques), std::move(compd_techniques));
 }
 
 }  // namespace niceshade

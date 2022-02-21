@@ -24,16 +24,19 @@
 
 #include "impl/compilation.h"
 
+#include "impl/error-macros.h"
 #include "spirv_glsl.hpp"
 #include "spirv_msl.hpp"
 
 namespace niceshade {
 
-value_or_error<compilation>
-compilation::create(pipeline_stage stage, const spirv_blob& spirv_code, const target_desc& target_info) {
+value_or_error<compilation> compilation::create(
+    pipeline_stage     stage,
+    const spirv_blob&  spirv_code,
+    const target_desc& target_info) {
   compilation result;
-  result.target_info_ = target_info;
-  result.stage_ = stage;
+  result.target_info_    = target_info;
+  result.stage_          = stage;
   result.original_spirv_ = &spirv_code;
   switch (result.target_info_.api) {
   case target_api::GL: {

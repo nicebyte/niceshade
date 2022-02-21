@@ -22,6 +22,8 @@
 
 #include "impl/pipeline-layout-builder.h"
 
+#include "impl/error-macros.h"
+
 namespace niceshade {
 
 namespace {
@@ -42,8 +44,8 @@ error pipeline_layout_builder::process_resources(
     if (!should_process_resource(r.id, refl)) { continue; }
     uint32_t set_idx     = refl.get_decoration(r.id, spv::DecorationDescriptorSet);
     uint32_t binding_idx = refl.get_decoration(r.id, spv::DecorationBinding);
-    max_set_            = max_set_ < set_idx ? set_idx : max_set_;
-    descriptor& desc    = sets_[set_idx][binding_idx];
+    max_set_             = max_set_ < set_idx ? set_idx : max_set_;
+    descriptor& desc     = sets_[set_idx][binding_idx];
     if (desc.type == descriptor_type::INVALID) {
       // This resource hasn't been encountered before.
       desc.slot = binding_idx;
@@ -54,19 +56,29 @@ error pipeline_layout_builder::process_resources(
     if (desc.type != descriptor_type::INVALID && desc.type != resource_type) {
       NICESHADE_RETURN_ERROR(
           "Attempt to assign a descriptor of different type to "
-          "slot ", binding_idx, " in set ", set_idx, " which is already occupied by ",
+          "slot ",
+          binding_idx,
+          " in set ",
+          set_idx,
+          " which is already occupied by ",
           desc.name.c_str());
     }
     if (desc.type != descriptor_type::INVALID && r.name != desc.name) {
       NICESHADE_RETURN_ERROR(
           "Assigning different names "
-          "(\"", desc.name.c_str(), "\" and \"", r.name.c_str(), "\")  to descriptor at slot ", binding_idx,
-          " in set ", set_idx);
+          "(\"",
+          desc.name.c_str(),
+          "\" and \"",
+          r.name.c_str(),
+          "\")  to descriptor at slot ",
+          binding_idx,
+          " in set ",
+          set_idx);
     }
     desc.stage_mask |= smb;
     desc_usages_.add(set_idx, binding_idx, std::make_pair(&refl, r.id));
   }
-  return error{};
+  return error {};
 }
 
 void pipeline_layout_builder::remap_resources() {
@@ -87,17 +99,16 @@ void pipeline_layout_builder::remap_resources() {
   }
 }
 
-
 value_or_error<pipeline_layout> pipeline_layout_builder::build() {
   remap_resources();
 
   pipeline_layout layout;
-  layout.sets_ = std::move(sets_);
+  layout.sets_    = std::move(sets_);
   layout.max_set_ = max_set_;
-  layout.nres_ = nres_;
-  sets_ = decltype(sets_){};
-  max_set_ = 0u;
-  nres_ = 0u;
+  layout.nres_    = nres_;
+  sets_           = decltype(sets_) {};
+  max_set_        = 0u;
+  nres_           = 0u;
   desc_usages_.clear();
 
   return std::move(layout);

@@ -23,6 +23,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "impl/dxc-wrapper.h"
 
+#include "impl/error-macros.h"
+
 #include <stdlib.h>
 #include <string>
 
@@ -57,9 +59,9 @@ value_or_error<dxc_wrapper> dxc_wrapper::create(
     span<std::string>  dxc_params,
     const std::string& exe_dir) {
   dxc_wrapper result;
-  result.shader_model_ = towstring(sm.c_str(), sm.length());
+  result.shader_model_   = towstring(sm.c_str(), sm.length());
   result.dxcompiler_dll_ = get_dxc_lib_path_candidates(exe_dir);
-  result.dxc_params_.emplace_back(L"-spirv"); // always enable spir-v codegen.
+  result.dxc_params_.emplace_back(L"-spirv");  // always enable spir-v codegen.
   // Convert dxc parameters to wide string.
   for (const std::string& dxc_param : dxc_params) {
     wchar_t* wide_dxc_param = new wchar_t[dxc_param.size() + 1u];
@@ -74,7 +76,8 @@ value_or_error<dxc_wrapper> dxc_wrapper::create(
   }
 
   // Look up the function for creating an instance of the library.
-  auto create_proc = (DxcCreateInstanceProc)result.dxcompiler_dll_.get_proc_address("DxcCreateInstance");
+  auto create_proc =
+      (DxcCreateInstanceProc)result.dxcompiler_dll_.get_proc_address("DxcCreateInstance");
   if (nullptr == create_proc) { NICESHADE_RETURN_ERROR("failed to load DxcCreateInstance"); }
 
   // Instantiate library, compiler and include handler.
@@ -159,7 +162,7 @@ value_or_error<spirv_blob> dxc_wrapper::compile_hlsl2spv(
       com_ptr<IDxcBlobEncoding>([&](auto ptr) { return dxc_result->GetErrorBuffer(ptr); });
 
   if (errmsg_blob->GetBufferSize() > 0) {
-    std::string err_msg (errmsg_blob->GetBufferSize() + 1u, '\0');
+    std::string err_msg(errmsg_blob->GetBufferSize() + 1u, '\0');
     memcpy(err_msg.data(), errmsg_blob->GetBufferPointer(), errmsg_blob->GetBufferSize());
     NICESHADE_RETURN_ERROR(err_msg);
   } else {

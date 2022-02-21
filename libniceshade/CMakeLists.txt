@@ -34,6 +34,7 @@ nmk_static_library(NAME libniceshade
                         ${CMAKE_CURRENT_LIST_DIR}/impl/separate-to-combined-builder.h
                         ${CMAKE_CURRENT_LIST_DIR}/impl/separate-to-combined-builder.cpp
                         ${CMAKE_CURRENT_LIST_DIR}/impl/compilation.h
+                        ${CMAKE_CURRENT_LIST_DIR}/impl/error-macros.h
                         ${CMAKE_CURRENT_LIST_DIR}/impl/compilation.cpp
                         ${CMAKE_CURRENT_LIST_DIR}/impl/target.cpp
                         ${CMAKE_CURRENT_LIST_DIR}/impl/instance.cpp
