@@ -171,11 +171,11 @@
  * }
  * ```
  *
- * If the compilation is successful, the returned value shall contain a vector of tuples, where the
- * first element of each tuple is the technique description, and the second element is a \ref
- * niceshade::compiled_technique object containing the shader code for each requested target, as
- * well as information about resources consumed by the shader (\ref niceshade::pipeline_layout), and
- * other metadata.
+ * If the compilation is successful, the returned value is a tuple, where the
+ * first element is a sequence of technique descriptions, and the second element is a sequence of
+ * corresponding \ref niceshade::compiled_technique objects containing the shader code for each
+ * requested target, as well as information about resources consumed by the shader (\ref
+ * niceshade::pipeline_layout), and other metadata.
  */
 
 #include "libniceshade/instance.h"
