@@ -28,18 +28,40 @@
 #include <utility>
 #include <vector>
 
+/**
+ * @file
+ * @brief
+ */
+
+/**
+ * Main namespace containing niceshade types and routines.
+ */
 namespace niceshade {
 
-/// Enumerates the supported types of programmable pipeline stages.
-enum class pipeline_stage { vertex, fragment };
+/**
+ * Enumerates the supported types of programmable GPU pipeline stages.
+ */
+enum class pipeline_stage {
+  vertex,  /**< Corresponds to the vertex stage. */
+  fragment /**< Corresponds to the fragment stage. */
+};
 
-/// Stores a sequence of preprocessor definitions.
+/**
+ * Stores a sequence of preprocessor definitions.
+ *
+ * Each preprocessor definition is stored as a pair of strings, where the first element represents
+ * the name of the definition, and the second element represents the value.
+ */
 using define_container = std::vector<std::pair<std::string, std::string>>;
 
-/// A blob of spirv code.
+/**
+ * A blob of SPIR-V code.
+ */
 using spirv_blob = std::vector<uint32_t>;
 
-/// A blob of input data.
+/**
+ * A span of memory containing HLSL code to be processed by niceshade.
+ */
 using input_blob = const_span<std::byte>;
 
 }  // namespace niceshade
