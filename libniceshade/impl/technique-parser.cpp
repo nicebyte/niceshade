@@ -22,11 +22,13 @@
 
 #include "impl/technique-parser.h"
 
+#include "impl/error-macros.h"
+
 #include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 namespace niceshade {
 
@@ -44,19 +46,18 @@ enum class technique_parser_state {
 };
 
 namespace {
-bool is_ident(char c) { return (isalnum(c) || c == '_'); }
-constexpr bool is_tab_space(char c) { return (c == ' '  || c == '\t'); }
-}
+bool           is_ident(char c) { return (isalnum(c) || c == '_'); }
+constexpr bool is_tab_space(char c) { return (c == ' ' || c == '\t'); }
+}  // namespace
 
 value_or_error<std::vector<technique_desc>>
-parse_techniques(input_blob input_source, const define_container &default_defines) {
-  uint32_t last_four_chars = 0u;
-  uint32_t line_num = 1u;
-  const uint32_t technique_prefix = 0x2f2f543a; // `//T:'
-  technique_parser_state state = technique_parser_state::LOOKING_FOR_PREFIX;
-  std::string parameter_name, entry_point_name, nameval_name,
-              nameval_value;
-  bool have_vertex_stage = false;
+parse_techniques(input_blob input_source, const define_container& default_defines) {
+  uint32_t                    last_four_chars  = 0u;
+  uint32_t                    line_num         = 1u;
+  const uint32_t              technique_prefix = 0x2f2f543a;  // `//T:'
+  technique_parser_state      state            = technique_parser_state::LOOKING_FOR_PREFIX;
+  std::string                 parameter_name, entry_point_name, nameval_name, nameval_value;
+  bool                        have_vertex_stage = false;
   std::vector<technique_desc> techniques;
   for (uint32_t c_idx = 0u; c_idx < input_source.size(); ++c_idx) {
     const char c = static_cast<char>(input_source[c_idx]);
@@ -71,15 +72,16 @@ parse_techniques(input_blob input_source, const define_container &default_define
       last_four_chars <<= 8u;
       last_four_chars |= (uint32_t)c;
     }
-    switch(state) {
+    switch (state) {
     case technique_parser_state::LOOKING_FOR_PREFIX:
       if (last_four_chars == technique_prefix) {
         state = technique_parser_state::LOOKING_FOR_NAME;
         techniques.emplace_back();
-        technique_desc &new_tech = techniques.back();
-        new_tech.defines.insert(new_tech.defines.end(),
-                                default_defines.begin(),
-                                default_defines.end());
+        technique_desc& new_tech = techniques.back();
+        new_tech.defines.insert(
+            new_tech.defines.end(),
+            default_defines.begin(),
+            default_defines.end());
         have_vertex_stage = false;
       }
       break;
@@ -88,16 +90,26 @@ parse_techniques(input_blob input_source, const define_container &default_define
         state = technique_parser_state::PARSING_NAME;
         techniques.back().name.push_back(c);
       } else if (!is_tab_space(c)) {
-        NICESHADE_RETURN_ERROR("unexpected character ", c, " in technique name ", "on line ", line_num);
+        NICESHADE_RETURN_ERROR(
+            "unexpected character ",
+            c,
+            " in technique name ",
+            "on line ",
+            line_num);
       }
       break;
-    case  technique_parser_state::PARSING_NAME:
+    case technique_parser_state::PARSING_NAME:
       if (is_ident(c) || c == '-') {
         techniques.back().name.push_back(c);
       } else if (is_tab_space(c)) {
         state = technique_parser_state::LOOKING_FOR_PARAMETER_NAME;
       } else {
-        NICESHADE_RETURN_ERROR("unexpected character ", c, " in technique name ", "on line ", line_num);
+        NICESHADE_RETURN_ERROR(
+            "unexpected character ",
+            c,
+            " in technique name ",
+            "on line ",
+            line_num);
       }
       break;
     case technique_parser_state::LOOKING_FOR_PARAMETER_NAME:
@@ -127,7 +139,11 @@ parse_techniques(input_blob input_source, const define_container &default_define
           state = technique_parser_state::PARSING_ENTRYPOINT_NAME;
           entry_point_name.clear();
         } else {
-          NICESHADE_RETURN_ERROR("unknown parameter ", parameter_name.c_str(), " on line ", line_num);
+          NICESHADE_RETURN_ERROR(
+              "unknown parameter ",
+              parameter_name.c_str(),
+              " on line ",
+              line_num);
         }
       } else {
         NICESHADE_RETURN_ERROR(
@@ -146,12 +162,9 @@ parse_techniques(input_blob input_source, const define_container &default_define
           NICESHADE_RETURN_ERROR("entry point name cannot be empty on line ", line_num);
         }
         technique_desc::entry_point ep {
-          parameter_name == "vs"
-              ? pipeline_stage::vertex
-              : pipeline_stage::fragment,
-          entry_point_name
-        };
-        for (const auto &prev_ep : techniques.back().entry_points) {
+            parameter_name == "vs" ? pipeline_stage::vertex : pipeline_stage::fragment,
+            entry_point_name};
+        for (const auto& prev_ep : techniques.back().entry_points) {
           if (prev_ep.stage == ep.stage) {
             NICESHADE_RETURN_ERROR(
                 "duplicate entry point ",
@@ -164,10 +177,8 @@ parse_techniques(input_blob input_source, const define_container &default_define
         }
         techniques.back().entry_points.emplace_back(ep);
         have_vertex_stage |= (parameter_name == "vs");
-        state =
-            c != '\n'
-            ? technique_parser_state::LOOKING_FOR_PARAMETER_NAME
-            : technique_parser_state::FINALIZING_TECHNIQUE;
+        state = c != '\n' ? technique_parser_state::LOOKING_FOR_PARAMETER_NAME
+                          : technique_parser_state::FINALIZING_TECHNIQUE;
       } else {
         NICESHADE_RETURN_ERROR(
             "unexpected character ",
@@ -191,25 +202,25 @@ parse_techniques(input_blob input_source, const define_container &default_define
       }
       break;
     case technique_parser_state::PARSING_NAMEVAL_VALUE:
-      if(!is_tab_space(c) && c != '\n') {
+      if (!is_tab_space(c) && c != '\n') {
         nameval_value.push_back(c);
       } else {
         if (parameter_name == "define") {
           techniques.back().defines.emplace_back(nameval_name, nameval_value);
         } else if (parameter_name == "meta") {
-        techniques.back().additional_metadata.emplace_back(nameval_name,
-                                                           nameval_value);
+          techniques.back().additional_metadata.emplace_back(nameval_name, nameval_value);
         } else {
           assert(false);
         }
-        state = c != '\n'
-          ? technique_parser_state::LOOKING_FOR_PARAMETER_NAME
-          : technique_parser_state::FINALIZING_TECHNIQUE;
+        state = c != '\n' ? technique_parser_state::LOOKING_FOR_PARAMETER_NAME
+                          : technique_parser_state::FINALIZING_TECHNIQUE;
       }
       break;
     case technique_parser_state::FINALIZING_TECHNIQUE:
       if (!have_vertex_stage) {
-        NICESHADE_RETURN_ERROR("technique needs to define at least a vertex stage on line ", line_num);
+        NICESHADE_RETURN_ERROR(
+            "technique needs to define at least a vertex stage on line ",
+            line_num);
       }
       state = technique_parser_state::LOOKING_FOR_PREFIX;
       break;

@@ -22,6 +22,8 @@
 
 #include "impl/separate-to-combined-builder.h"
 
+#include "impl/error-macros.h"
+
 namespace niceshade {
 
 void separate_to_combined_builder::add_resource(
@@ -34,8 +36,6 @@ void separate_to_combined_builder::add_resource(
   map_[set_and_binding {set_id, binding_id}].insert(combined_binding_id);
 }
 
-separate_to_combined_map separate_to_combined_builder::build() {
-  return std::move(map_);
-}
+separate_to_combined_map separate_to_combined_builder::build() { return std::move(map_); }
 
-}
+}  // namespace niceshade

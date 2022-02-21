@@ -27,11 +27,23 @@
 #include <utility>
 #include <assert.h>
 
+/**
+ * @file
+ * @brief
+ */
+
 namespace niceshade {
 
+/**
+ * Base class for the \ref value_or_error wrapper.
+ */
 class error {
 public:
   error() = default;
+
+  /**
+   * Convenience ctor used to create formatted error messages.
+   */
   template<class... Args> explicit error(Args&&... args) {
     std::ostringstream stream;
     ((stream << args), ...);
@@ -41,13 +53,23 @@ public:
 
 public:
 
+  /**
+   * @return true if the wrapped value is an error-value.
+   */
   bool               is_error() const { return !msg_.empty(); }
+
+  /**
+   * @return the error message, if the wrapped value is an error-value; empty string otherwise.
+   */
   const std::string& error_message() const { return msg_; }
 
 private:
   std::string msg_;
 };
 
+/**
+ * A wrapper that contains either a value of a type ValueT, or an error-value.
+ */
 template<class ValueT> class value_or_error : public error {
 public:
   value_or_error(ValueT&& val) : val_ {std::move(val)} {}
@@ -55,16 +77,19 @@ public:
   value_or_error(value_or_error&) = delete;
   value_or_error& operator=(value_or_error&) = delete;
 
+  /**
+   * @return the wrapped value, if the wrapper contains a ValueT. If it contains an error-value, this method exits the application.
+   */
   ValueT&       get() { return val_; }
+
+  /**
+   * @return the wrapped value, if the wrapper contains a ValueT. If it contains an error-value, this method exits the application.
+   */
   const ValueT& get() const { return val_; }
 
 private:
   ValueT val_ {};
 };
 
-#define NICESHADE_DECLARE_OR_RETURN(var_name, expr) auto maybe_##var_name = expr; if (maybe_##var_name.is_error()) return std::move(maybe_##var_name); auto var_name = std::move(maybe_##var_name.get())
-#define NICESHADE_RETURN_ERROR(...) return error(__VA_ARGS__)
-
-#define NICESHADE_RETURN_IF_ERROR(x) if (x.is_error()) return std::move(x)
 
 }  // namespace niceshade

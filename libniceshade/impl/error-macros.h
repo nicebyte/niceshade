@@ -19,25 +19,10 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+ 
+#pragma once
 
-#include "libniceshade/target.h"
+#include "libniceshade/error.h"
 
-#include "impl/error-macros.h"
-
-namespace niceshade {
-
-std::string file_ext_for_target(const target_desc& target) {
-  const bool is_mobile = target.platform == target_platform_class::MOBILE;
-  switch (target.api) {
-  case target_api::GL:
-    return std::to_string(target.version_maj * 100 + target.version_min * 10) +
-           (is_mobile ? "es" : "") + ".glsl";
-  case target_api::METAL:
-    return std::to_string(target.version_maj * 10 + target.version_min) + (is_mobile ? "ios" : "") +
-           ".msl";
-  case target_api::VULKAN: return "spv";
-  }
-  return "unknown";
-}
-
-}  // namespace niceshade
+#define NICESHADE_DECLARE_OR_RETURN(var_name, expr) auto maybe_##var_name = expr; if (maybe_##var_name.is_error()) return std::move(maybe_##var_name); auto var_name = std::move(maybe_##var_name.get())
+#define NICESHADE_RETURN_ERROR(...) return error(__VA_ARGS__)
