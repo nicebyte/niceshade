@@ -23,7 +23,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "libniceshade/instance.h"
+#include "libniceshade/niceshade.h"
 #include "cli-tool/file-utils.h"
 #include "cli-tool/header-file-writer.h"
 #include "cli-tool/metadata-file-writer.h"
