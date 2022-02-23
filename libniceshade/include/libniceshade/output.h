@@ -57,7 +57,7 @@ public:
   const_span<std::byte> data() const {
     if (std::holds_alternative<spirv_blob>(result_)) {
       const spirv_blob& blob = std::get<spirv_blob>(result_);
-      return const_span<std::byte> {reinterpret_cast<const std::byte*>(blob.data()), blob.size()};
+      return const_span<std::byte> {reinterpret_cast<const std::byte*>(blob.data()), blob.size() * sizeof(uint32_t)};
     } else {
       const std::string& str = std::get<std::string>(result_);
       return const_span<std::byte> {reinterpret_cast<const std::byte*>(str.data()), str.size()};
