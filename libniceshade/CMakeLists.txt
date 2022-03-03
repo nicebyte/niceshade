@@ -18,9 +18,9 @@ set_target_properties(spirv-cross-core spirv-cross-reflect spirv-cross-glsl spir
                       spirv-cross spirv-cross-cpp spirv-cross-hlsl spirv-cross-util PROPERTIES FOLDER spirv-cross)
 
 nmk_header_library(NAME dxc-headers
-                   SRCS ${CMAKE_CURRENT_LIST_DIR}/../third_party/dxc/include/dxc/dxcapi.h
-                        ${CMAKE_CURRENT_LIST_DIR}/../third_party/dxc/include/dxc/WinAdapter.h
-                   PUB_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/../third_party/dxc/include)
+                   SRCS ${CMAKE_CURRENT_LIST_DIR}/../deps/dxc/include/dxc/dxcapi.h
+                        ${CMAKE_CURRENT_LIST_DIR}/../deps/dxc/include/dxc/WinAdapter.h
+                   PUB_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/../deps/dxc/include)
                    
 nmk_static_library(NAME libniceshade
                    SRCS ${CMAKE_CURRENT_LIST_DIR}/impl/technique-parser.h
@@ -50,7 +50,7 @@ nmk_static_library(NAME libniceshade
                         ${CMAKE_CURRENT_LIST_DIR}/include/libniceshade/technique.h
                         ${CMAKE_CURRENT_LIST_DIR}/include/libniceshade/instance.h
                    PVT_INCLUDES ${CMAKE_CURRENT_LIST_DIR}
-                                ${CMAKE_CURRENT_LIST_DIR}/../third_party/dxc/include
+                                ${CMAKE_CURRENT_LIST_DIR}/../deps/dxc/include
                                 ${CMAKE_CURRENT_LIST_DIR}/include
                    PUB_INCLUDES ${CMAKE_CURRENT_LIST_DIR}/include
                    DEPS dxc-headers spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl)
