@@ -42,8 +42,9 @@ namespace niceshade {
  * Enumerates the supported types of programmable GPU pipeline stages.
  */
 enum class pipeline_stage {
-  vertex,  /**< Corresponds to the vertex stage. */
-  fragment /**< Corresponds to the fragment stage. */
+  vertex,   /**< Corresponds to the vertex stage. */
+  fragment, /**< Corresponds to the fragment stage. */
+  compute   /**< Corresponds to the compute stage. */
 };
 
 /**

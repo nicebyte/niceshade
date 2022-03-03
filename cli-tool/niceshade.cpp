@@ -234,8 +234,16 @@ int main(int argc, const char *argv[]) {
     for (const targeted_output& target_out : compiled_tech.targeted_outputs) {
       std::string native_binding_map_str;
       for (const compiled_stage& out_stage : target_out.stages) {
+        const std::string ep_extension = [](pipeline_stage s) {
+          switch(s) {
+          case pipeline_stage::vertex: return ".vs.";
+          case pipeline_stage::fragment: return ".ps.";
+          case pipeline_stage::compute: return ".cs.";
+          }
+          return "";
+        }(out_stage.stage);
         const std::string full_out_file_path =
-            out_file_path + (out_stage.stage == pipeline_stage::vertex ? ".vs." : ".ps.") +
+            out_file_path + ep_extension +
             file_ext_for_target(target_out.target);
         FILE* out_file = fopen(full_out_file_path.c_str(), "wb");
         if (out_file == nullptr) {

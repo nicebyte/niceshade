@@ -46,6 +46,7 @@ typedef struct ngf_plmd ngf_plmd;
 
 #define NGF_PLMD_STAGE_VISIBILITY_VERTEX_BIT   (0x01)
 #define NGF_PLMD_STAGE_VISIBILITY_FRAGMENT_BIT (0x02)
+#define NGF_PLMD_STAGE_VISIBILITY_COMPUTE_BIT  (0x04)
 
 /**
  * Pipeline metadata header.
@@ -94,6 +95,7 @@ typedef struct ngf_plmd_header {
 typedef struct ngf_plmd_entrypoints {
   const char* vert_shader_entrypoint;
   const char* frag_shader_entrypoint;
+  const char* compute_shader_entrypoint;
 } ngf_plmd_entrypoints;
 
 /**
