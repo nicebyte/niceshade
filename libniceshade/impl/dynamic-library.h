@@ -26,19 +26,22 @@
 
 #include "impl/platform.h"
 
+#include <vector>
+#include <string>
+
 namespace niceshade {
 
 class dynamic_lib {
   public:
   dynamic_lib() = default;
 
-  dynamic_lib(const std::vector<std::string>& paths) {
+  dynamic_lib(const std::vector<std::string>& paths) noexcept {
     for (size_t i = 0; h_ == nullptr && i < paths.size(); ++i) {
       h_ = LoadLibraryA(paths[i].c_str());
     }
   }
 
-  ~dynamic_lib() {
+  ~dynamic_lib() noexcept {
     if (h_) FreeModule(h_);
   }
 
@@ -46,16 +49,16 @@ class dynamic_lib {
 
   dynamic_lib& operator=(const dynamic_lib&) = delete;
 
-  dynamic_lib(dynamic_lib&& other) { *this = std::move(other); }
-  dynamic_lib& operator=(dynamic_lib&& other) {
+  dynamic_lib(dynamic_lib&& other) noexcept { *this = std::move(other); }
+  dynamic_lib& operator=(dynamic_lib&& other) noexcept {
     h_ = other.h_;
     other.h_ = nullptr;
     return *this;
   }
 
-  bool is_valid() const { return h_ == nullptr; }
+  bool is_valid() const noexcept { return h_ == nullptr; }
 
-  LPVOID get_proc_address(LPCSTR name) const {
+  LPVOID get_proc_address(LPCSTR name) const noexcept {
     return GetProcAddress(h_, name);
   }
 

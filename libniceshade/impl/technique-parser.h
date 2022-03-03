@@ -31,6 +31,6 @@
 
 namespace niceshade {
 value_or_error<std::vector<technique_desc>>
-parse_techniques(input_blob input_source, const define_container& default_defines);
+parse_techniques(input_blob input_source, const define_container& default_defines) noexcept;
 
 }  // namespace niceshade

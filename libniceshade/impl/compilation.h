@@ -27,11 +27,11 @@
  * @brief
  */
 
+#include "impl/pipeline-layout-builder.h"
+#include "impl/separate-to-combined-builder.h"
 #include "libniceshade/common-types.h"
 #include "libniceshade/output.h"
 #include "libniceshade/target.h"
-#include "impl/pipeline-layout-builder.h"
-#include "impl/separate-to-combined-builder.h"
 #include "spirv_cross.hpp"
 
 #include <memory>
@@ -43,15 +43,18 @@ namespace niceshade {
 
 class compilation {
 public:
-  static value_or_error<compilation>
-  create(pipeline_stage kind, const spirv_blob& spirv_code, const target_desc& target_info);
+  static value_or_error<compilation> create(
+      pipeline_stage     kind,
+      const spirv_blob&  spirv_code,
+      const target_desc& target_info) noexcept;
 
-  void add_resources_to_pipeline_layout(pipeline_layout_builder& builder) const;
-  void
-  add_cis_to_map(separate_to_combined_builder& image_map, separate_to_combined_builder& sampler_map) const;
-  pipeline_stage                     stage() const { return stage_; }
-  value_or_error<compilation_result> run(const pipeline_layout& pipeline_layout);
-  const target_desc&                 target() const { return target_info_; }
+  void add_resources_to_pipeline_layout(pipeline_layout_builder& builder) const noexcept;
+  void add_cis_to_map(
+      separate_to_combined_builder& image_map,
+      separate_to_combined_builder& sampler_map) const noexcept;
+  pipeline_stage                     stage() const noexcept { return stage_; }
+  value_or_error<compilation_result> run (const pipeline_layout& pipeline_layout) noexcept;
+  const target_desc&                 target() const noexcept { return target_info_; }
 
 private:
   target_desc                            target_info_;

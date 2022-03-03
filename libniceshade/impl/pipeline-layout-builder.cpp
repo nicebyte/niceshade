@@ -28,7 +28,7 @@ namespace niceshade {
 
 namespace {
 
-bool should_process_resource(uint32_t id, const spirv_cross::Compiler& compiler) {
+bool should_process_resource(uint32_t id, const spirv_cross::Compiler& compiler) noexcept {
   return compiler.get_decoration(id, spv::DecorationDescriptorSet) != AUTOGEN_CIS_DESCRIPTOR_SET &&
          compiler.get_name(id) != "SPIRV_Cross_DummySampler" &&
          compiler.get_active_interface_variables().count(id) > 0u;
@@ -39,7 +39,7 @@ error pipeline_layout_builder::process_resources(
     const spirv_cross::SmallVector<spirv_cross::Resource>& resources,
     descriptor_type                                        resource_type,
     stage_mask_bit                                         smb,
-    spirv_cross::Compiler&                                 refl) {
+    spirv_cross::Compiler&                                 refl) noexcept {
   for (const auto& r : resources) {
     if (!should_process_resource(r.id, refl)) { continue; }
     uint32_t set_idx     = refl.get_decoration(r.id, spv::DecorationDescriptorSet);
@@ -81,7 +81,7 @@ error pipeline_layout_builder::process_resources(
   return error {};
 }
 
-void pipeline_layout_builder::remap_resources() {
+void pipeline_layout_builder::remap_resources() noexcept {
   uint32_t num_descriptors_of_type[(int)descriptor_type::INVALID] = {0u};
   for (auto& set_id_and_layout : sets_) {
     for (auto& binding_id_and_descriptor : set_id_and_layout.second) {
@@ -99,7 +99,7 @@ void pipeline_layout_builder::remap_resources() {
   }
 }
 
-value_or_error<pipeline_layout> pipeline_layout_builder::build() {
+value_or_error<pipeline_layout> pipeline_layout_builder::build() noexcept {
   remap_resources();
 
   pipeline_layout layout;

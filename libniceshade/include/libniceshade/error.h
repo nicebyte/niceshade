@@ -44,7 +44,7 @@ public:
   /**
    * Convenience ctor used to create formatted error messages.
    */
-  template<class... Args> explicit error(Args&&... args) {
+  template<class... Args> explicit error(Args&&... args) noexcept {
     std::ostringstream stream;
     ((stream << args), ...);
     stream << "\n";
@@ -56,12 +56,12 @@ public:
   /**
    * @return true if the wrapped value is an error-value.
    */
-  bool               is_error() const { return !msg_.empty(); }
+  bool               is_error() const noexcept { return !msg_.empty(); }
 
   /**
    * @return the error message, if the wrapped value is an error-value; empty string otherwise.
    */
-  const std::string& error_message() const { return msg_; }
+  const std::string& error_message() const noexcept { return msg_; }
 
 private:
   std::string msg_;

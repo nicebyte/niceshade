@@ -38,14 +38,14 @@ static const std::string dxc_lib_filename = "libdxcompiler.dylib";
 static const std::string dxc_lib_filename = "libdxcompiler.so";
 #endif
 
-static std::vector<std::string> get_dxc_lib_path_candidates(const std::string& exe_dir) {
+static std::vector<std::string> get_dxc_lib_path_candidates(const std::string& exe_dir) noexcept {
   return {
       exe_dir + "/" + dxc_lib_filename,
       exe_dir + "/third_party/dxc/" + dxc_lib_filename,
       "/../third_party/dxc/" + dxc_lib_filename};
 }
 
-std::wstring towstring(const char* src, size_t len) {
+std::wstring towstring(const char* src, size_t len) noexcept {
   std::wstring ws(len + 1, '\0');
   std::mbstowcs(ws.data(), src, len);
   return ws;
@@ -57,7 +57,7 @@ namespace niceshade {
 value_or_error<dxc_wrapper> dxc_wrapper::create(
     const std::string& sm,
     span<std::string>  dxc_params,
-    const std::string& exe_dir) {
+    const std::string& exe_dir) noexcept {
   dxc_wrapper result;
   result.shader_model_   = towstring(sm.c_str(), sm.length());
   result.dxcompiler_dll_ = get_dxc_lib_path_candidates(exe_dir);
@@ -98,7 +98,7 @@ value_or_error<spirv_blob> dxc_wrapper::compile_hlsl2spv(
     size_t                             source_size,
     const char*                        input_file_name,
     const technique_desc::entry_point& entry_point,
-    const define_container&            defines) {
+    const define_container&            defines) noexcept {
   auto input_blob = com_ptr<IDxcBlobEncoding>([&](auto ptr) {
     return library_instance_
         ->CreateBlobWithEncodingFromPinned(source, (uint32_t)source_size, 0, ptr);

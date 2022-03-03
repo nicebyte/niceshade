@@ -51,7 +51,7 @@ constexpr bool is_tab_space(char c) { return (c == ' ' || c == '\t'); }
 }  // namespace
 
 value_or_error<std::vector<technique_desc>>
-parse_techniques(input_blob input_source, const define_container& default_defines) {
+parse_techniques(input_blob input_source, const define_container& default_defines) noexcept {
   uint32_t                    last_four_chars  = 0u;
   uint32_t                    line_num         = 1u;
   const uint32_t              technique_prefix = 0x2f2f543a;  // `//T:'

@@ -37,27 +37,29 @@ public:
       const spirv_cross::SmallVector<spirv_cross::Resource>& resources,
       descriptor_type                                        resource_type,
       stage_mask_bit                                         smb,
-      spirv_cross::Compiler&                                 refl);
+      spirv_cross::Compiler&                                 refl) noexcept;
 
-  value_or_error<pipeline_layout> build();
+  value_or_error<pipeline_layout> build() noexcept;
 
 private:
-  void remap_resources();
+  void remap_resources() noexcept;
 
   using descriptor_usage = std::pair<spirv_cross::Compiler*, spirv_cross::ID>;
   class descriptor_usage_map {
   private:
-    static constexpr uint64_t make_key(uint64_t a, uint64_t b) { return (a << (uint64_t)32) | b; }
+    static constexpr uint64_t make_key(uint64_t a, uint64_t b) noexcept {
+      return (a << (uint64_t)32) | b;
+    }
 
   public:
-    void add(uint32_t set, uint32_t binding, descriptor_usage usage) {
+    void add(uint32_t set, uint32_t binding, descriptor_usage usage) noexcept {
       descriptor_usages_[make_key(set, binding)].emplace_back(usage);
     }
-    const std::vector<descriptor_usage>& get_usages(uint32_t set, uint32_t binding) {
+    const std::vector<descriptor_usage>& get_usages(uint32_t set, uint32_t binding) noexcept {
       return descriptor_usages_[make_key(set, binding)];
     }
 
-    void clear() { descriptor_usages_.clear(); }
+    void clear() noexcept { descriptor_usages_.clear(); }
 
   private:
     std::map<uint64_t, std::vector<descriptor_usage>> descriptor_usages_;
