@@ -131,6 +131,7 @@ value_or_error<spirv_blob> dxc_wrapper::compile_hlsl2spv(
     switch (entry_point.stage) {
     case pipeline_stage::vertex: return L"vs_";
     case pipeline_stage::fragment: return L"ps_";
+    case pipeline_stage::compute: return L"cs_";
     default: exit(1);
     }
   }() + shader_model_;

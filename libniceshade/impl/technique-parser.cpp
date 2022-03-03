@@ -57,7 +57,7 @@ parse_techniques(input_blob input_source, const define_container& default_define
   const uint32_t              technique_prefix = 0x2f2f543a;  // `//T:'
   technique_parser_state      state            = technique_parser_state::LOOKING_FOR_PREFIX;
   std::string                 parameter_name, entry_point_name, nameval_name, nameval_value;
-  bool                        have_vertex_stage = false;
+  bool                        have_vertex_or_compute_stage = false;
   std::vector<technique_desc> techniques;
   for (uint32_t c_idx = 0u; c_idx < input_source.size(); ++c_idx) {
     const char c = static_cast<char>(input_source[c_idx]);
@@ -82,7 +82,7 @@ parse_techniques(input_blob input_source, const define_container& default_define
             new_tech.defines.end(),
             default_defines.begin(),
             default_defines.end());
-        have_vertex_stage = false;
+        have_vertex_or_compute_stage = false;
       }
       break;
     case technique_parser_state::LOOKING_FOR_NAME:
@@ -135,7 +135,7 @@ parse_techniques(input_blob input_source, const define_container& default_define
         if (parameter_name == "define" || parameter_name == "meta") {
           state = technique_parser_state::PARSING_NAMEVAL_NAME;
           nameval_name.clear();
-        } else if (parameter_name == "vs" || parameter_name == "ps") {
+        } else if (parameter_name == "vs" || parameter_name == "ps" || parameter_name == "cs") {
           state = technique_parser_state::PARSING_ENTRYPOINT_NAME;
           entry_point_name.clear();
         } else {
@@ -162,9 +162,17 @@ parse_techniques(input_blob input_source, const define_container& default_define
           NICESHADE_RETURN_ERROR("entry point name cannot be empty on line ", line_num);
         }
         technique_desc::entry_point ep {
-            parameter_name == "vs" ? pipeline_stage::vertex : pipeline_stage::fragment,
+            parameter_name == "vs"
+                ? pipeline_stage::vertex
+                : (parameter_name == "ps" ? pipeline_stage::fragment : pipeline_stage::compute),
             entry_point_name};
+
         for (const auto& prev_ep : techniques.back().entry_points) {
+          if (ep.stage == pipeline_stage::compute) {
+            NICESHADE_RETURN_ERROR(
+                "cannot combine compute with any other pipeline stage in technique ",
+                techniques.back().name.c_str());
+          }
           if (prev_ep.stage == ep.stage) {
             NICESHADE_RETURN_ERROR(
                 "duplicate entry point ",
@@ -176,7 +184,7 @@ parse_techniques(input_blob input_source, const define_container& default_define
           }
         }
         techniques.back().entry_points.emplace_back(ep);
-        have_vertex_stage |= (parameter_name == "vs");
+        have_vertex_or_compute_stage |= (parameter_name == "vs" || parameter_name == "cs");
         state = c != '\n' ? technique_parser_state::LOOKING_FOR_PARAMETER_NAME
                           : technique_parser_state::FINALIZING_TECHNIQUE;
       } else {
@@ -217,9 +225,9 @@ parse_techniques(input_blob input_source, const define_container& default_define
       }
       break;
     case technique_parser_state::FINALIZING_TECHNIQUE:
-      if (!have_vertex_stage) {
+      if (!have_vertex_or_compute_stage) {
         NICESHADE_RETURN_ERROR(
-            "technique needs to define at least a vertex stage on line ",
+            "technique needs to define at least a vertex or compute stage on line ",
             line_num);
       }
       state = technique_parser_state::LOOKING_FOR_PREFIX;

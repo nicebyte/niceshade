@@ -108,8 +108,14 @@ void compilation::add_cis_to_map(
 
 void compilation::add_resources_to_pipeline_layout(
     pipeline_layout_builder& builder) const noexcept {
-  const stage_mask_bit smb =
-      stage_ == pipeline_stage::vertex ? STAGE_MASK_VERTEX : STAGE_MASK_FRAGMENT;
+  const stage_mask_bit smb = [](pipeline_stage s) {
+    switch (s) {
+    case pipeline_stage::vertex: return STAGE_MASK_VERTEX;
+    case pipeline_stage::fragment: return STAGE_MASK_FRAGMENT;
+    case pipeline_stage::compute: return STAGE_MASK_COMPUTE;
+    }
+    return STAGE_MASK_VERTEX;
+  }(stage_);
   auto process_resources = [this, smb, &builder](
                                const spirv_cross::SmallVector<spirv_cross::Resource>& resources,
                                descriptor_type                                        dtype) {
@@ -122,6 +128,8 @@ void compilation::add_resources_to_pipeline_layout(
   process_resources(resources.storage_buffers, descriptor_type::STORAGE_BUFFER);
   process_resources(resources.separate_samplers, descriptor_type::SAMPLER);
   process_resources(resources.separate_images, descriptor_type::TEXTURE);
+  process_resources(resources.storage_images, descriptor_type::LOADSTORE_IMAGE);
+  process_resources(resources.storage_buffers, descriptor_type::STORAGE_BUFFER);
 }
 
 value_or_error<compilation_result> compilation::run(const pipeline_layout& layout) noexcept {

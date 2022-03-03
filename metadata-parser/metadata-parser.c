@@ -169,6 +169,7 @@ ngf_plmd_error ngf_plmd_load(const void *buf, size_t buf_size,
     entrypoints_ptr += size * sizeof(uint32_t);
     if (kind == 0) meta->entrypoints.vert_shader_entrypoint = name;
     else if (kind == 1) meta->entrypoints.frag_shader_entrypoint = name;
+    else if (kind == 2) meta->entrypoints.compute_shader_entrypoint = name;
     else {
       err = NGF_PLMD_ERROR_INVALID_SHADER_STAGE;
       goto ngf_plmd_load_cleanup;

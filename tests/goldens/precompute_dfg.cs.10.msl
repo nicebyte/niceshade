@@ -1,0 +1,62 @@
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+constant float3 _42 = {};
+
+kernel void CSMain(texture2d<float, access::write> dstTexture [[texture(0)]], uint3 gl_GlobalInvocationID [[thread_position_in_grid]])
+{
+    float _51 = (float(gl_GlobalInvocationID.x) + 0.5) * 0.001953125;
+    float _56 = 1.0 - ((float(gl_GlobalInvocationID.y) + 0.5) * 0.001953125);
+    float3 _60 = _42;
+    _60.x = sqrt(1.0 - (_51 * _51));
+    float3 _61 = _60;
+    _61.y = 0.0;
+    float3 _62 = _61;
+    _62.z = _51;
+    float _64;
+    float _67;
+    _64 = 0.0;
+    _67 = 0.0;
+    float _65;
+    float _68;
+    for (uint _69 = 0u; _69 < 64u; _64 = _65, _67 = _68, _69++)
+    {
+        uint _77 = (_69 << 16u) | (_69 >> 16u);
+        uint _82 = ((_77 & 1431655765u) << 1u) | ((_77 & 2863311530u) >> 1u);
+        uint _87 = ((_82 & 858993459u) << 2u) | ((_82 & 3435973836u) >> 2u);
+        uint _92 = ((_87 & 252645135u) << 4u) | ((_87 & 4042322160u) >> 4u);
+        float _99 = float(((_92 & 16711935u) << 8u) | ((_92 & 4278255360u) >> 8u)) * 2.3283064365386962890625e-10;
+        float _100 = _56 * _56;
+        float _101 = float(_69) * 0.098174773156642913818359375;
+        float _108 = sqrt((1.0 - _99) / (1.0 + (((_100 * _100) - 1.0) * _99)));
+        float _111 = sqrt(1.0 - (_108 * _108));
+        float3 _121 = normalize(cross(select(float3(1.0, 0.0, 0.0), float3(0.0, 0.0, 1.0), bool3(abs(1.0) < 0.999000012874603271484375)), float3(0.0, 0.0, 1.0)));
+        float3 _128 = normalize(((_121 * (cos(_101) * _111)) + (cross(float3(0.0, 0.0, 1.0), _121) * (sin(_101) * _111))) + (float3(0.0, 0.0, 1.0) * _108));
+        float _129 = dot(_62, _128);
+        float _135 = fast::max(normalize((_128 * (2.0 * _129)) - _62).z, 0.0);
+        float _138 = fast::max(_129, 0.0);
+        if (_135 > 0.0)
+        {
+            float _142 = fast::max(_51, 0.0);
+            float _143 = _100 * 0.5;
+            float _144 = 1.0 - _143;
+            float _154 = (((_135 / ((_135 * _144) + _143)) * (_142 / ((_142 * _144) + _143))) * _138) / (fast::max(_128.z, 0.0) * _51);
+            float _156 = pow(1.0 - _138, 5.0);
+            _65 = _64 + (_156 * _154);
+            _68 = _67 + ((1.0 - _156) * _154);
+        }
+        else
+        {
+            _65 = _64;
+            _68 = _67;
+        }
+    }
+    dstTexture.write(float2(_67 * 0.015625, _64 * 0.015625).xyyy, uint2(gl_GlobalInvocationID.xy));
+}
+
+/**NGF_NATIVE_BINDING_MAP
+(0 0) : 0
+(-1 -1) : -1
+**/
