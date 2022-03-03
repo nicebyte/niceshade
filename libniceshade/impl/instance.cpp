@@ -31,7 +31,7 @@
 
 namespace niceshade {
 
-value_or_error<instance> instance::create(const instance::options& opts) {
+value_or_error<instance> instance::create(const instance::options& opts) noexcept {
   instance result;
   result.dxc_ = new dxc_wrapper {};
   NICESHADE_DECLARE_OR_RETURN(
@@ -41,12 +41,12 @@ value_or_error<instance> instance::create(const instance::options& opts) {
   return result;
 }
 
-instance::~instance() {
+instance::~instance() noexcept {
   if (dxc_) delete dxc_;
 }
 
 value_or_error<compiled_techniques>
-instance::compile(const_span<compiler_input> inputs, const_span<target_desc> targets) {
+instance::compile(const_span<compiler_input> inputs, const_span<target_desc> targets) noexcept {
   compiled_techniques result;
   for (const auto& input : inputs) {
     const const_span<technique_desc>& techniques = input.technique_descs;
@@ -115,7 +115,7 @@ value_or_error<descs_and_compiled_techniques> instance::parse_techniques_and_com
     input_blob              in_blob,
     const char*             file_name,
     const_span<target_desc> targets,
-    const define_container& global_defines) {
+    const define_container& global_defines) noexcept {
   NICESHADE_DECLARE_OR_RETURN(parsed_techniques, parse_techniques(in_blob, global_defines));
   if (parsed_techniques.size() == 0) {
     NICESHADE_RETURN_ERROR("The input file does not appear to define any techniques. "

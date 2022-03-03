@@ -87,26 +87,26 @@ public:
   using iterator = std::map<uint32_t, descriptor_set_layout>::const_iterator;
 
   /** @return The total number of descriptor sets in the layout. */
-  uint32_t set_count() const { return max_set_ + 1; }
+  uint32_t set_count() const noexcept { return max_set_ + 1; }
 
   /** @return The total number of descriptors across all descriptor sets in the layout. */
-  uint32_t res_count() const { return nres_; }
+  uint32_t res_count() const noexcept { return nres_; }
 
   /**
    * @param set_id The id of the descriptor set to retrieve the layour for.
    * @return The layout of the specified descriptor set.
    */
-  const descriptor_set_layout& set(uint32_t set_id) const {
+  const descriptor_set_layout& set(uint32_t set_id) const noexcept {
     static const descriptor_set_layout empty_layout {};
     auto it = sets_.find(set_id);
     return (it != sets_.cend()) ? it->second : empty_layout;
   }
 
   /** @return an interator pointing to the beginning of the pipeline layout. */
-  iterator begin() const { return sets_.begin(); }
+  iterator begin() const noexcept { return sets_.begin(); }
 
   /** @return end iterator of the pipeline layout. */
-  iterator end() const { return sets_.end(); }
+  iterator end() const noexcept { return sets_.end(); }
 
 private:
   std::map<uint32_t, descriptor_set_layout> sets_;   // shouldn't be unordered_map to guarantee consistent order.

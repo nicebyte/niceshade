@@ -26,7 +26,7 @@
 
 namespace niceshade {
 
-std::string file_ext_for_target(const target_desc& target) {
+std::string file_ext_for_target(const target_desc& target) noexcept {
   const bool is_mobile = target.platform == target_platform_class::MOBILE;
   switch (target.api) {
   case target_api::GL:

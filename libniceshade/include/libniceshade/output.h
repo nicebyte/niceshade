@@ -24,10 +24,10 @@
 
 #include "libniceshade/common-types.h"
 #include "libniceshade/pipeline-layout.h"
+#include "libniceshade/separate-to-combined-map.h"
 #include "libniceshade/span.h"
 #include "libniceshade/target.h"
 #include "libniceshade/technique.h"
-#include "libniceshade/separate-to-combined-map.h"
 
 #include <tuple>
 #include <variant>
@@ -54,10 +54,12 @@ public:
   /**
    * A span of memory containing raw output bytes (GLSL, Metal Shading Language, or SPIR-V...).
    */
-  const_span<std::byte> data() const {
+  const_span<std::byte> data() const noexcept {
     if (std::holds_alternative<spirv_blob>(result_)) {
       const spirv_blob& blob = std::get<spirv_blob>(result_);
-      return const_span<std::byte> {reinterpret_cast<const std::byte*>(blob.data()), blob.size() * sizeof(uint32_t)};
+      return const_span<std::byte> {
+          reinterpret_cast<const std::byte*>(blob.data()),
+          blob.size() * sizeof(uint32_t)};
     } else {
       const std::string& str = std::get<std::string>(result_);
       return const_span<std::byte> {reinterpret_cast<const std::byte*>(str.data()), str.size()};
@@ -65,8 +67,12 @@ public:
   }
 
 private:
-  explicit compilation_result(const spirv_blob& blob) { result_.emplace<spirv_blob>(blob); }
-  explicit compilation_result(std::string&& str) { result_.emplace<std::string>(std::move(str)); }
+  explicit compilation_result(const spirv_blob& blob) noexcept {
+    result_.emplace<spirv_blob>(blob);
+  }
+  explicit compilation_result(std::string&& str) noexcept {
+    result_.emplace<std::string>(std::move(str));
+  }
   std::variant<spirv_blob, std::string> result_;
 };
 
@@ -76,7 +82,7 @@ private:
 struct compiled_stage {
   compiled_stage()                 = default;
   compiled_stage(compiled_stage&&) = default;
-  compiled_stage&    operator=(compiled_stage&&) = default;
+  compiled_stage& operator=(compiled_stage&&) = default;
 
   /**
    * The pipeline stage for which the output was generated.
@@ -86,7 +92,7 @@ struct compiled_stage {
   /**
    * The generated output.
    */
-  pipeline_stage     stage;
+  pipeline_stage stage;
 };
 
 /**
@@ -96,10 +102,11 @@ struct targeted_output {
   /**
    * The description of the target for which the output was generated.
    */
-  target_desc                 target;
+  target_desc target;
 
   /**
-   * A vector of generated target-specific shaders. Each element corresponds to a single pipeline stage.
+   * A vector of generated target-specific shaders. Each element corresponds to a single pipeline
+   * stage.
    */
   std::vector<compiled_stage> stages;
 };
@@ -110,10 +117,10 @@ struct targeted_output {
 struct compiled_technique {
   compiled_technique()                     = default;
   compiled_technique(compiled_technique&&) = default;
-  compiled_technique&          operator=(compiled_technique&&) = default;
+  compiled_technique& operator=(compiled_technique&&) = default;
 
   /** The name of the technique for which the shaders were generated. */
-  std::string                  name;
+  std::string name;
 
   /** A vector of per-target output. Each element corresponds to a single target. */
   std::vector<targeted_output> targeted_outputs;
@@ -121,29 +128,31 @@ struct compiled_technique {
   /**
    * The pipeline layout, containing information about all resources used by all pipeline stages.
    */
-  pipeline_layout              layout;
+  pipeline_layout layout;
 
   /**
-   * For targets that do not have a separation between images and samplers at the shader level (i.e. OpenGL),
-   * this contains a mapping from a separate image ID to an auto-generated combined image+sampler ID.
+   * For targets that do not have a separation between images and samplers at the shader level (i.e.
+   * OpenGL), this contains a mapping from a separate image ID to an auto-generated combined
+   * image+sampler ID.
    */
-  separate_to_combined_map     image_map;
+  separate_to_combined_map image_map;
 
   /**
-   * For targets that do not have a separation between images and samplers at the shader level (i.e. OpenGL),
-   * this contains a mapping from a separate sampler ID to an auto-generated combined image+sampler ID.
+   * For targets that do not have a separation between images and samplers at the shader level (i.e.
+   * OpenGL), this contains a mapping from a separate sampler ID to an auto-generated combined
+   * image+sampler ID.
    */
-  separate_to_combined_map     sampler_map;
+  separate_to_combined_map sampler_map;
 };
 
 /** A vector of \ref compiled_technique objects. */
-using compiled_techniques           = std::vector<compiled_technique>;
+using compiled_techniques = std::vector<compiled_technique>;
 
-/** 
+/**
  * A sequence of \ref technique_desc objects parsed out of inline technique definitions in the
  * input HLSL code.
  */
-using parsed_technique_descs        = std::vector<technique_desc>;
+using parsed_technique_descs = std::vector<technique_desc>;
 
 /**
  * A tuple where the first element is a sequence of parsed technique descriptions and the second

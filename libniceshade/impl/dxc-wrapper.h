@@ -24,12 +24,12 @@
 
 #define _CRT_SECURE_NO_WARNING
 
-#include "libniceshade/common-types.h"
-#include "libniceshade/error.h"
 #include "impl/com-ptr.h"
 #include "impl/dynamic-library.h"
 #include "impl/platform.h"
 #include "impl/technique-parser.h"
+#include "libniceshade/common-types.h"
+#include "libniceshade/error.h"
 #include "libniceshade/span.h"
 
 #include <stdint.h>
@@ -44,20 +44,20 @@ public:
     std::vector<uint32_t> spirv_code;
     std::string           diag_message;
 
-    bool has_data() const { return spirv_code.size() > 0; }
+    bool has_data() const noexcept { return spirv_code.size() > 0; }
 
-    bool has_diag_msg() const { return diag_message.size() > 0; }
+    bool has_diag_msg() const noexcept { return diag_message.size() > 0; }
   };
 
   static value_or_error<dxc_wrapper>
-  create(const std::string& sm, span<std::string> dxc_params, const std::string& exe_dir);
+  create(const std::string& sm, span<std::string> dxc_params, const std::string& exe_dir) noexcept;
 
   value_or_error<spirv_blob> compile_hlsl2spv(
       const char*                        source,
       size_t                             source_size,
       const char*                        input_file_name,
       const technique_desc::entry_point& entry_point,
-      const define_container&            defines);
+      const define_container&            defines) noexcept;
 
 private:
   std::wstring                shader_model_;

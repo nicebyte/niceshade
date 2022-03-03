@@ -74,14 +74,14 @@ public:
    * @param opts niceshade configuration.
    * @return The newly created instance object, or an error on failure.
    */
-  static value_or_error<instance> create(const options& opts);
+  static value_or_error<instance> create(const options& opts) noexcept;
 
   instance() = default;
-  ~instance();
+  ~instance() noexcept;
   instance(const instance&) = delete;
   instance& operator=(const instance&) = delete;
-  instance(instance&& other) { *this = std::move(other); }
-  instance& operator=(instance&& other) {
+  instance(instance&& other) noexcept { *this = std::move(other); }
+  instance& operator=(instance&& other) noexcept {
     dxc_       = other.dxc_;
     other.dxc_ = nullptr;
     return *this;
@@ -101,7 +101,7 @@ public:
       input_blob              in_blob,
       const char*             file_name,
       const_span<target_desc> targets,
-      const define_container& global_defines);
+      const define_container& global_defines) noexcept;
 
   /**
    * Compiles several \ref compiler_input units at a time. Note that any techniques defined inline
@@ -111,7 +111,7 @@ public:
    * @return \ref compiled_techniques
    */
   value_or_error<compiled_techniques>
-  compile(const_span<compiler_input> compiler_inputs, const_span<target_desc> targets);
+  compile(const_span<compiler_input> compiler_inputs, const_span<target_desc> targets) noexcept;
 
 private:
   dxc_wrapper* dxc_;

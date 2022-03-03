@@ -33,7 +33,7 @@ namespace niceshade {
 value_or_error<compilation> compilation::create(
     pipeline_stage     stage,
     const spirv_blob&  spirv_code,
-    const target_desc& target_info) {
+    const target_desc& target_info) noexcept {
   compilation result;
   result.target_info_    = target_info;
   result.stage_          = stage;
@@ -98,7 +98,7 @@ value_or_error<compilation> compilation::create(
 
 void compilation::add_cis_to_map(
     separate_to_combined_builder& image_map,
-    separate_to_combined_builder& sampler_map) const {
+    separate_to_combined_builder& sampler_map) const noexcept {
   for (const spirv_cross::CombinedImageSampler& cis :
        spv_cross_compiler_->get_combined_image_samplers()) {
     image_map.add_resource(cis.image_id, cis.combined_id, *spv_cross_compiler_);
@@ -106,7 +106,8 @@ void compilation::add_cis_to_map(
   }
 }
 
-void compilation::add_resources_to_pipeline_layout(pipeline_layout_builder& builder) const {
+void compilation::add_resources_to_pipeline_layout(
+    pipeline_layout_builder& builder) const noexcept {
   const stage_mask_bit smb =
       stage_ == pipeline_stage::vertex ? STAGE_MASK_VERTEX : STAGE_MASK_FRAGMENT;
   auto process_resources = [this, smb, &builder](
@@ -123,7 +124,7 @@ void compilation::add_resources_to_pipeline_layout(pipeline_layout_builder& buil
   process_resources(resources.separate_images, descriptor_type::TEXTURE);
 }
 
-value_or_error<compilation_result> compilation::run(const pipeline_layout& layout) {
+value_or_error<compilation_result> compilation::run(const pipeline_layout& layout) noexcept {
   try {
     return (target_info_.api != target_api::VULKAN)
                ? compilation_result {spv_cross_compiler_->compile()}

@@ -48,7 +48,7 @@ struct target_desc {
   uint32_t              version_min;  /**< Minor version number. */
   target_platform_class platform;     /**< Device type that the target API runs on. */
 
-  bool operator==(const target_desc& other) {
+  bool operator==(const target_desc& other) noexcept {
     return api == other.api && version_maj == other.version_maj &&
            version_min == other.version_min && platform == other.platform;
   }
@@ -60,6 +60,6 @@ struct target_desc {
  * @param target A target description.
  * @return File extension for the given target description.
  */
-std::string file_ext_for_target(const target_desc& target);
+std::string file_ext_for_target(const target_desc& target) noexcept;
 
 }  // namespace niceshade

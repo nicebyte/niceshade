@@ -28,12 +28,14 @@ namespace niceshade {
 
 class separate_to_combined_builder {
 public:
-  void
-  add_resource(uint32_t separate_id, uint32_t combined_id, const spirv_cross::Compiler& compiler);
-  separate_to_combined_map build();
+  void add_resource(
+      uint32_t                     separate_id,
+      uint32_t                     combined_id,
+      const spirv_cross::Compiler& compiler) noexcept;
+  separate_to_combined_map build() noexcept;
 
 private:
   separate_to_combined_map map_;
 };
 
-};
+};  // namespace niceshade
