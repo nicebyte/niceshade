@@ -41,8 +41,8 @@ static const std::string dxc_lib_filename = "libdxcompiler.so";
 static std::vector<std::string> get_dxc_lib_path_candidates(const std::string& exe_dir) noexcept {
   return {
       exe_dir + "/" + dxc_lib_filename,
-      exe_dir + "/third_party/dxc/" + dxc_lib_filename,
-      "/../third_party/dxc/" + dxc_lib_filename};
+      exe_dir + "/deps/dxc/" + dxc_lib_filename,
+      "/../deps/dxc/" + dxc_lib_filename};
 }
 
 std::wstring towstring(const char* src, size_t len) noexcept {
