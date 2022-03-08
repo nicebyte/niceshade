@@ -148,6 +148,7 @@ A tag is a name-value pair separated by a colon. For example, `vs:VSMain` is a t
 The following tag names are valid:
 * `vs` - the tag value specifies the entry point for the vertex shader stage;
 * `ps` - the tag value specifies the entry point for the pixel shader stage;
+* `cs` - the tag value specifies the entry point for a compute shader;
 * `define` - the tag value specifies an additional preprocessor definition;
 * `meta` - the tag value specifies an additional metadata entry. It should be a name-value pair separated by a `=` sign, i.e.: `meta:enable_depth_testing=1`. These values get stored as part of the pipeline metadata file (see below) and users are free to interpret them as they wish. 
 
