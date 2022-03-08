@@ -11,7 +11,6 @@ See the reference documentation for `libniceshade` at https://wiki.gpfault.net/d
 ## Table of Contents
 
 * [Introduction](#intro)
-* [Project Status](#project-status)
 * [Obtaining the Source Code and Building](#building)
 * [Running](#running)
 * [Defining Techniques](#techniques)
@@ -69,15 +68,6 @@ float4 PSMain(float4 frag_coord : SV_POSITION) : SV_TARGET { // pixel shader
 In addition to generating shaders, the tool captures and writes out the information about resources (textures, buffers, etc.) used by each technique defined in the input file. This information can be used by the application for various purposes, such as streamlining Vulkan pipeline layout creation.
 
 This tool is powered by [Microsoft DirectXShaderCompiler](https://github.com/microsoft/DirectXShaderCompiler) and [SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross).
-
-<a name="project-status"></a>
-## Project Status 
-
-This project is under active development. Some features may change significantly.
-
-### Planned Features
- * Adding support for hull, domain, geometry and compute shaders;
- * Batching and parallel compilation to speed up builds.
 
 <a name="building"></a>
 ## Obtaining the Source Code and Building 
