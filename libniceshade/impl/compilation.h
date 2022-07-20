@@ -48,7 +48,7 @@ public:
       const spirv_blob&  spirv_code,
       const target_desc& target_info) noexcept;
 
-  void add_resources_to_pipeline_layout(pipeline_layout_builder& builder) const noexcept;
+  error add_resources_to_pipeline_layout(pipeline_layout_builder& builder) const noexcept;
   void add_cis_to_map(
       separate_to_combined_builder& image_map,
       separate_to_combined_builder& sampler_map) const noexcept;
