@@ -106,7 +106,7 @@ void compilation::add_cis_to_map(
   }
 }
 
-void compilation::add_resources_to_pipeline_layout(
+error compilation::add_resources_to_pipeline_layout(
     pipeline_layout_builder& builder) const noexcept {
   const stage_mask_bit smb = [](pipeline_stage s) {
     switch (s) {
@@ -119,17 +119,19 @@ void compilation::add_resources_to_pipeline_layout(
   auto process_resources = [this, smb, &builder](
                                const spirv_cross::SmallVector<spirv_cross::Resource>& resources,
                                descriptor_type                                        dtype) {
-    builder.process_resources(resources, dtype, smb, *spv_cross_compiler_);
+    return builder.process_resources(resources, dtype, smb, *spv_cross_compiler_);
   };
 
   spirv_cross::ShaderResources resources = spv_cross_compiler_->get_shader_resources();
 
-  process_resources(resources.uniform_buffers, descriptor_type::UNIFORM_BUFFER);
-  process_resources(resources.storage_buffers, descriptor_type::STORAGE_BUFFER);
-  process_resources(resources.separate_samplers, descriptor_type::SAMPLER);
-  process_resources(resources.separate_images, descriptor_type::TEXTURE);
-  process_resources(resources.storage_images, descriptor_type::LOADSTORE_IMAGE);
-  process_resources(resources.storage_buffers, descriptor_type::STORAGE_BUFFER);
+  NICESHADE_RETURN_IF_ERROR(process_resources(resources.uniform_buffers, descriptor_type::UNIFORM_BUFFER));
+  NICESHADE_RETURN_IF_ERROR(process_resources(resources.storage_buffers, descriptor_type::STORAGE_BUFFER));
+  NICESHADE_RETURN_IF_ERROR(process_resources(resources.separate_samplers, descriptor_type::SAMPLER));
+  NICESHADE_RETURN_IF_ERROR(process_resources(resources.separate_images, descriptor_type::TEXTURE));
+  NICESHADE_RETURN_IF_ERROR(process_resources(resources.storage_images, descriptor_type::LOADSTORE_IMAGE));
+  NICESHADE_RETURN_IF_ERROR(process_resources(resources.storage_buffers, descriptor_type::STORAGE_BUFFER));
+
+  return error {};
 }
 
 value_or_error<compilation_result> compilation::run(const pipeline_layout& layout) noexcept {

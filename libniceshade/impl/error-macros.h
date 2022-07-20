@@ -25,4 +25,5 @@
 #include "libniceshade/error.h"
 
 #define NICESHADE_DECLARE_OR_RETURN(var_name, expr) auto maybe_##var_name = expr; if (maybe_##var_name.is_error()) return std::move(maybe_##var_name); auto var_name = std::move(maybe_##var_name.get())
+#define NICESHADE_RETURN_IF_ERROR(expr) if (auto maybe_err = expr; maybe_err.is_error()) return maybe_err
 #define NICESHADE_RETURN_ERROR(...) return error(__VA_ARGS__)
