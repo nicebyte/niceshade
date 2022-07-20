@@ -79,7 +79,7 @@ instance::compile(const_span<compiler_input> inputs, const_span<target_desc> tar
               new_compilation,
               compilation::create(ep.stage, spirv_blobs[ep_idx], target_info));
           compilations.emplace_back(std::move(new_compilation));
-          compilations.back().add_resources_to_pipeline_layout(res_layout_builder);
+          NICESHADE_RETURN_IF_ERROR(compilations.back().add_resources_to_pipeline_layout(res_layout_builder));
           compilations.back().add_cis_to_map(image_map_builder, sampler_map_builder);
         }
       }
