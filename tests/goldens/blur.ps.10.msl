@@ -54,7 +54,7 @@ struct type_BlurData
     float4 samples[63];
 };
 
-constant spvUnsafeArray<uint, 7> _47 = spvUnsafeArray<uint, 7>({ 1u, 4u, 9u, 18u, 29u, 46u, 63u });
+constant spvUnsafeArray<uint, 7> _45 = spvUnsafeArray<uint, 7>({ 1u, 4u, 9u, 18u, 29u, 46u, 63u });
 
 struct PSMain_out
 {
@@ -69,15 +69,15 @@ struct PSMain_in
 fragment PSMain_out PSMain(PSMain_in in [[stage_in]], constant type_BlurData& BlurData [[buffer(0)]], texture2d<float> tex [[texture(0)]], sampler bilinearSamp [[sampler(0)]])
 {
     PSMain_out out = {};
-    float4 _51;
-    _51 = float4(0.0);
-    for (uint _54 = 0u; _54 < _47[kernelRadius]; )
+    float4 _49;
+    _49 = float4(0.0);
+    for (uint _52 = 0u; _52 < _45[kernelRadius]; )
     {
-        _51 += (tex.sample(bilinearSamp, (in.in_var_ATTR0 + BlurData.samples[_54].xy)) * BlurData.samples[_54].z);
-        _54++;
+        _49 += (tex.sample(bilinearSamp, (in.in_var_ATTR0 + BlurData.samples[_52].xy)) * BlurData.samples[_52].z);
+        _52++;
         continue;
     }
-    out.out_var_SV_TARGET = _51;
+    out.out_var_SV_TARGET = _49;
     return out;
 }
 
