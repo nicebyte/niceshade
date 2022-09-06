@@ -56,11 +56,11 @@ public:
     std::string ident = name;
     std::replace_if(ident.begin(), ident.end(),
                     [](char c) { return c == '-'; }, '_');
-    if(file_) fprintf(file_, "namespace %s {\n", ident.c_str());
+    if(file_) fprintf(file_, "struct %s {\n", ident.c_str());
   }
 
   void end_technique() {
-    if(file_) fprintf(file_, "}\n");
+    if(file_) fprintf(file_, "};\n");
   }
 
   void write_descriptor(const niceshade::descriptor &d, uint32_t set_id) {
