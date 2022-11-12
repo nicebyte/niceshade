@@ -85,13 +85,12 @@
 #define FALSE 0
 #define TRUE 1
 
-#define REGDB_E_CLASSNOTREG 1
-
 // We ignore the code page completely on Linux.
 #define GetConsoleOutputCP() 0
 
 #define _HRESULT_TYPEDEF_(_sc) ((HRESULT)_sc)
 #define DISP_E_BADINDEX _HRESULT_TYPEDEF_(0x8002000BL)
+#define REGDB_E_CLASSNOTREG _HRESULT_TYPEDEF_(0x80040154L)
 
 // This is an unsafe conversion. If needed, we can later implement a safe
 // conversion that throws exceptions for overflow cases.
@@ -612,17 +611,13 @@ template <typename T> inline void **IID_PPV_ARGS_Helper(T **pp) {
 
 CROSS_PLATFORM_UUIDOF(IUnknown, "00000000-0000-0000-C000-000000000046")
 struct IUnknown {
-  IUnknown() : m_count(0) {};
+  IUnknown() {};
   virtual HRESULT QueryInterface(REFIID riid, void **ppvObject) = 0;
-  virtual ULONG AddRef();
-  virtual ULONG Release();
-  virtual ~IUnknown();
+  virtual ULONG AddRef() = 0;
+  virtual ULONG Release() = 0;
   template <class Q> HRESULT QueryInterface(Q **pp) {
     return QueryInterface(__uuidof(Q), (void **)pp);
   }
-
-private:
-  std::atomic<unsigned long> m_count;
 };
 
 CROSS_PLATFORM_UUIDOF(INoMarshal, "ECC8691B-C1DB-4DC0-855E-65F6C551AF49")
@@ -630,10 +625,12 @@ struct INoMarshal : public IUnknown {};
 
 CROSS_PLATFORM_UUIDOF(IMalloc, "00000002-0000-0000-C000-000000000046")
 struct IMalloc : public IUnknown {
-  virtual void *Alloc(size_t size);
-  virtual void *Realloc(void *ptr, size_t size);
-  virtual void Free(void *ptr);
-  virtual HRESULT QueryInterface(REFIID riid, void **ppvObject);
+  virtual void *Alloc(size_t size) = 0;
+  virtual void *Realloc(void *ptr, size_t size) = 0;
+  virtual void Free(void *ptr) = 0;
+  virtual size_t GetSize(void *pv) = 0;
+  virtual int DidAlloc(void *pv) = 0;
+  virtual void HeapMinimize(void) = 0;
 };
 
 CROSS_PLATFORM_UUIDOF(ISequentialStream, "0C733A30-2A1C-11CE-ADE5-00AA0044773D")
