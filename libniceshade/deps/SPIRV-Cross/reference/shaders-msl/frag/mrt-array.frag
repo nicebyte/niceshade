@@ -44,6 +44,13 @@ struct spvUnsafeArray
     }
 };
 
+// Implementation of the GLSL mod() function, which is slightly different than Metal fmod()
+template<typename Tx, typename Ty>
+inline Tx mod(Tx x, Ty y)
+{
+    return x - y * floor(x / y);
+}
+
 struct main0_out
 {
     float4 FragColor_0 [[color(0)]];
@@ -58,21 +65,14 @@ struct main0_in
     float4 vB [[user(locn1)]];
 };
 
-// Implementation of the GLSL mod() function, which is slightly different than Metal fmod()
-template<typename Tx, typename Ty>
-inline Tx mod(Tx x, Ty y)
-{
-    return x - y * floor(x / y);
-}
-
 static inline __attribute__((always_inline))
-void write_deeper_in_function(thread spvUnsafeArray<float4, 4> (&FragColor), thread float4& vA, thread float4& vB)
+void write_deeper_in_function(thread spvUnsafeArray<float4, 4>& FragColor, thread float4& vA, thread float4& vB)
 {
     FragColor[3] = vA * vB;
 }
 
 static inline __attribute__((always_inline))
-void write_in_function(thread spvUnsafeArray<float4, 4> (&FragColor), thread float4& vA, thread float4& vB)
+void write_in_function(thread spvUnsafeArray<float4, 4>& FragColor, thread float4& vA, thread float4& vB)
 {
     FragColor[2] = vA - vB;
     write_deeper_in_function(FragColor, vA, vB);
