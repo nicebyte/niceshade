@@ -26,10 +26,10 @@ kernel void CSMain(texture2d<float, access::write> dstTexture [[texture(0)]], ui
         float _100 = float(_68) * 0.098174773156642913818359375;
         float _106 = sqrt(fma(-_97, 2.3283064365386962890625e-10, 1.0) / fma(fma(_99, _99, -1.0), _97 * 2.3283064365386962890625e-10, 1.0));
         float _109 = sqrt(fma(-_106, _106, 1.0));
-        float3 _119 = normalize(cross(select(float3(1.0, 0.0, 0.0), float3(0.0, 0.0, 1.0), bool3(abs(1.0) < 0.999000012874603271484375)), float3(0.0, 0.0, 1.0)));
-        float3 _126 = normalize(((_119 * (cos(_100) * _109)) + (cross(float3(0.0, 0.0, 1.0), _119) * (sin(_100) * _109))) + (float3(0.0, 0.0, 1.0) * _106));
+        float3 _119 = fast::normalize(cross(select(float3(1.0, 0.0, 0.0), float3(0.0, 0.0, 1.0), bool3(abs(1.0) < 0.999000012874603271484375)), float3(0.0, 0.0, 1.0)));
+        float3 _126 = fast::normalize(((_119 * (cos(_100) * _109)) + (cross(float3(0.0, 0.0, 1.0), _119) * (sin(_100) * _109))) + (float3(0.0, 0.0, 1.0) * _106));
         float _127 = dot(_61, _126);
-        float _133 = precise::max(normalize((_126 * (2.0 * _127)) - _61).z, 0.0);
+        float _133 = precise::max(fast::normalize((_126 * (2.0 * _127)) - _61).z, 0.0);
         float _136 = precise::max(_127, 0.0);
         if (_133 > 0.0)
         {
