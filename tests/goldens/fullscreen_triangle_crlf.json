@@ -12,7 +12,8 @@
 },
 "entrypoints": { 
   "vertex": "VSMain",
-  "fragment": "PSMain"
+  "fragment": "PSMain",
+  "compute": "(null)"
 },
 "pipeline_layout": {
   "descriptor_sets": [

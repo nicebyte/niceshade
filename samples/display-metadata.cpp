@@ -76,7 +76,8 @@ int main(int argc, const char *argv[]) {
   printf("\"entrypoints\": { \n");
   const ngf_plmd_entrypoints *eps = ngf_plmd_get_entrypoints(m);
   printf("  \"vertex\": \"%s\",\n", eps->vert_shader_entrypoint);
-  printf("  \"fragment\": \"%s\"\n", eps->frag_shader_entrypoint);
+  printf("  \"fragment\": \"%s\",\n", eps->frag_shader_entrypoint);
+  printf("  \"compute\": \"%s\"\n", eps->compute_shader_entrypoint);
   printf("},\n");
   printf("\"pipeline_layout\": {\n");
   const ngf_plmd_layout *layout = ngf_plmd_get_layout(m);
