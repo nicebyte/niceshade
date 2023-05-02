@@ -34,6 +34,8 @@
 #include "libniceshade/target.h"
 #include "spirv_cross.hpp"
 
+#include <array>
+#include <optional>
 #include <memory>
 #include <stdint.h>
 #include <string>
@@ -55,6 +57,7 @@ public:
   pipeline_stage                     stage() const noexcept { return stage_; }
   value_or_error<compilation_result> run (const pipeline_layout& pipeline_layout) noexcept;
   const target_desc&                 target() const noexcept { return target_info_; }
+  std::optional<std::array<uint32_t, 3>> threadgroup_size () const noexcept;
 
 private:
   target_desc                            target_info_;

@@ -105,6 +105,7 @@ instance::compile(const_span<compiler_input> inputs, const_span<target_desc> tar
         target_out.stages.emplace_back();
         target_out.stages.back().result = std::move(compilation_result);
         target_out.stages.back().stage  = c.stage();
+        target_out.stages.back().threadgroup_size = c.threadgroup_size();
       }
     }
   }

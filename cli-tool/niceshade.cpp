@@ -261,10 +261,17 @@ int main(int argc, const char *argv[]) {
                    << ") : " << binding_id_and_descriptor.second.native_binding << "\n";
               }
             }
-            os << "(-1 -1) : -1\n**/";
+            os << "(-1 -1) : -1\n**/\n";
             native_binding_map_str = os.str();
           }
           fwrite(native_binding_map_str.data(), 1u, native_binding_map_str.size(), out_file);
+        }
+        if (target_out.target.api == target_api::METAL && out_stage.stage == pipeline_stage::compute) {
+          if (!out_stage.threadgroup_size) {
+            fprintf(stderr, "failed to find threadgroup size for compute shader");
+            exit(1);
+          }
+          fprintf(out_file, "/**NGF_THREADGROUP_SIZE %d %d %d */\n", out_stage.threadgroup_size.value()[0], out_stage.threadgroup_size.value()[1], out_stage.threadgroup_size.value()[2]);
         }
         fclose(out_file);
       }

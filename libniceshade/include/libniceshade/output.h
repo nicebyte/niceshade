@@ -29,6 +29,8 @@
 #include "libniceshade/target.h"
 #include "libniceshade/technique.h"
 
+#include <array>
+#include <optional>
 #include <tuple>
 #include <variant>
 #include <vector>
@@ -85,14 +87,21 @@ struct compiled_stage {
   compiled_stage& operator=(compiled_stage&&) = default;
 
   /**
-   * The pipeline stage for which the output was generated.
+   * The generated output.
    */
   compilation_result result;
 
+
   /**
-   * The generated output.
+   * The pipeline stage for which the output was generated.
    */
   pipeline_stage stage;
+  
+  /**
+   * For compute shaders, this contains the threadgroup size declared by the shader.
+   * It is not set for other types of shaders.
+   */
+  std::optional<std::array<uint32_t, 3>> threadgroup_size;
 };
 
 /**

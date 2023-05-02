@@ -134,6 +134,16 @@ error compilation::add_resources_to_pipeline_layout(
   return error {};
 }
 
+std::optional<std::array<uint32_t, 3>> compilation::threadgroup_size() const noexcept {
+  if (stage_ == pipeline_stage::compute) {
+    spirv_cross::SmallVector<spirv_cross::EntryPoint> eps = spv_cross_compiler_->get_entry_points_and_stages();
+    const auto& tgsize = spv_cross_compiler_->get_entry_point(eps[0].name,
+                                                              eps[0].execution_model).workgroup_size;
+    return std::array<uint32_t,3>{ tgsize.x, tgsize.y, tgsize.z };
+  } else {
+    return std::nullopt;
+  }
+}
 value_or_error<compilation_result> compilation::run(const pipeline_layout& layout) noexcept {
   try {
     return (target_info_.api != target_api::VULKAN)
