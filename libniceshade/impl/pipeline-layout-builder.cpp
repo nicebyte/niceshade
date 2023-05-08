@@ -85,8 +85,11 @@ void pipeline_layout_builder::remap_resources() noexcept {
   uint32_t num_descriptors_of_type[(int)descriptor_type::INVALID] = {0u};
   for (auto& set_id_and_layout : sets_) {
     for (auto& binding_id_and_descriptor : set_id_and_layout.second) {
+      auto  desc_type = binding_id_and_descriptor.second.type;
+      if (desc_type == descriptor_type::LOADSTORE_IMAGE) desc_type = descriptor_type::TEXTURE;
+      if (desc_type == descriptor_type::STORAGE_BUFFER) desc_type = descriptor_type::UNIFORM_BUFFER;
       const uint32_t native_binding =
-          (num_descriptors_of_type[(int)binding_id_and_descriptor.second.type])++;
+          (num_descriptors_of_type[(int)desc_type])++;
       binding_id_and_descriptor.second.native_binding = native_binding;
       for (auto& compiler_and_id :
            desc_usages_.get_usages(set_id_and_layout.first, binding_id_and_descriptor.first)) {
