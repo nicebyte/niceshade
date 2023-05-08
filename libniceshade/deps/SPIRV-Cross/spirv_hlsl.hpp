@@ -110,7 +110,7 @@ public:
 	{
 		uint32_t shader_model = 30; // TODO: map ps_4_0_level_9_0,... somehow
 
-		// Allows the PointSize builtin, and ignores it, as PointSize is not supported in HLSL.
+		// Allows the PointSize builtin in SM 4.0+, and ignores it, as PointSize is not supported in SM 4+.
 		bool point_size_compat = false;
 
 		// Allows the PointCoord builtin, returns float2(0.5, 0.5), as PointCoord is not supported in HLSL.
@@ -230,7 +230,6 @@ private:
 	void emit_hlsl_entry_point();
 	void emit_header() override;
 	void emit_resources();
-	void declare_undefined_values() override;
 	void emit_interface_block_globally(const SPIRVariable &type);
 	void emit_interface_block_in_struct(const SPIRVariable &var, std::unordered_set<uint32_t> &active_locations);
 	void emit_interface_block_member_in_struct(const SPIRVariable &var, uint32_t member_index, uint32_t location,

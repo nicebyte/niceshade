@@ -682,10 +682,14 @@ void CompilerHLSL::emit_builtin_outputs_in_struct()
 			// If point_size_compat is enabled, just ignore PointSize.
 			// PointSize does not exist in HLSL, but some code bases might want to be able to use these shaders,
 			// even if it means working around the missing feature.
-			if (hlsl_options.point_size_compat)
-				break;
-			else
+			if (legacy)
+			{
+				type = "float";
+				semantic = "PSIZE";
+			}
+			else if (!hlsl_options.point_size_compat)
 				SPIRV_CROSS_THROW("Unsupported builtin in HLSL.");
+			break;
 
 		case BuiltInLayer:
 		case BuiltInPrimitiveId:
@@ -1016,6 +1020,7 @@ void CompilerHLSL::emit_interface_block_in_struct(const SPIRVariable &var, unord
 
 	string binding;
 	bool use_location_number = true;
+	bool need_matrix_unroll = false;
 	bool legacy = hlsl_options.shader_model <= 30;
 	if (execution.model == ExecutionModelFragment && var.storage == StorageClassOutput)
 	{
@@ -1031,6 +1036,12 @@ void CompilerHLSL::emit_interface_block_in_struct(const SPIRVariable &var, unord
 		if (legacy) // COLOR must be a four-component vector on legacy shader model targets (HLSL ERR_COLOR_4COMP)
 			type.vecsize = 4;
 	}
+	else if (var.storage == StorageClassInput && execution.model == ExecutionModelVertex)
+	{
+		need_matrix_unroll = true;
+		if (legacy) // Inputs must be floating-point in legacy targets.
+			type.basetype = SPIRType::Float;
+	}
 
 	const auto get_vacant_location = [&]() -> uint32_t {
 		for (uint32_t i = 0; i < 64; i++)
@@ -1038,8 +1049,6 @@ void CompilerHLSL::emit_interface_block_in_struct(const SPIRVariable &var, unord
 				return i;
 		SPIRV_CROSS_THROW("All locations from 0 to 63 are exhausted.");
 	};
-
-	bool need_matrix_unroll = var.storage == StorageClassInput && execution.model == ExecutionModelVertex;
 
 	auto name = to_name(var.self);
 	if (use_location_number)
@@ -1221,7 +1230,7 @@ void CompilerHLSL::emit_builtin_variables()
 			break;
 
 		case BuiltInPointSize:
-			if (hlsl_options.point_size_compat)
+			if (hlsl_options.point_size_compat || hlsl_options.shader_model <= 30)
 			{
 				// Just emit the global variable, it will be ignored.
 				type = "float";
@@ -1409,7 +1418,7 @@ void CompilerHLSL::emit_specialization_constants_and_structs()
 	});
 
 	auto loop_lock = ir.create_loop_hard_lock();
-	for (auto &id_ : ir.ids_for_constant_or_type)
+	for (auto &id_ : ir.ids_for_constant_undef_or_type)
 	{
 		auto &id = ir.ids[id_];
 
@@ -1471,6 +1480,21 @@ void CompilerHLSL::emit_specialization_constants_and_structs()
 				emit_struct(type);
 			}
 		}
+		else if (id.get_type() == TypeUndef)
+		{
+			auto &undef = id.get<SPIRUndef>();
+			auto &type = this->get<SPIRType>(undef.basetype);
+			// OpUndef can be void for some reason ...
+			if (type.basetype == SPIRType::Void)
+				return;
+
+			string initializer;
+			if (options.force_zero_initialized_variables && type_can_zero_initialize(type))
+				initializer = join(" = ", to_zero_initialized_expression(undef.basetype));
+
+			statement("static ", variable_decl(type, to_name(undef.self), undef.self), initializer, ";");
+			emitted = true;
+		}
 	}
 
 	if (emitted)
@@ -1512,27 +1536,6 @@ void CompilerHLSL::replace_illegal_names()
 
 	CompilerGLSL::replace_illegal_names(keywords);
 	CompilerGLSL::replace_illegal_names();
-}
-
-void CompilerHLSL::declare_undefined_values()
-{
-	bool emitted = false;
-	ir.for_each_typed_id<SPIRUndef>([&](uint32_t, const SPIRUndef &undef) {
-		auto &type = this->get<SPIRType>(undef.basetype);
-		// OpUndef can be void for some reason ...
-		if (type.basetype == SPIRType::Void)
-			return;
-
-		string initializer;
-		if (options.force_zero_initialized_variables && type_can_zero_initialize(type))
-			initializer = join(" = ", to_zero_initialized_expression(undef.basetype));
-
-		statement("static ", variable_decl(type, to_name(undef.self), undef.self), initializer, ";");
-		emitted = true;
-	});
-
-	if (emitted)
-		statement("");
 }
 
 void CompilerHLSL::emit_resources()
@@ -1839,8 +1842,6 @@ void CompilerHLSL::emit_resources()
 
 	if (emitted)
 		statement("");
-
-	declare_undefined_values();
 
 	if (requires_op_fmod)
 	{
@@ -3226,8 +3227,8 @@ void CompilerHLSL::emit_hlsl_entry_point()
 
 		// Copy builtins from globals to return struct.
 		active_output_builtins.for_each_bit([&](uint32_t i) {
-			// PointSize doesn't exist in HLSL.
-			if (i == BuiltInPointSize)
+			// PointSize doesn't exist in HLSL SM 4+.
+			if (i == BuiltInPointSize && !legacy)
 				return;
 
 			switch (static_cast<BuiltIn>(i))
@@ -3493,9 +3494,9 @@ void CompilerHLSL::emit_texture_op(const Instruction &i, bool sparse)
 	else
 	{
 		auto &imgformat = get<SPIRType>(imgtype.image.type);
-		if (imgformat.basetype != SPIRType::Float)
+		if (hlsl_options.shader_model < 67 && imgformat.basetype != SPIRType::Float)
 		{
-			SPIRV_CROSS_THROW("Sampling non-float textures is not supported in HLSL.");
+			SPIRV_CROSS_THROW("Sampling non-float textures is not supported in HLSL SM < 6.7.");
 		}
 
 		if (hlsl_options.shader_model >= 40)
@@ -4123,10 +4124,16 @@ void CompilerHLSL::emit_glsl_op(uint32_t result_type, uint32_t id, uint32_t eop,
 		emit_unary_func_op(result_type, id, args[0], "round");
 		break;
 
+	case GLSLstd450Trunc:
+		emit_unary_func_op(result_type, id, args[0], "trunc");
+		break;
+
 	case GLSLstd450Acosh:
 	case GLSLstd450Asinh:
 	case GLSLstd450Atanh:
-		SPIRV_CROSS_THROW("Inverse hyperbolics are not supported on HLSL.");
+		// These are not supported in HLSL, always emulate them.
+		emit_emulated_ahyper_op(result_type, id, args[0], op);
+		break;
 
 	case GLSLstd450FMix:
 	case GLSLstd450IMix:
