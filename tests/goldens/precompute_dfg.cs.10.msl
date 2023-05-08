@@ -54,3 +54,4 @@ kernel void CSMain(texture2d<float, access::write> dstTexture [[texture(0)]], ui
 (0 0) : 0
 (-1 -1) : -1
 **/
+/**NGF_THREADGROUP_SIZE 16 16 1 */
