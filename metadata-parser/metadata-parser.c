@@ -55,6 +55,7 @@ struct ngf_plmd {
   ngf_plmd_cis_map images_to_cis_map;
   ngf_plmd_cis_map samplers_to_cis_map;
   ngf_plmd_user user;
+  const ngf_plmd_threadgroup_size *threadgroup_size;
 };
 
 static ngf_plmd_error _create_cis_map(uint8_t *ptr,
@@ -150,7 +151,8 @@ ngf_plmd_error ngf_plmd_load(const void *buf, size_t buf_size,
       header->pipeline_layout_offset >= buf_size ||
       header->image_to_cis_map_offset >= buf_size ||
       header->sampler_to_cis_map_offset >= buf_size ||
-      header->user_metadata_offset >= buf_size) {
+      header->user_metadata_offset >= buf_size ||
+      header->threadgroup_size_offset >= buf_size) {
     err = NGF_PLMD_ERROR_BUFFER_TOO_SMALL;
     goto ngf_plmd_load_cleanup;
   }
@@ -225,6 +227,9 @@ ngf_plmd_error ngf_plmd_load(const void *buf, size_t buf_size,
     blk_ptr += *size_ptr * sizeof(uint32_t);
   }
 
+  meta->threadgroup_size =
+      (const ngf_plmd_threadgroup_size*)(meta->raw_data + header->threadgroup_size_offset);
+
 ngf_plmd_load_cleanup:
   if (err != NGF_PLMD_ERROR_OK) {
     ngf_plmd_destroy(meta, alloc_cb);
@@ -270,6 +275,10 @@ const ngf_plmd_cis_map* ngf_plmd_get_sampler_to_cis_map(const ngf_plmd *m) {
 
 const ngf_plmd_user* ngf_plmd_get_user(const ngf_plmd *m) {
   return &m->user;
+}
+
+const ngf_plmd_threadgroup_size* ngf_plmd_get_threadgroup_size(const ngf_plmd* m) {
+  return m->threadgroup_size;
 }
 
 const ngf_plmd_header* ngf_plmd_get_header(const ngf_plmd *m) {
