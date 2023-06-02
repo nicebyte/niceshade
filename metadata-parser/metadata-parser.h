@@ -90,6 +90,12 @@ typedef struct ngf_plmd_header {
    * USER_METADATA record is stored.
    */
   uint32_t user_metadata_offset;
+
+  /**
+   * Offset, in bytes, from the beginning of the file, at which the
+   * THREADGROUP_SIZE record is stored.
+   */
+  uint32_t threadgroup_size_offset;
 } ngf_plmd_header;
 
 typedef struct ngf_plmd_entrypoints {
@@ -176,6 +182,13 @@ typedef struct ngf_plmd_user {
   uint32_t             nentries; /**< Number of entries. */
 } ngf_plmd_user;
 
+/**
+ * threadgroup size for compute shader.
+ */
+typedef struct ngf_plmd_threadgroup_size {
+  uint32_t value[3];
+} ngf_plmd_threadgroup_size;
+
 typedef enum ngf_plmd_error {
   NGF_PLMD_ERROR_OK,
   NGF_PLMD_ERROR_OUTOFMEM,
@@ -195,13 +208,14 @@ ngf_plmd_error ngf_plmd_load(
     size_t                          buf_size,
     const ngf_plmd_alloc_callbacks* alloc_cb,
     ngf_plmd**                      result);
-void                        ngf_plmd_destroy(ngf_plmd* m, const ngf_plmd_alloc_callbacks* alloc_cb);
-const ngf_plmd_layout*      ngf_plmd_get_layout(const ngf_plmd* m);
-const ngf_plmd_cis_map*     ngf_plmd_get_image_to_cis_map(const ngf_plmd* m);
-const ngf_plmd_cis_map*     ngf_plmd_get_sampler_to_cis_map(const ngf_plmd* m);
-const ngf_plmd_user*        ngf_plmd_get_user(const ngf_plmd* m);
-const ngf_plmd_entrypoints* ngf_plmd_get_entrypoints(const ngf_plmd* m);
-const ngf_plmd_header*      ngf_plmd_get_header(const ngf_plmd* m);
+void                              ngf_plmd_destroy(ngf_plmd* m, const ngf_plmd_alloc_callbacks* alloc_cb);
+const ngf_plmd_layout*            ngf_plmd_get_layout(const ngf_plmd* m);
+const ngf_plmd_cis_map*           ngf_plmd_get_image_to_cis_map(const ngf_plmd* m);
+const ngf_plmd_cis_map*           ngf_plmd_get_sampler_to_cis_map(const ngf_plmd* m);
+const ngf_plmd_user*              ngf_plmd_get_user(const ngf_plmd* m);
+const ngf_plmd_threadgroup_size*  ngf_plmd_get_threadgroup_size(const ngf_plmd* m);
+const ngf_plmd_entrypoints*       ngf_plmd_get_entrypoints(const ngf_plmd* m);
+const ngf_plmd_header*            ngf_plmd_get_header(const ngf_plmd* m);
 
 const char* ngf_plmd_get_error_name(const ngf_plmd_error err);
 

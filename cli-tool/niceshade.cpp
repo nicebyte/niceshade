@@ -231,6 +231,8 @@ int main(int argc, const char *argv[]) {
     const pipeline_layout& res_layout = compiled_tech.layout;
 
     std::string out_file_path = out_folder + PATH_SEPARATOR + tech.name;
+    std::optional<std::array<uint32_t, 3>> maybe_threadgroup_size;
+
     for (const targeted_output& target_out : compiled_tech.targeted_outputs) {
       std::string native_binding_map_str;
       for (const compiled_stage& out_stage : target_out.stages) {
@@ -266,12 +268,15 @@ int main(int argc, const char *argv[]) {
           }
           fwrite(native_binding_map_str.data(), 1u, native_binding_map_str.size(), out_file);
         }
-        if (target_out.target.api == target_api::METAL && out_stage.stage == pipeline_stage::compute) {
-          if (!out_stage.threadgroup_size) {
-            fprintf(stderr, "failed to find threadgroup size for compute shader");
-            exit(1);
+        if (out_stage.stage == pipeline_stage::compute) {
+          if (target_out.target.api == target_api::METAL) {
+            if (!out_stage.threadgroup_size) {
+              fprintf(stderr, "failed to find threadgroup size for compute shader");
+              exit(1);
+            }
+            fprintf(out_file, "/**NGF_THREADGROUP_SIZE %d %d %d */\n", out_stage.threadgroup_size.value()[0], out_stage.threadgroup_size.value()[1], out_stage.threadgroup_size.value()[2]);
           }
-          fprintf(out_file, "/**NGF_THREADGROUP_SIZE %d %d %d */\n", out_stage.threadgroup_size.value()[0], out_stage.threadgroup_size.value()[1], out_stage.threadgroup_size.value()[2]);
+          maybe_threadgroup_size = out_stage.threadgroup_size;
         }
         fclose(out_file);
       }
@@ -305,6 +310,7 @@ int main(int argc, const char *argv[]) {
         header_writer.write_descriptor(d.second, set);
       }
     }
+
     header_writer.end_technique();
 
     // Write out separate-to-combined map records.
@@ -333,6 +339,19 @@ int main(int argc, const char *argv[]) {
       metadata_file.write_raw_bytes(nameval.second.c_str(),
         nameval.second.size() + 1u);
     }
+
+    // Write out threadgroup size for compute shader
+    metadata_file.start_new_record();
+    if (maybe_threadgroup_size) {
+      metadata_file.write_field(maybe_threadgroup_size.value()[0]);
+      metadata_file.write_field(maybe_threadgroup_size.value()[1]);
+      metadata_file.write_field(maybe_threadgroup_size.value()[2]);
+    } else {
+      metadata_file.write_field(0u);
+      metadata_file.write_field(0u);
+      metadata_file.write_field(0u);
+    }
+
     metadata_file.finalize();
   }
 #pragma endregion gen_output
