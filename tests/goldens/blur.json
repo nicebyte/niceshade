@@ -1,14 +1,14 @@
 {
 "header": {
   "magic_number": 3735928559,
-  "header_size": 36,
+  "header_size": 40,
   "version_maj": 0,
   "version_min": 1,
-  "entrypoints_offset": 36,
-  "pipeline_layout_offset": 80,
-  "image_to_cis_map_offset": 124,
-  "sampler_to_cis_map_offset": 144,
-  "user_metadata_offset": 164
+  "entrypoints_offset": 40,
+  "pipeline_layout_offset": 84,
+  "image_to_cis_map_offset": 128,
+  "sampler_to_cis_map_offset": 148,
+  "user_metadata_offset": 168
 },
 "entrypoints": { 
   "vertex": "VSMain",
@@ -59,6 +59,7 @@
     }
   ]
 },
+"threadgroup_size": [0, 0, 0],
 "user_metadata": {
 }
 }
