@@ -299,7 +299,7 @@ A `PIPELINE_LAYOUT` record contains the following fields, in this exact order:
 	  * `0x03` - indicates a texture;
 	  * `0x04` - indicates a sampler;
 	  * `0x05` - indicates a combined texture/sampler.
-    * `0x06` - indicates a uniform texel buffer.
+          * `0x06` - indicates a uniform texel buffer.
 
 ### The `SEPARATE_TO_COMBINED_MAP` Record Type
 
