@@ -24,7 +24,7 @@ See the reference documentation for `libniceshade` at https://wiki.gpfault.net/d
 
 **niceshade** is a library and a command-line tool that transforms HLSL code into shaders for various graphics APIs. Presently, the following APIs can be targeted:
 
-* OpenGL 4.3
+* OpenGL 4.3+
 * OpenGL ES 3.1+
 * Metal 1.0+
 * Vulkan 1.0+
