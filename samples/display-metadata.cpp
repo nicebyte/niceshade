@@ -112,6 +112,13 @@ int main(int argc, const char *argv[]) {
   print_cis_map(ngf_plmd_get_sampler_to_cis_map(m));
   printf("},\n");
 
+  const ngf_plmd_threadgroup_size* tgsize = ngf_plmd_get_threadgroup_size(m);
+  printf(
+      "\"threadgroup_size\": [%d, %d, %d],\n",
+      tgsize->value[0],
+      tgsize->value[1],
+      tgsize->value[2]);
+
   printf("\"user_metadata\": {\n");
   const ngf_plmd_user *user = ngf_plmd_get_user(m);
   for (uint32_t e = 0u; e < user->nentries; ++e) {
