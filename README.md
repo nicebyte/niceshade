@@ -294,12 +294,12 @@ A `PIPELINE_LAYOUT` record contains the following fields, in this exact order:
     * `binding_id` - bindning number of the descriptor;
     * `descriptor_type` - an integer indicating the type of the descriptor. The following values are valid:
       * `0x00` - indicates a uniform buffer;
-	  * `0x01` - indicates a storage buffer;
-	  * `0x02` - indicates a load/store image;
-	  * `0x03` - indicates a texture;
-	  * `0x04` - indicates a sampler;
-	  * `0x05` - indicates a combined texture/sampler.
-          * `0x06` - indicates a uniform texel buffer.
+      * `0x01` - indicates a storage buffer;
+      * `0x02` - indicates a load/store image;
+      * `0x03` - indicates a texture;
+      * `0x04` - indicates a sampler;
+      * `0x05` - indicates a combined texture/sampler.
+      * `0x06` - indicates a uniform texel buffer.
 
 ### The `SEPARATE_TO_COMBINED_MAP` Record Type
 
