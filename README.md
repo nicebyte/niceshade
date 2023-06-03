@@ -114,7 +114,7 @@ Valid command line options are:
       header file with descriptor binding and set numbers. If not specified, no
       header file will be generated.
  * `-n <identifier>` - Namespace for the generated shader file. If not specified,
-     global namespace is used.
+     the global namespace is used.
  * `-D <name>=<value>` - Add a preprocessor definition `name` with the value `value` to
      techniques.
 
@@ -141,8 +141,6 @@ The following tag names are valid:
 * `cs` - the tag value specifies the entry point for a compute shader;
 * `define` - the tag value specifies an additional preprocessor definition;
 * `meta` - the tag value specifies an additional metadata entry. It should be a name-value pair separated by a `=` sign, i.e.: `meta:enable_depth_testing=1`. These values get stored as part of the pipeline metadata file (see below) and users are free to interpret them as they wish. 
-
-A valid technique definition must at least specify an entry point for the vertex stage.
 
 <a name="header-file"></a>
 ## Generated Header File
@@ -214,7 +212,7 @@ For each technique defined in the input file, **niceshade** will produce a corre
 * A mapping from separate image and sampler bindings to auto-generated combined image/sampler bindings (relevant for targets which don't have full separation between textures and samplers at the shader level, i.e. OpenGL);
 * Any additional metadata provided by the user in the technique specification using the `meta:` tag.
 
-`.pipeline` files are binary. Code for parsing the binary format is provided in the `metadata_parser` subfolder of the source code repository. Alternatively, `.pipeline` files can be converted to human-readable JSON using the `display_metadata` utility, source code for which is provided in the `samples` subfolder of the repository. A detailed description of the metadata file format is provided [below](#metadata-format).
+`.pipeline` files are binary. Code for parsing the binary format is provided in the `metadata_parser` subfolder of the source code repository. Alternatively, `.pipeline` files can be converted to human-readable JSON using the `display_metadata` utility, the source code for which is provided in the `samples` subfolder of the repository. A detailed description of the metadata file format is provided [below](#metadata-format).
 
 <a name="vk-hlsl"></a>
 ## Using Vulkan features from HLSL
