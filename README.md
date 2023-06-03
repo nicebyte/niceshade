@@ -324,3 +324,10 @@ A `SEPARATE_TO_COMBINED_MAP` record contains the following fields, in this exact
 This record stores any additional user metadata specified by `meta:` tags in the technique description.
 
 The `USER_METADATA` record has only one field, `num_metas`. Following the field are `num_metas` pairs of raw byte blocks. The first block in a pair stores the user-provided key, and the second stores the user-provided value (both are null-terminated strings).
+
+### The `THREADGROUP_SIZE` Record Type
+
+This record has meaning only for compute shaders. It stores the threadgroup size declared by the shader. For other shader types, this record is present, but contains zeros.
+The record has 3 fields, each corresponding to the threadgroup size in X, Y and Z dimensions accordingly.
+
+____
