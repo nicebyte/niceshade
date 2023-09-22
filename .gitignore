@@ -1,6 +1,6 @@
 build*/*
 *.exe
-nicegraf_shaderc
+niceshade
 *.ilk
 *.pdb
 tests/output/*
