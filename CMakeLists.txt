@@ -9,6 +9,10 @@ if (WIN32)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
 endif()
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options("-fms-extensions")
+endif()
+
 include("${CMAKE_CURRENT_LIST_DIR}/build-utils.cmake")
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metadata-parser)
