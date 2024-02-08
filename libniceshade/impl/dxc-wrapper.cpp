@@ -33,7 +33,11 @@ namespace {
 #if defined(_WIN64) || defined(_WIN32)
 static const std::string dxc_lib_filename = "dxcompiler.dll";
 #elif defined(__APPLE__)
-static const std::string dxc_lib_filename = "libdxcompiler.dylib";
+  #if defined(__aarch64__)
+  static const std::string dxc_lib_filename = "libdxcompiler-armv8.dylib";
+  #else
+  static const std::string dxc_lib_filename = "libdxcompiler.dylib";
+  #endif
 #else
 static const std::string dxc_lib_filename = "libdxcompiler.so";
 #endif

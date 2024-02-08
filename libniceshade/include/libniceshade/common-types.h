@@ -24,6 +24,7 @@
 
 #include "libniceshade/span.h"
 
+#include <cstdint>
 #include <string>
 #include <utility>
 #include <vector>
