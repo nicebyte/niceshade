@@ -36,7 +36,11 @@ value_or_error<instance> instance::create(const instance::options& opts) noexcep
   result.dxc_ = new dxc_wrapper {};
   NICESHADE_DECLARE_OR_RETURN(
       dxc,
-      dxc_wrapper::create(opts.shader_model, opts.dxc_params, opts.dxc_lib_folder));
+      dxc_wrapper::create(
+          opts.shader_model,
+          opts.dxc_params,
+          opts.dxc_lib_folder,
+          opts.diagnostic_message_callback));
   *(result.dxc_) = std::move(dxc);
   return result;
 }

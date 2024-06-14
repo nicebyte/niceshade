@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2022 nicegraf contributors
+ * Copyright (c) 2024 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -61,7 +61,8 @@ namespace niceshade {
 value_or_error<dxc_wrapper> dxc_wrapper::create(
     const std::string& sm,
     span<std::string>  dxc_params,
-    const std::string& exe_dir) noexcept {
+    const std::string& exe_dir,
+    hlsl_diagnostic_callback diag_callback) noexcept {
   dxc_wrapper result;
   result.shader_model_   = towstring(sm.c_str(), sm.length());
   result.dxcompiler_dll_ = get_dxc_lib_path_candidates(exe_dir);
@@ -94,6 +95,9 @@ value_or_error<dxc_wrapper> dxc_wrapper::create(
 
   result.include_handler_ = com_ptr<IDxcIncludeHandler>(
       [&](auto ptr) { return result.library_instance_->CreateIncludeHandler(ptr); });
+
+  result.diag_callback_ = diag_callback;
+
   return result;
 }
 
@@ -154,6 +158,12 @@ value_or_error<spirv_blob> dxc_wrapper::compile_hlsl2spv(
   });
 
   auto dxc_spirv_blob = com_ptr<IDxcBlob>([&](auto ptr) { return dxc_result->GetResult(ptr); });
+  auto errmsg_blob =
+      com_ptr<IDxcBlobEncoding>([&](auto ptr) { return dxc_result->GetErrorBuffer(ptr); });
+  const size_t errmsg_blob_size = errmsg_blob->GetBufferSize();
+  if (errmsg_blob_size && diag_callback_) {
+    diag_callback_((const char*)errmsg_blob->GetBufferPointer(), errmsg_blob->GetBufferSize());
+  }
 
   if (dxc_spirv_blob.get() != nullptr && dxc_spirv_blob->GetBufferSize() > 0) {
     const uint32_t* dxc_blob_start =
@@ -161,15 +171,6 @@ value_or_error<spirv_blob> dxc_wrapper::compile_hlsl2spv(
     const uint32_t* dxc_blob_end =
         dxc_blob_start + dxc_spirv_blob->GetBufferSize() / sizeof(uint32_t);
     return spirv_blob(dxc_blob_start, dxc_blob_end);
-  }
-
-  auto errmsg_blob =
-      com_ptr<IDxcBlobEncoding>([&](auto ptr) { return dxc_result->GetErrorBuffer(ptr); });
-
-  if (errmsg_blob->GetBufferSize() > 0) {
-    std::string err_msg(errmsg_blob->GetBufferSize() + 1u, '\0');
-    memcpy(err_msg.data(), errmsg_blob->GetBufferPointer(), errmsg_blob->GetBufferSize());
-    NICESHADE_RETURN_ERROR(err_msg);
   } else {
     NICESHADE_RETURN_ERROR("failed to compile HLSL to SPIR-V");
   }

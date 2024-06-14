@@ -1,0 +1,5 @@
+DXC diagnostic message:
+C:\Users\nicebyte\home\TERMINAL\niceshade\tests\source_hlsl\warning_reporting_test.hlsl:8:8: warning: implicit truncation of vector type [-Wconversion]
+        float uv = float3(1.0, 1.0, 1.0);
+              ^
+

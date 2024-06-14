@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2022 nicegraf contributors
+ * Copyright (c) 2024 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -65,5 +65,11 @@ using spirv_blob = std::vector<uint32_t>;
  * A span of memory containing HLSL code to be processed by niceshade.
  */
 using input_blob = const_span<std::byte>;
+
+
+/**
+ * Diagnostic report callback.
+ */
+using hlsl_diagnostic_callback = void (*)(const char*, size_t);
 
 }  // namespace niceshade

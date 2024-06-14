@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2022 nicegraf contributors
+ * Copyright (c) 2024 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -79,6 +79,10 @@ Options:
    Microsoft DirectX Shader Compiler.
 
 )RAW";
+
+void report_dxc_error(const char* msg, size_t size) {
+  fprintf(stderr, "DXC diagnostic message:\n%.*s\n", (unsigned int)size, msg);
+}
 
 int main(int argc, const char *argv[]) {
   if (argc <= 1) { // Display help if invoked with no arguments.
@@ -194,7 +198,8 @@ int main(int argc, const char *argv[]) {
   value_or_error<instance> maybe_inst = instance::create(instance::options {
       shader_model,
       span<std::string> {dxc_options.data(), dxc_options.size()},
-      exe_dir});
+      exe_dir, report_dxc_error
+      });
   if (maybe_inst.is_error()) {
     fprintf(stderr, "%s", maybe_inst.error_message().c_str());
     exit(1);

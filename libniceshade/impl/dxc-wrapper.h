@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2022 nicegraf contributors
+ * Copyright (c) 2024 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -7,7 +7,7 @@
  * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
  * sell copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * 
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  *
@@ -49,8 +49,11 @@ public:
     bool has_diag_msg() const noexcept { return diag_message.size() > 0; }
   };
 
-  static value_or_error<dxc_wrapper>
-  create(const std::string& sm, span<std::string> dxc_params, const std::string& exe_dir) noexcept;
+  static value_or_error<dxc_wrapper> create(
+      const std::string&       sm,
+      span<std::string>        dxc_params,
+      const std::string&       exe_dir,
+      hlsl_diagnostic_callback diag_callback) noexcept;
 
   value_or_error<spirv_blob> compile_hlsl2spv(
       const char*                        source,
@@ -66,6 +69,7 @@ private:
   com_ptr<IDxcCompiler>       compiler_instance_;
   com_ptr<IDxcIncludeHandler> include_handler_;
   std::vector<LPCWSTR>        dxc_params_;
+  hlsl_diagnostic_callback    diag_callback_ = nullptr;
 };
 
 }  // namespace niceshade

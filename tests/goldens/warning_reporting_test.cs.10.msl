@@ -1,0 +1,24 @@
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+// Returns 2D texture coords corresponding to 1D texel buffer coords
+static inline __attribute__((always_inline))
+uint2 spvTexelBufferCoord(uint tc)
+{
+    return uint2(tc % 4096, tc / 4096);
+}
+
+kernel void CSMain(texture2d<float, access::write> outbuf [[texture(0)]])
+{
+    outbuf.write(float4(1.0), spvTexelBufferCoord(0u));
+}
+
+/**NGF_NATIVE_BINDING_MAP
+(0 0) : 0
+(-1 -1) : -1
+**/
+/**NGF_THREADGROUP_SIZE 1 1 1 */

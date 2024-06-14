@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2022 nicegraf contributors
+ * Copyright (c) 2024 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -66,6 +66,13 @@ public:
      * shared library file.
      */
     std::string dxc_lib_folder = "./";
+
+    /**
+     * A pointer to a function accepting a non-null terminated string and its length.
+     * If the pointer is not null, the function it points to will be invoked to deliver 
+     * HLSL compiler diagnostic messages (errors and warnings).
+     */
+    hlsl_diagnostic_callback diagnostic_message_callback;   
   };
 
   /**
