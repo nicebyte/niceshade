@@ -1,2 +1,4 @@
+* text=auto
+tests/source_hlsl/fullscreen_triangle.hlsl text eol=lf
 tests/source_hlsl/fullscreen_triangle_crlf.hlsl text eol=crlf
-tests/goldens/* text=false
+tests/goldens/* binary
