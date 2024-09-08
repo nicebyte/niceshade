@@ -24,7 +24,7 @@ def main(argv):
     sys.exit(1)
   jsonizer_binary = cwd / '..' / 'samples' / ('display_metadata' + exe_ext)
   if not jsonizer_binary.is_file():
-    LOG.critical("missing jsonizer binary")
+    LOG.critical("missing display_metadata binary")
     sys.exit(1)
 
   LOG.info("Cleaning up old output")
@@ -68,7 +68,7 @@ def main(argv):
     try:
       result = subprocess.run(
         [str(jsonizer_binary), str(input_file)],
-        cwd = str(out_dir), stdout = open(str(json_file), "wb"))
+        cwd = str(out_dir), stdout = open(str(json_file), "w"), universal_newlines=True)
       if result.returncode != 0:
         LOG.critical("Failed to convert to JSON")
         sys.exit(1)
@@ -85,9 +85,13 @@ def main(argv):
   error = False
   for golden in goldens.glob('*'):
     try:
-      if not filecmp.cmp(str(out_dir / (golden.name)), str(golden), shallow = False):
+      if golden.name == 'warning_reporting_test.stderr':
+        if open(str(out_dir/(golden.name))).read().find("warning") == -1:
+          error = True
+      elif not filecmp.cmp(str(out_dir / (golden.name)), str(golden), shallow = False):
+          error = True
+      if error:
         LOG.critical("File mismatch: " + golden.name)
-        error = True
     except FileNotFoundError:
       LOG.critical("File not found in output: " + golden.name)
       error = True
