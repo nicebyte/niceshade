@@ -11,11 +11,17 @@ endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/../build-utils.cmake")
 
+set(SPIRV_CROSS_CLI OFF)
+set(SPIRV_CROSS_ENABLE_TESTS OFF)
+set(SPIRV_CROSS_ENABLE_CPP OFF)
+set(SPIRV_CROSS_ENABLE_HLSL OFF)
+set(SPIRV_CROSS_ENABLE_C_API OFF)
+set(SPIRV_CROSS_SKIP_INSTALL ON)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/SPIRV-Cross)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)                     
 set_target_properties(spirv-cross-core spirv-cross-reflect spirv-cross-glsl spirv-cross-msl 
-                      spirv-cross spirv-cross-cpp spirv-cross-hlsl spirv-cross-util PROPERTIES FOLDER spirv-cross)
+                      spirv-cross-util PROPERTIES FOLDER spirv-cross)
 
 nmk_header_library(NAME dxc-headers
                    SRCS ${CMAKE_CURRENT_LIST_DIR}/../deps/dxc/include/dxc/dxcapi.h
