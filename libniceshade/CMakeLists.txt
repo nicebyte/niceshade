@@ -47,6 +47,7 @@ nmk_static_library(NAME libniceshade
                         ${CMAKE_CURRENT_LIST_DIR}/include/libniceshade/niceshade.h
                         ${CMAKE_CURRENT_LIST_DIR}/include/libniceshade/error.h
                         ${CMAKE_CURRENT_LIST_DIR}/include/libniceshade/pipeline-layout.h
+                        ${CMAKE_CURRENT_LIST_DIR}/include/libniceshade/spec-const-layout.h
                         ${CMAKE_CURRENT_LIST_DIR}/include/libniceshade/common-types.h
                         ${CMAKE_CURRENT_LIST_DIR}/include/libniceshade/separate-to-combined-map.h
                         ${CMAKE_CURRENT_LIST_DIR}/include/libniceshade/span.h

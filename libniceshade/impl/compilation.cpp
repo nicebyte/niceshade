@@ -93,6 +93,7 @@ value_or_error<compilation> compilation::create(
         spv::DecorationDescriptorSet,
         AUTOGEN_CIS_DESCRIPTOR_SET);
   }
+
   return result;
 }
 
@@ -106,7 +107,24 @@ void compilation::add_cis_to_map(
   }
 }
 
-error compilation::add_resources_to_pipeline_layout(
+
+
+error compilation::add_spec_consts(spec_const_layout_builder& builder) const noexcept {
+  const spirv_cross::SmallVector<spirv_cross::SpecializationConstant>& spv_spec_consts =
+      spv_cross_compiler_->get_specialization_constants();
+  for (const auto& spv_spec_const : spv_spec_consts) {
+    std::string      const_name = spv_cross_compiler_->get_name(spv_spec_const.id);
+    const spirv_cross::SPIRConstant& spv_spec_const_constant =
+        spv_cross_compiler_->get_constant(spv_spec_const.id);
+    const spirv_cross::SPIRType& spv_spec_const_type =
+        spv_cross_compiler_->get_type(spv_spec_const_constant.constant_type);
+    const spec_const spec_const = {spv_spec_const.constant_id, spv_spec_const_type.basetype};
+    NICESHADE_RETURN_IF_ERROR(builder.add_spec_const(const_name, spec_const));
+  }
+  return error {};
+}
+
+error compilation::add_resources(
     pipeline_layout_builder& builder) const noexcept {
   const stage_mask_bit smb = [](pipeline_stage s) {
     switch (s) {

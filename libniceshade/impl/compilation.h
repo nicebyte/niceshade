@@ -32,6 +32,7 @@
 #include "libniceshade/common-types.h"
 #include "libniceshade/output.h"
 #include "libniceshade/target.h"
+#include "libniceshade/spec-const-layout.h"
 #include "spirv_cross.hpp"
 
 #include <array>
@@ -50,7 +51,8 @@ public:
       const spirv_blob&  spirv_code,
       const target_desc& target_info) noexcept;
 
-  error add_resources_to_pipeline_layout(pipeline_layout_builder& builder) const noexcept;
+  error add_resources(pipeline_layout_builder& builder) const noexcept;
+  error add_spec_consts(spec_const_layout_builder& builder) const noexcept;
   void add_cis_to_map(
       separate_to_combined_builder& image_map,
       separate_to_combined_builder& sampler_map) const noexcept;

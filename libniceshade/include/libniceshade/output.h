@@ -24,6 +24,7 @@
 
 #include "libniceshade/common-types.h"
 #include "libniceshade/pipeline-layout.h"
+#include "libniceshade/spec-const-layout.h"
 #include "libniceshade/separate-to-combined-map.h"
 #include "libniceshade/span.h"
 #include "libniceshade/target.h"
@@ -138,6 +139,11 @@ struct compiled_technique {
    * The pipeline layout, containing information about all resources used by all pipeline stages.
    */
   pipeline_layout layout;
+
+  /**
+   * The specialization constants used in this technique.
+   */
+  spec_const_layout spec_consts;
 
   /**
    * For targets that do not have a separation between images and samplers at the shader level (i.e.

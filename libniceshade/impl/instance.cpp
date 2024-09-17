@@ -73,6 +73,7 @@ instance::compile(const_span<compiler_input> inputs, const_span<target_desc> tar
 
       // Create compilations and populate the pipeline layout.
       pipeline_layout_builder      res_layout_builder;
+      spec_const_layout_builder    spec_const_builder;
       separate_to_combined_builder image_map_builder;
       separate_to_combined_builder sampler_map_builder;
       std::vector<compilation>     compilations;
@@ -83,7 +84,8 @@ instance::compile(const_span<compiler_input> inputs, const_span<target_desc> tar
               new_compilation,
               compilation::create(ep.stage, spirv_blobs[ep_idx], target_info));
           compilations.emplace_back(std::move(new_compilation));
-          NICESHADE_RETURN_IF_ERROR(compilations.back().add_resources_to_pipeline_layout(res_layout_builder));
+          NICESHADE_RETURN_IF_ERROR(compilations.back().add_resources(res_layout_builder));
+          NICESHADE_RETURN_IF_ERROR(compilations.back().add_spec_consts(spec_const_builder));
           compilations.back().add_cis_to_map(image_map_builder, sampler_map_builder);
         }
       }
@@ -94,6 +96,7 @@ instance::compile(const_span<compiler_input> inputs, const_span<target_desc> tar
       compiled_technique& compiled_tech = result.back();
       compiled_tech.name                = tech.name;
       compiled_tech.layout              = std::move(res_layout);
+      compiled_tech.spec_consts         = spec_const_builder.build();
       compiled_tech.image_map           = std::move(image_map_builder.build());
       compiled_tech.sampler_map         = std::move(sampler_map_builder.build());
 
