@@ -31,13 +31,13 @@
 #include "impl/separate-to-combined-builder.h"
 #include "libniceshade/common-types.h"
 #include "libniceshade/output.h"
-#include "libniceshade/target.h"
 #include "libniceshade/spec-const-layout.h"
+#include "libniceshade/target.h"
 #include "spirv_cross.hpp"
 
 #include <array>
-#include <optional>
 #include <memory>
+#include <optional>
 #include <stdint.h>
 #include <string>
 #include <vector>
@@ -53,19 +53,25 @@ public:
 
   error add_resources(pipeline_layout_builder& builder) const noexcept;
   error add_spec_consts(spec_const_layout_builder& builder) const noexcept;
-  void add_cis_to_map(
-      separate_to_combined_builder& image_map,
-      separate_to_combined_builder& sampler_map) const noexcept;
-  pipeline_stage                     stage() const noexcept { return stage_; }
-  value_or_error<compilation_result> run (const pipeline_layout& pipeline_layout) noexcept;
-  const target_desc&                 target() const noexcept { return target_info_; }
-  std::optional<std::array<uint32_t, 3>> threadgroup_size () const noexcept;
+  void  add_cis_to_map(
+       separate_to_combined_builder& image_map,
+       separate_to_combined_builder& sampler_map) const noexcept;
+
+  value_or_error<compilation_result> run(const pipeline_layout& pipeline_layout) noexcept;
+
+  pipeline_stage                         stage() const noexcept { return stage_; }
+  const target_desc&                     target() const noexcept { return target_info_; }
+  std::optional<std::array<uint32_t, 3>> threadgroup_size() const noexcept;
+  const std::vector<interface_variable>& input_vars() const noexcept { return input_vars_; }
+  const std::vector<interface_variable>& output_vars() const noexcept { return output_vars_; }
 
 private:
   target_desc                            target_info_;
   pipeline_stage                         stage_;
   std::unique_ptr<spirv_cross::Compiler> spv_cross_compiler_;
   const spirv_blob*                      original_spirv_ = nullptr;
+  std::vector<interface_variable>        input_vars_;
+  std::vector<interface_variable>        output_vars_;
 };
 
 }  // namespace niceshade

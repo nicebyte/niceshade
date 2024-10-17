@@ -121,6 +121,53 @@ struct targeted_output {
   std::vector<compiled_stage> stages;
 };
 
+
+/**
+ * Describes a variable used as an input or output for a pipeline stage.
+ */
+struct interface_variable {
+  enum type {
+    Unknown,
+    Void,
+    Boolean,
+    SByte,
+    UByte,
+    Short,
+    UShort,
+    Int,
+    UInt,
+    Int64,
+    UInt64,
+    AtomicCounter,
+    Half,
+    Float,
+    Double,
+    TypeCount
+  };
+
+  /** Variable name (as used in SPIR-V). */
+  std::string name;
+
+  /**
+   * Type code.
+   */
+  type base_type;
+
+  /**
+   * Number of elements in the vector.
+   */
+  uint32_t vecsize;
+};
+
+/**
+ * Descriptions of input and output variables used by a pipeline stage.
+ */
+struct interface_variables {
+  pipeline_stage                  stage;
+  std::vector<interface_variable> input_vars;
+  std::vector<interface_variable> output_vars;
+};
+
 /**
  * A container with the shader code generated for a requested target.
  */
@@ -158,6 +205,11 @@ struct compiled_technique {
    * image+sampler ID.
    */
   separate_to_combined_map sampler_map;
+
+  /**
+   * Descriptions of input and output interface variables for each stage of this technique.
+   */
+  std::vector<interface_variables> per_stage_interface;
 };
 
 /** A vector of \ref compiled_technique objects. */

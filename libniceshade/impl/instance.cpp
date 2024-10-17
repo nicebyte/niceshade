@@ -76,7 +76,9 @@ instance::compile(const_span<compiler_input> inputs, const_span<target_desc> tar
       spec_const_layout_builder    spec_const_builder;
       separate_to_combined_builder image_map_builder;
       separate_to_combined_builder sampler_map_builder;
+      std::vector<interface_variables> interface_vars;
       std::vector<compilation>     compilations;
+      bool                         first_target = true;
       for (const target_desc& target_info : targets) {
         for (const technique_desc::entry_point& ep : tech.entry_points) {
           const intptr_t ep_idx = &ep - tech.entry_points.data();
@@ -87,7 +89,14 @@ instance::compile(const_span<compiler_input> inputs, const_span<target_desc> tar
           NICESHADE_RETURN_IF_ERROR(compilations.back().add_resources(res_layout_builder));
           NICESHADE_RETURN_IF_ERROR(compilations.back().add_spec_consts(spec_const_builder));
           compilations.back().add_cis_to_map(image_map_builder, sampler_map_builder);
+          if (first_target) {
+            interface_vars.emplace_back(interface_variables {
+                ep.stage,
+                compilations.back().input_vars(),
+                compilations.back().output_vars()});
+          }
         }
+        first_target = false;
       }
       NICESHADE_DECLARE_OR_RETURN(res_layout, res_layout_builder.build());
 
@@ -99,6 +108,7 @@ instance::compile(const_span<compiler_input> inputs, const_span<target_desc> tar
       compiled_tech.spec_consts         = spec_const_builder.build();
       compiled_tech.image_map           = std::move(image_map_builder.build());
       compiled_tech.sampler_map         = std::move(sampler_map_builder.build());
+      compiled_tech.per_stage_interface = std::move(interface_vars);
 
       // Run all compilations.
       for (compilation& c : compilations) {
