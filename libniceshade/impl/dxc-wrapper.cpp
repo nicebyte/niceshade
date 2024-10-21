@@ -20,7 +20,9 @@
  * IN THE SOFTWARE.
  */
 
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
+#endif
 #include "impl/dxc-wrapper.h"
 
 #include "impl/error-macros.h"
@@ -99,6 +101,10 @@ value_or_error<dxc_wrapper> dxc_wrapper::create(
   result.diag_callback_ = diag_callback;
 
   return result;
+}
+
+dxc_wrapper::~dxc_wrapper() noexcept {
+  for (size_t i = 1u; i < dxc_params_.size(); ++i) delete[] dxc_params_[i];
 }
 
 value_or_error<spirv_blob> dxc_wrapper::compile_hlsl2spv(

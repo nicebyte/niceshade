@@ -33,7 +33,6 @@ namespace niceshade {
 
 value_or_error<instance> instance::create(const instance::options& opts) noexcept {
   instance result;
-  result.dxc_ = new dxc_wrapper {};
   NICESHADE_DECLARE_OR_RETURN(
       dxc,
       dxc_wrapper::create(
@@ -41,7 +40,7 @@ value_or_error<instance> instance::create(const instance::options& opts) noexcep
           opts.dxc_params,
           opts.dxc_lib_folder,
           opts.diagnostic_message_callback));
-  *(result.dxc_) = std::move(dxc);
+  result.dxc_ = new dxc_wrapper{std::move(dxc)};
   return result;
 }
 

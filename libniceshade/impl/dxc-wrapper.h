@@ -55,6 +55,12 @@ public:
       const std::string&       exe_dir,
       hlsl_diagnostic_callback diag_callback) noexcept;
 
+  dxc_wrapper() noexcept = default;
+  dxc_wrapper(dxc_wrapper&&) noexcept = default;
+  ~dxc_wrapper() noexcept;
+
+  dxc_wrapper& operator=(dxc_wrapper&&) = default;
+
   value_or_error<spirv_blob> compile_hlsl2spv(
       const char*                        source,
       size_t                             source_size,
