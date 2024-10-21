@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2022 nicegraf contributors
+ * Copyright (c) 2024 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -22,7 +22,9 @@
 
 #pragma once
 
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include "impl/platform.h"
 
@@ -42,7 +44,9 @@ class dynamic_lib {
   }
 
   ~dynamic_lib() noexcept {
+#if !HAS_ASAN()
     if (h_) FreeModule(h_);
+#endif
   }
 
   dynamic_lib(const dynamic_lib&) = delete;

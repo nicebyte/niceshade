@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2022 nicegraf contributors
+ * Copyright (c) 2024 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -22,9 +22,12 @@
 
 #pragma once
 
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #if defined(_WIN32) || defined(_WIN64)
+#define HAS_ASAN() defined(__SANITIZE_ADDRESS_)
 #define WIN32_LEAN_AND_MEAN
 #include <unknwn.h>
 #include <windows.h>
@@ -37,6 +40,7 @@
 #include <arpa/inet.h>
 #include "dxc/WinAdapter.h"
 #include <dlfcn.h>
+#define HAS_ASAN() __has_feature(address_sanitizer)
 #define LoadLibraryA(name)   dlopen(name, RTLD_NOW)
 #define GetProcAddress(h, n) dlsym(h, n)
 #define FreeModule(h)        dlclose(h)
