@@ -116,11 +116,13 @@ value_or_error<compilation> compilation::create(
     const std::string           name = compiler->get_name(v);
     const std::string           builtin_name =
         get_builtin_name((spv::BuiltIn)compiler->get_decoration(v, spv::DecorationBuiltIn));
+    const bool has_location_decoration = compiler->has_decoration(v, spv::DecorationLocation);
     const interface_variable iv {
         name.empty() ? builtin_name : name, 
         t.basetype > interface_variable::TypeCount ? interface_variable::Unknown
                                                    : (interface_variable::type)t.basetype,
-        (uint32_t)t.vecsize};
+        (uint32_t)t.vecsize,
+        has_location_decoration ? compiler->get_decoration(v, spv::DecorationLocation) : ~0u};
 
     if (compiler->get_storage_class(v) == spv::StorageClassOutput) {
       result.output_vars_.emplace_back(iv);

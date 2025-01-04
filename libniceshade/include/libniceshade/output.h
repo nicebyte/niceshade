@@ -157,6 +157,11 @@ struct interface_variable {
    * Number of elements in the vector.
    */
   uint32_t vecsize;
+
+  /**
+   * Location decoration, set to ~0 if one does not exist.
+   */
+  uint32_t location_decoration;
 };
 
 /**
