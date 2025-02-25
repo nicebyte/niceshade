@@ -5,49 +5,48 @@ using namespace metal;
 
 kernel void CSMain(texture2d<float, access::write> dstTexture [[texture(0)]], uint3 gl_GlobalInvocationID [[thread_position_in_grid]])
 {
-    float _52 = float(gl_GlobalInvocationID.x) + 0.5;
-    float _53 = _52 * 0.001953125;
-    float _57 = fma((-0.5) - float(gl_GlobalInvocationID.y), 0.001953125, 1.0);
-    float3 _61 = float3(sqrt(fma(_52 * (-0.001953125), _53, 1.0)), 0.0, _53);
-    float _63;
-    float _66;
-    _63 = 0.0;
-    _66 = 0.0;
+    float _50 = (float(gl_GlobalInvocationID.x) + 0.5) * 0.001953125;
+    float _55 = 1.0 - ((float(gl_GlobalInvocationID.y) + 0.5) * 0.001953125);
+    float3 _59 = float3(sqrt(1.0 - (_50 * _50)), 0.0, _50);
+    float _61;
     float _64;
-    float _67;
-    for (uint _68 = 0u; _68 < 64u; _63 = _64, _66 = _67, _68++)
+    _61 = 0.0;
+    _64 = 0.0;
+    float _62;
+    float _65;
+    for (uint _66 = 0u; _66 < 64u; _61 = _62, _64 = _65, _66++)
     {
-        uint _76 = (_68 << 16u) | (_68 >> 16u);
-        uint _81 = ((_76 & 1431655765u) << 1u) | ((_76 & 2863311530u) >> 1u);
-        uint _86 = ((_81 & 858993459u) << 2u) | ((_81 & 3435973836u) >> 2u);
-        uint _91 = ((_86 & 252645135u) << 4u) | ((_86 & 4042322160u) >> 4u);
-        float _97 = float(((_91 & 16711935u) << 8u) | ((_91 & 4278255360u) >> 8u));
-        float _99 = _57 * _57;
-        float _100 = float(_68) * 0.098174773156642913818359375;
-        float _106 = sqrt(fma(-_97, 2.3283064365386962890625e-10, 1.0) / fma(fma(_99, _99, -1.0), _97 * 2.3283064365386962890625e-10, 1.0));
-        float _109 = sqrt(fma(-_106, _106, 1.0));
-        float3 _119 = fast::normalize(cross(select(float3(1.0, 0.0, 0.0), float3(0.0, 0.0, 1.0), bool3(abs(1.0) < 0.999000012874603271484375)), float3(0.0, 0.0, 1.0)));
-        float3 _126 = fast::normalize(((_119 * (cos(_100) * _109)) + (cross(float3(0.0, 0.0, 1.0), _119) * (sin(_100) * _109))) + (float3(0.0, 0.0, 1.0) * _106));
-        float _127 = dot(_61, _126);
-        float _133 = precise::max(fast::normalize((_126 * (2.0 * _127)) - _61).z, 0.0);
-        float _136 = precise::max(_127, 0.0);
-        if (_133 > 0.0)
+        uint _74 = (_66 << 16u) | (_66 >> 16u);
+        uint _79 = ((_74 & 1431655765u) << 1u) | ((_74 & 2863311530u) >> 1u);
+        uint _84 = ((_79 & 858993459u) << 2u) | ((_79 & 3435973836u) >> 2u);
+        uint _89 = ((_84 & 252645135u) << 4u) | ((_84 & 4042322160u) >> 4u);
+        float _96 = float(((_89 & 16711935u) << 8u) | ((_89 & 4278255360u) >> 8u)) * 2.3283064365386962890625e-10;
+        float _97 = _55 * _55;
+        float _98 = float(_66) * 0.098174773156642913818359375;
+        float _105 = sqrt((1.0 - _96) / (1.0 + (((_97 * _97) - 1.0) * _96)));
+        float _108 = sqrt(1.0 - (_105 * _105));
+        float3 _118 = fast::normalize(cross(select(float3(1.0, 0.0, 0.0), float3(0.0, 0.0, 1.0), bool3(abs(1.0) < 0.999000012874603271484375)), float3(0.0, 0.0, 1.0)));
+        float3 _125 = fast::normalize(((_118 * (cos(_98) * _108)) + (cross(float3(0.0, 0.0, 1.0), _118) * (sin(_98) * _108))) + (float3(0.0, 0.0, 1.0) * _105));
+        float _126 = dot(_59, _125);
+        float _132 = precise::max(fast::normalize((_125 * (2.0 * _126)) - _59).z, 0.0);
+        float _135 = precise::max(_126, 0.0);
+        if (_132 > 0.0)
         {
-            float _140 = precise::max(_53, 0.0);
-            float _141 = _99 * 0.5;
-            float _143 = fma(-_99, 0.5, 1.0);
-            float _151 = (((_133 / fma(_133, _143, _141)) * (_140 / fma(_140, _143, _141))) * _136) / (precise::max(_126.z, 0.0) * _53);
-            float _153 = pow(1.0 - _136, 5.0);
-            _64 = fma(_153, _151, _63);
-            _67 = fma(1.0 - _153, _151, _66);
+            float _139 = precise::max(_50, 0.0);
+            float _140 = _97 * 0.5;
+            float _141 = 1.0 - _140;
+            float _151 = (((_132 / ((_132 * _141) + _140)) * (_139 / ((_139 * _141) + _140))) * _135) / (precise::max(_125.z, 0.0) * _50);
+            float _153 = pow(1.0 - _135, 5.0);
+            _62 = _61 + (_153 * _151);
+            _65 = _64 + ((1.0 - _153) * _151);
         }
         else
         {
-            _64 = _63;
-            _67 = _66;
+            _62 = _61;
+            _65 = _64;
         }
     }
-    dstTexture.write(float2(_66 * 0.015625, _63 * 0.015625).xyyy, uint2(gl_GlobalInvocationID.xy));
+    dstTexture.write(float2(_64 * 0.015625, _61 * 0.015625).xyyy, uint2(gl_GlobalInvocationID.xy));
 }
 
 /**NGF_NATIVE_BINDING_MAP

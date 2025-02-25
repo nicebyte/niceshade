@@ -80,8 +80,9 @@ def main(argv):
   
   LOG.info("Comparing output against goldens")
   filecmp.clear_cache()
-  error = False
+  any_error = False
   for golden in goldens.glob('*'):
+    error = False
     try:
       if golden.name == 'warning_reporting_test.stderr':
         if open(str(out_dir/(golden.name))).read().find("warning") == -1:
@@ -93,8 +94,9 @@ def main(argv):
     except FileNotFoundError:
       LOG.critical("File not found in output: " + golden.name)
       error = True
+    any_error |= error
   
-  if error:
+  if any_error:
     LOG.critical("Some tests have failed.")
     sys.exit(1)
   LOG.info("Done!")
