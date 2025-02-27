@@ -44,7 +44,7 @@ struct spvUnsafeArray
     }
 };
 
-constant spvUnsafeArray<float4, 3> _29 = spvUnsafeArray<float4, 3>({ float4(-1.0, -1.0, 0.0, 1.0), float4(3.0, -1.0, 0.0, 1.0), float4(-1.0, 3.0, 0.0, 1.0) });
+constant spvUnsafeArray<float4, 3> _32 = spvUnsafeArray<float4, 3>({ float4(-1.0, -1.0, 0.0, 1.0), float4(3.0, -1.0, 0.0, 1.0), float4(-1.0, 3.0, 0.0, 1.0) });
 constant spvUnsafeArray<float2, 3> _33 = spvUnsafeArray<float2, 3>({ float2(0.0), float2(2.0, 0.0), float2(0.0, 2.0) });
 
 struct VSMain_out
@@ -57,7 +57,7 @@ vertex VSMain_out VSMain(uint gl_VertexIndex [[vertex_id]])
 {
     VSMain_out out = {};
     uint _38 = gl_VertexIndex % 3u;
-    out.gl_Position = _29[_38] * 1.0;
+    out.gl_Position = _32[_38] * 1.0;
     out.out_var_ATTRIBUTE0 = _33[_38];
     return out;
 }
