@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2022 nicegraf contributors
+ * Copyright (c) 2025 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -37,7 +37,8 @@ public:
       const spirv_cross::SmallVector<spirv_cross::Resource>& resources,
       descriptor_type                                        resource_type,
       stage_mask_bit                                         smb,
-      spirv_cross::Compiler&                                 refl) noexcept;
+      spirv_cross::Compiler&                                 refl,
+      bool                                                   preserve_bindings) noexcept;
 
   value_or_error<pipeline_layout> build() noexcept;
 

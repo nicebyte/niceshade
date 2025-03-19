@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 nicegraf contributors
+ * Copyright (c) 2025 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -72,7 +72,13 @@ public:
      * If the pointer is not null, the function it points to will be invoked to deliver 
      * HLSL compiler diagnostic messages (errors and warnings).
      */
-    hlsl_diagnostic_callback diagnostic_message_callback;   
+    hlsl_diagnostic_callback diagnostic_message_callback;
+
+    /**
+     * Setting this to true will preserve information about bindings in the generated SPIR-V,
+     * and the generated pipeline layout, even if the bindings are not used by the shader.
+     */
+    bool preserve_bindings = false;
   };
 
   /**
@@ -91,6 +97,7 @@ public:
   instance& operator=(instance&& other) noexcept {
     dxc_       = other.dxc_;
     other.dxc_ = nullptr;
+    preserve_bindings_ = other.preserve_bindings_;
     return *this;
   }
 
@@ -122,6 +129,7 @@ public:
 
 private:
   dxc_wrapper* dxc_;
+  bool         preserve_bindings_ = false;
 };
 
 }  // namespace niceshade

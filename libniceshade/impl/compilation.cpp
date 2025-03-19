@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 nicegraf contributors
+ * Copyright (c) 2025 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -118,7 +118,7 @@ value_or_error<compilation> compilation::create(
         get_builtin_name((spv::BuiltIn)compiler->get_decoration(v, spv::DecorationBuiltIn));
     const bool has_location_decoration = compiler->has_decoration(v, spv::DecorationLocation);
     const interface_variable iv {
-        name.empty() ? builtin_name : name, 
+        name.empty() ? builtin_name : name,
         t.basetype > interface_variable::TypeCount ? interface_variable::Unknown
                                                    : (interface_variable::type)t.basetype,
         (uint32_t)t.vecsize,
@@ -159,7 +159,8 @@ error compilation::add_spec_consts(spec_const_layout_builder& builder) const noe
   return error {};
 }
 
-error compilation::add_resources(pipeline_layout_builder& builder) const noexcept {
+error compilation::add_resources(pipeline_layout_builder& builder, bool preserve_bindings)
+    const noexcept {
   const stage_mask_bit smb = [](pipeline_stage s) {
     switch (s) {
     case pipeline_stage::vertex: return STAGE_MASK_VERTEX;
@@ -168,10 +169,11 @@ error compilation::add_resources(pipeline_layout_builder& builder) const noexcep
     }
     return STAGE_MASK_VERTEX;
   }(stage_);
-  auto process_resources = [this, smb, &builder](
+  auto process_resources = [this, smb, &builder, preserve_bindings](
                                const spirv_cross::SmallVector<spirv_cross::Resource>& resources,
                                descriptor_type                                        dtype) {
-    return builder.process_resources(resources, dtype, smb, *spv_cross_compiler_);
+    return builder
+        .process_resources(resources, dtype, smb, *spv_cross_compiler_, preserve_bindings);
   };
 
   spirv_cross::ShaderResources resources = spv_cross_compiler_->get_shader_resources();

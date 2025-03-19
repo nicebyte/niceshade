@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2022 nicegraf contributors
+ * Copyright (c) 2025 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -32,15 +32,22 @@
 namespace niceshade {
 
 value_or_error<instance> instance::create(const instance::options& opts) noexcept {
-  instance result;
+  instance                 result;
+  std::vector<std::string> dxc_params_copy;
+  if (opts.preserve_bindings) {
+    dxc_params_copy.insert(dxc_params_copy.begin(), opts.dxc_params.begin(), opts.dxc_params.end());
+    dxc_params_copy.emplace_back("-fspv-preserve-bindings");
+  }
   NICESHADE_DECLARE_OR_RETURN(
       dxc,
       dxc_wrapper::create(
           opts.shader_model,
-          opts.dxc_params,
+          opts.preserve_bindings ? span<std::string>(dxc_params_copy.data(), dxc_params_copy.size())
+                                 : opts.dxc_params,
           opts.dxc_lib_folder,
           opts.diagnostic_message_callback));
-  result.dxc_ = new dxc_wrapper{std::move(dxc)};
+  result.dxc_               = new dxc_wrapper {std::move(dxc)};
+  result.preserve_bindings_ = opts.preserve_bindings;
   return result;
 }
 
@@ -71,13 +78,13 @@ instance::compile(const_span<compiler_input> inputs, const_span<target_desc> tar
       }
 
       // Create compilations and populate the pipeline layout.
-      pipeline_layout_builder      res_layout_builder;
-      spec_const_layout_builder    spec_const_builder;
-      separate_to_combined_builder image_map_builder;
-      separate_to_combined_builder sampler_map_builder;
+      pipeline_layout_builder          res_layout_builder;
+      spec_const_layout_builder        spec_const_builder;
+      separate_to_combined_builder     image_map_builder;
+      separate_to_combined_builder     sampler_map_builder;
       std::vector<interface_variables> interface_vars;
-      std::vector<compilation>     compilations;
-      bool                         first_target = true;
+      std::vector<compilation>         compilations;
+      bool                             first_target = true;
       for (const target_desc& target_info : targets) {
         for (const technique_desc::entry_point& ep : tech.entry_points) {
           const intptr_t ep_idx = &ep - tech.entry_points.data();
@@ -85,7 +92,8 @@ instance::compile(const_span<compiler_input> inputs, const_span<target_desc> tar
               new_compilation,
               compilation::create(ep.stage, spirv_blobs[ep_idx], target_info));
           compilations.emplace_back(std::move(new_compilation));
-          NICESHADE_RETURN_IF_ERROR(compilations.back().add_resources(res_layout_builder));
+          NICESHADE_RETURN_IF_ERROR(
+              compilations.back().add_resources(res_layout_builder, preserve_bindings_));
           NICESHADE_RETURN_IF_ERROR(compilations.back().add_spec_consts(spec_const_builder));
           compilations.back().add_cis_to_map(image_map_builder, sampler_map_builder);
           if (first_target) {
@@ -119,8 +127,8 @@ instance::compile(const_span<compiler_input> inputs, const_span<target_desc> tar
         targeted_output& target_out = compiled_tech.targeted_outputs.back();
         NICESHADE_DECLARE_OR_RETURN(compilation_result, c.run(compiled_tech.layout));
         target_out.stages.emplace_back();
-        target_out.stages.back().result = std::move(compilation_result);
-        target_out.stages.back().stage  = c.stage();
+        target_out.stages.back().result           = std::move(compilation_result);
+        target_out.stages.back().stage            = c.stage();
         target_out.stages.back().threadgroup_size = c.threadgroup_size();
       }
     }

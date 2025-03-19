@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2022 nicegraf contributors
+ * Copyright (c) 2025 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -28,10 +28,13 @@ namespace niceshade {
 
 namespace {
 
-bool should_process_resource(uint32_t id, const spirv_cross::Compiler& compiler) noexcept {
+bool should_process_resource(
+    uint32_t                     id,
+    const spirv_cross::Compiler& compiler,
+    bool                         preserve_bindings) noexcept {
   return compiler.get_decoration(id, spv::DecorationDescriptorSet) != AUTOGEN_CIS_DESCRIPTOR_SET &&
          compiler.get_name(id) != "SPIRV_Cross_DummySampler" &&
-         compiler.get_active_interface_variables().count(id) > 0u;
+         (preserve_bindings || compiler.get_active_interface_variables().count(id) > 0u);
 }
 }  // namespace
 
@@ -39,9 +42,10 @@ error pipeline_layout_builder::process_resources(
     const spirv_cross::SmallVector<spirv_cross::Resource>& resources,
     descriptor_type                                        resource_type,
     stage_mask_bit                                         smb,
-    spirv_cross::Compiler&                                 refl) noexcept {
+    spirv_cross::Compiler&                                 refl,
+    bool                                                   preserve_bindings) noexcept {
   for (const auto& r : resources) {
-    if (!should_process_resource(r.id, refl)) { continue; }
+    if (!should_process_resource(r.id, refl, preserve_bindings)) { continue; }
     uint32_t set_idx     = refl.get_decoration(r.id, spv::DecorationDescriptorSet);
     uint32_t binding_idx = refl.get_decoration(r.id, spv::DecorationBinding);
     max_set_             = max_set_ < set_idx ? set_idx : max_set_;
@@ -85,11 +89,10 @@ void pipeline_layout_builder::remap_resources() noexcept {
   uint32_t num_descriptors_of_type[(int)descriptor_type::INVALID] = {0u};
   for (auto& set_id_and_layout : sets_) {
     for (auto& binding_id_and_descriptor : set_id_and_layout.second) {
-      auto  desc_type = binding_id_and_descriptor.second.type;
+      auto desc_type = binding_id_and_descriptor.second.type;
       if (desc_type == descriptor_type::LOADSTORE_IMAGE) desc_type = descriptor_type::TEXTURE;
       if (desc_type == descriptor_type::STORAGE_BUFFER) desc_type = descriptor_type::UNIFORM_BUFFER;
-      const uint32_t native_binding =
-          (num_descriptors_of_type[(int)desc_type])++;
+      const uint32_t native_binding                   = (num_descriptors_of_type[(int)desc_type])++;
       binding_id_and_descriptor.second.native_binding = native_binding;
       for (auto& compiler_and_id :
            desc_usages_.get_usages(set_id_and_layout.first, binding_id_and_descriptor.first)) {

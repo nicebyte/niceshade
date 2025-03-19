@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2022 nicegraf contributors
+ * Copyright (c) 2025 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -51,7 +51,7 @@ public:
       const spirv_blob&  spirv_code,
       const target_desc& target_info) noexcept;
 
-  error add_resources(pipeline_layout_builder& builder) const noexcept;
+  error add_resources(pipeline_layout_builder& builder, bool preserve_bindings) const noexcept;
   error add_spec_consts(spec_const_layout_builder& builder) const noexcept;
   void  add_cis_to_map(
        separate_to_combined_builder& image_map,

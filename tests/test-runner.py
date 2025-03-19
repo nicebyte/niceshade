@@ -3,6 +3,7 @@ import os, sys, shutil, pathlib, logging, subprocess, filecmp, json, platform
 def main(argv):
   logging.basicConfig(format='%(asctime)-15s %(message)s')
   LOG = logging.getLogger(__name__)
+  LOG.setLevel(logging.DEBUG)
 
   LOG.info("Running preflight checks")
   cwd = pathlib.Path(os.getcwd())
@@ -37,11 +38,29 @@ def main(argv):
   failed_run_results = {}
   for input_file in source_hlsl.glob("*.hlsl"):
     test_case_name = input_file.stem
+    LOG.info("Running [%s]" % (test_case_name,))
     should_fail = test_case_name.endswith("_FAIL")
+    preserve_bindings = test_case_name == "unused_bindings"
     try:
+      run_params = [
+        str(compiler_binary),
+        str(input_file),
+        "-t", "spv", 
+        "-t", "msl10", 
+        "-t", "gl430", 
+        "-O", str(out_dir), 
+        "-h", str(input_file.name) + "_hdr.h",
+        "-p", "yes" if preserve_bindings else "no",
+        "--", 
+        "-O3",
+        "-Wno-ignored-attributes"]
+      LOG.debug(" ".join(run_params))
       run_result = subprocess.run(
-          [str(compiler_binary), str(input_file) , "-t", "spv", "-t", "msl10", "-t", "gl430", "-O", str(out_dir), "-h", str(input_file.name) + "_hdr.h", "--", "-O3", "-Wno-ignored-attributes"],
-          stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = 60, universal_newlines = True)
+          run_params,
+          stdout = subprocess.PIPE,
+          stderr = subprocess.PIPE,
+          timeout = 60,
+          universal_newlines = True)
       if not should_fail and run_result.returncode != 0:
         failed_run_results[test_case_name] = "Process exited with nonzero exit code"
       if should_fail and run_result.returncode == 0:
