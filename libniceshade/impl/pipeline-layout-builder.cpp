@@ -80,19 +80,29 @@ error pipeline_layout_builder::process_resources(
           set_idx);
     }
     desc.stage_mask |= smb;
+    const spirv_cross::SPIRType& r_type = refl.get_type(r.type_id);
+    if (r_type.array.size() > 1u) { NICESHADE_RETURN_ERROR("Array of arrays in descriptors not supported."); }
+    desc.is_array = r_type.array.size() > 0u;
+    desc.array_size = r_type.array_size_literal[0] ? r_type.array[0] : (~0u);
     desc_usages_.add(set_idx, binding_idx, std::make_pair(&refl, r.id));
   }
   return error {};
 }
 
-void pipeline_layout_builder::remap_resources() noexcept {
+bool pipeline_layout_builder::remap_resources() noexcept {
   uint32_t num_descriptors_of_type[(int)descriptor_type::INVALID] = {0u};
   for (auto& set_id_and_layout : sets_) {
     for (auto& binding_id_and_descriptor : set_id_and_layout.second) {
-      auto desc_type = binding_id_and_descriptor.second.type;
+      const auto& desc = binding_id_and_descriptor.second;
+      if (desc.is_array && desc.array_size == ~0u) {
+        return false;
+      }
+      auto desc_type = desc.type;
       if (desc_type == descriptor_type::LOADSTORE_IMAGE) desc_type = descriptor_type::TEXTURE;
       if (desc_type == descriptor_type::STORAGE_BUFFER) desc_type = descriptor_type::UNIFORM_BUFFER;
-      const uint32_t native_binding                   = (num_descriptors_of_type[(int)desc_type])++;
+      const uint32_t native_binding = (num_descriptors_of_type[(int)desc_type]);
+      const uint32_t binding_shift  = !desc.is_array ? 1u : desc.array_size;
+      num_descriptors_of_type[(int)desc_type] += binding_shift;
       binding_id_and_descriptor.second.native_binding = native_binding;
       for (auto& compiler_and_id :
            desc_usages_.get_usages(set_id_and_layout.first, binding_id_and_descriptor.first)) {
@@ -103,10 +113,14 @@ void pipeline_layout_builder::remap_resources() noexcept {
       }
     }
   }
+  return true;
 }
 
 value_or_error<pipeline_layout> pipeline_layout_builder::build() noexcept {
-  remap_resources();
+  if (!remap_resources()) {
+    NICESHADE_RETURN_ERROR(
+        "Failed to remap resources -- array sizes must be known at compile time.");
+  }
 
   pipeline_layout layout;
   layout.sets_    = std::move(sets_);

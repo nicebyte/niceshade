@@ -1,0 +1,32 @@
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+struct buf
+{
+    float4 foo;
+};
+
+struct type_StructuredBuffer_buf
+{
+    buf _m0[1];
+};
+
+struct type_ConstantBuffer_buf
+{
+    float4 foo;
+};
+
+kernel void CSMain()
+{
+}
+
+/**NGF_NATIVE_BINDING_MAP
+(0 0) : 0
+(0 1) : 1
+(1 0) : 0
+(1 1) : 1
+(-1 -1) : -1
+**/
+/**NGF_THREADGROUP_SIZE 16 16 1 */

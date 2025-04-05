@@ -43,7 +43,7 @@ public:
   value_or_error<pipeline_layout> build() noexcept;
 
 private:
-  void remap_resources() noexcept;
+  bool remap_resources() noexcept;
 
   using descriptor_usage = std::pair<spirv_cross::Compiler*, spirv_cross::ID>;
   class descriptor_usage_map {

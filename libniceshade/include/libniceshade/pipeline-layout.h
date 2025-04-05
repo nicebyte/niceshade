@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2022 nicegraf contributors
+ * Copyright (c) 2025 nicegraf contributors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -67,6 +67,9 @@ struct descriptor {
   uint32_t        stage_mask = 0u;  /**< A bitmask indicating the pipeline stages that the descriptor is used from. */
   std::string     name;             /**< The name used to refer to the descriptor in the shader's source code. */
   uint32_t        native_binding;   /**< The actual binding used by the target API (if a remapping from descriptor/set model is needed). */
+  bool            is_array;         /**< Set to true if the descriptor pertains to an array (e.g. array of textures). */
+  uint32_t        array_size;       /**< If the descriptor pertains to an array, this holds the array size. If the array size is not known at
+                                         compile time (e.g. it is specified by a specialization constant), this will be set to 0xffffffff. */
 };
 
 /**

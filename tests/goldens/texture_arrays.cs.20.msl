@@ -1,0 +1,19 @@
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+kernel void CSMain(array<texture2d<float>, 4> inTexArr [[texture(0)]], texture2d<float> inTex [[texture(4)]], texture2d<float, access::write> _output [[texture(5)]], sampler samp [[sampler(0)]], uint3 gl_GlobalInvocationID [[thread_position_in_grid]])
+{
+    float2 _41 = float2(gl_GlobalInvocationID.xy) * float2(0.5);
+    _output.write(float4(inTexArr[gl_GlobalInvocationID.z].sample(samp, _41, level(0.0), int2(0)).x * inTex.sample(samp, _41, level(0.0), int2(0)).x), uint2(gl_GlobalInvocationID.xy));
+}
+
+/**NGF_NATIVE_BINDING_MAP
+(0 0) : 0
+(0 1) : 0
+(0 2) : 4
+(0 3) : 5
+(-1 -1) : -1
+**/
+/**NGF_THREADGROUP_SIZE 16 16 4 */

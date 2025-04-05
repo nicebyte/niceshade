@@ -46,7 +46,7 @@ def main(argv):
         str(compiler_binary),
         str(input_file),
         "-t", "spv", 
-        "-t", "msl10", 
+        "-t", "msl20", 
         "-t", "gl430", 
         "-O", str(out_dir), 
         "-h", str(input_file.name) + "_hdr.h",
