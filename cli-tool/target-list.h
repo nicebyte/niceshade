@@ -88,11 +88,19 @@ static const struct named_target_info TARGET_MAP[] = {
       niceshade::target_platform_class::DESKTOP
     }
   },
-{
+  {
     "msl21",
     {
       niceshade::target_api::METAL,
       2u, 1u,
+      niceshade::target_platform_class::DESKTOP
+    }
+  },
+  {
+    "msl23",
+    {
+      niceshade::target_api::METAL,
+      2u, 3u,
       niceshade::target_platform_class::DESKTOP
     }
   },
@@ -133,6 +141,14 @@ static const struct named_target_info TARGET_MAP[] = {
     {
       niceshade::target_api::METAL,
       2u, 1u,
+      niceshade::target_platform_class::MOBILE
+    }
+  },
+  {
+    "msl23ios",
+    {
+      niceshade::target_api::METAL,
+      2u, 3u,
       niceshade::target_platform_class::MOBILE
     }
   },
