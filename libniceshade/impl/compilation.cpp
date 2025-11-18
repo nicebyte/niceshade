@@ -188,7 +188,7 @@ error compilation::add_resources(pipeline_layout_builder& builder, bool preserve
   NICESHADE_RETURN_IF_ERROR(
       process_resources(resources.storage_images, descriptor_type::LOADSTORE_IMAGE));
   NICESHADE_RETURN_IF_ERROR(
-      process_resources(resources.storage_buffers, descriptor_type::STORAGE_BUFFER));
+      process_resources(resources.acceleration_structures, descriptor_type::ACCELERATION_STRUCTURE));
 
   return error {};
 }
