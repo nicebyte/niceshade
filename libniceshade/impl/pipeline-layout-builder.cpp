@@ -100,6 +100,7 @@ bool pipeline_layout_builder::remap_resources() noexcept {
       auto desc_type = desc.type;
       if (desc_type == descriptor_type::LOADSTORE_IMAGE) desc_type = descriptor_type::TEXTURE;
       if (desc_type == descriptor_type::STORAGE_BUFFER) desc_type = descriptor_type::UNIFORM_BUFFER;
+      if (desc_type == descriptor_type::ACCELERATION_STRUCTURE) desc_type = descriptor_type::UNIFORM_BUFFER;
       const uint32_t native_binding = (num_descriptors_of_type[(int)desc_type]);
       const uint32_t binding_shift  = !desc.is_array ? 1u : desc.array_size;
       num_descriptors_of_type[(int)desc_type] += binding_shift;

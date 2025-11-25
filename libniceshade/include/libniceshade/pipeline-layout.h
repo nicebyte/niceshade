@@ -42,7 +42,8 @@ enum class descriptor_type {
   TEXTURE             = 3, // NGF_PLMD_DESC_IMAGE,
   SAMPLER             = 4, // NGF_PLMD_DESC_SAMPLER,
   TEXTURE_AND_SAMPLER = 5, // NGF_PLMD_DESC_COMBINED_IMAGE_SAMPLER,
-  INVALID             = 6
+  ACCELERATION_STRUCTURE = 6, // NGF_PLMD_DESC_ACCELERATION_STRUCTURE,
+  INVALID             = 7
 };
 
 /**
