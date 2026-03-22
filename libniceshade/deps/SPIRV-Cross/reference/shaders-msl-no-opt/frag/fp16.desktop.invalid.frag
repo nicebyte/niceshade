@@ -29,6 +29,12 @@ inline T degrees(T r)
 struct ResType
 {
     half4 _m0;
+    half4 _m1;
+};
+
+struct ResType_1
+{
+    half4 _m0;
     int4 _m1;
 };
 
@@ -94,15 +100,15 @@ void test_builtins(thread half4& v4, thread half3& v3, thread half& v1)
     res = cos(v4);
     res = tan(v4);
     res = asin(v4);
-    res = precise::atan2(v4, v3.xyzz);
+    res = half4(fast::atan2(float4(v4), float4(v3.xyzz)));
     res = atan(v4);
-    res = fast::sinh(v4);
-    res = fast::cosh(v4);
-    res = precise::tanh(v4);
+    res = half4(fast::sinh(float4(v4)));
+    res = half4(fast::cosh(float4(v4)));
+    res = half4(fast::tanh(float4(v4)));
     res = asinh(v4);
     res = acosh(v4);
     res = atanh(v4);
-    res = pow(v4, v4);
+    res = powr(v4, v4);
     res = exp(v4);
     res = log(v4);
     res = exp2(v4);
@@ -118,9 +124,10 @@ void test_builtins(thread half4& v4, thread half3& v3, thread half& v1)
     res = ceil(v4);
     res = fract(v4);
     res = mod(v4, v4);
-    half4 tmp;
-    half4 _223 = modf(v4, tmp);
-    res = _223;
+    ResType _224;
+    _224._m0 = modf(v4, _224._m1);
+    half4 tmp = _224._m1;
+    res = _224._m0;
     res = min(v4, v4);
     res = max(v4, v4);
     res = clamp(v4, v4, v4);
@@ -131,10 +138,10 @@ void test_builtins(thread half4& v4, thread half3& v3, thread half& v1)
     bool4 btmp = isnan(v4);
     btmp = isinf(v4);
     res = fma(v4, v4, v4);
-    ResType _267;
-    _267._m0 = frexp(v4, _267._m1);
-    int4 itmp = _267._m1;
-    res = _267._m0;
+    ResType_1 _270;
+    _270._m0 = frexp(v4, _270._m1);
+    int4 itmp = _270._m1;
+    res = _270._m0;
     res = ldexp(res, itmp);
     uint pack0 = as_type<uint>(v4.xy);
     uint pack1 = as_type<uint>(v4.zw);
@@ -143,7 +150,7 @@ void test_builtins(thread half4& v4, thread half3& v3, thread half& v1)
     t0 = distance(v4, v4);
     t0 = dot(v4, v4);
     half3 res3 = cross(v3, v3);
-    res = fast::normalize(v4);
+    res = normalize(v4);
     res = faceforward(v4, v4, v4);
     res = reflect(v4, v4);
     res = refract(v4, v4, v1);

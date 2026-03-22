@@ -153,7 +153,7 @@ error compilation::add_spec_consts(spec_const_layout_builder& builder) const noe
         spv_cross_compiler_->get_constant(spv_spec_const.id);
     const spirv_cross::SPIRType& spv_spec_const_type =
         spv_cross_compiler_->get_type(spv_spec_const_constant.constant_type);
-    const spec_const spec_const = {spv_spec_const.constant_id, spv_spec_const_type.basetype};
+    const spec_const spec_const = {spv_spec_const.constant_id, static_cast<uint32_t>(spv_spec_const_type.basetype)};
     NICESHADE_RETURN_IF_ERROR(builder.add_spec_const(const_name, spec_const));
   }
   return error {};
