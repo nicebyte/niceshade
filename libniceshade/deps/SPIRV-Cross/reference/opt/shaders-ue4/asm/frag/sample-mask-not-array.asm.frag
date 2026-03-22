@@ -1,7 +1,48 @@
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#pragma clang diagnostic ignored "-Wmissing-braces"
+
 #include <metal_stdlib>
 #include <simd/simd.h>
 
 using namespace metal;
+
+template<typename T, size_t Num>
+struct spvUnsafeArray
+{
+    T elements[Num ? Num : 1];
+    
+    thread T& operator [] (size_t pos) thread
+    {
+        return elements[pos];
+    }
+    constexpr const thread T& operator [] (size_t pos) const thread
+    {
+        return elements[pos];
+    }
+    
+    device T& operator [] (size_t pos) device
+    {
+        return elements[pos];
+    }
+    constexpr const device T& operator [] (size_t pos) const device
+    {
+        return elements[pos];
+    }
+    
+    constexpr const constant T& operator [] (size_t pos) const constant
+    {
+        return elements[pos];
+    }
+    
+    threadgroup T& operator [] (size_t pos) threadgroup
+    {
+        return elements[pos];
+    }
+    constexpr const threadgroup T& operator [] (size_t pos) const threadgroup
+    {
+        return elements[pos];
+    }
+};
 
 struct type_View
 {
@@ -450,19 +491,19 @@ fragment main0_out main0(main0_in in [[stage_in]], constant type_View& View [[bu
         float4 _202;
         if (_165)
         {
-            _202 = TranslucentBasePass_Shared_Fog_IntegratedLightScattering.sample(View_SharedBilinearClampedSampler, float3(fma((_172.xy / float2(_173)).xy, float2(0.5, -0.5), float2(0.5)), (log2(fma(_173, View.View_VolumetricFogGridZParams[0], View.View_VolumetricFogGridZParams[1])) * View.View_VolumetricFogGridZParams[2]) * View.View_VolumetricFogInvGridSize[2]), level(0.0));
+            _202 = TranslucentBasePass_Shared_Fog_IntegratedLightScattering.sample(View_SharedBilinearClampedSampler, float3(((_172.xy / float2(_173)).xy * float2(0.5, -0.5)) + float2(0.5), (log2((_173 * View.View_VolumetricFogGridZParams[0]) + View.View_VolumetricFogGridZParams[1]) * View.View_VolumetricFogGridZParams[2]) * View.View_VolumetricFogInvGridSize[2]), level(0.0));
         }
         else
         {
             _202 = float4(0.0, 0.0, 0.0, 1.0);
         }
-        _215 = float4(fma(in.in_var_TEXCOORD7.xyz, float3(_202.w), _202.xyz), _202.w * in.in_var_TEXCOORD7.w);
+        _215 = float4(_202.xyz + (in.in_var_TEXCOORD7.xyz * float3(_202.w)), _202.w * in.in_var_TEXCOORD7.w);
     }
     else
     {
         _215 = in.in_var_TEXCOORD7;
     }
-    float3 _216 = fast::max(Material.Material_VectorExpressions[1].xyz * float3(fma(1.0 + dot(float3(-0.2857142984867095947265625, -0.4285714328289031982421875, 0.857142865657806396484375), fast::normalize(float3x3(in.in_var_TEXCOORD10_centroid.xyz, cross(in.in_var_TEXCOORD11_centroid.xyz, in.in_var_TEXCOORD10_centroid.xyz) * float3(in.in_var_TEXCOORD11_centroid.w), in.in_var_TEXCOORD11_centroid.xyz) * fast::normalize(fma(float3(0.0, 0.0, 1.0), float3(View.View_NormalOverrideParameter.w), View.View_NormalOverrideParameter.xyz)))), 0.5, 0.20000000298023223876953125)), float3(0.0));
+    float3 _216 = fast::max(Material.Material_VectorExpressions[1].xyz * float3(((1.0 + dot(float3(-0.2857142984867095947265625, -0.4285714328289031982421875, 0.857142865657806396484375), fast::normalize(float3x3(in.in_var_TEXCOORD10_centroid.xyz, cross(in.in_var_TEXCOORD11_centroid.xyz, in.in_var_TEXCOORD10_centroid.xyz) * float3(in.in_var_TEXCOORD11_centroid.w), in.in_var_TEXCOORD11_centroid.xyz) * fast::normalize((float3(0.0, 0.0, 1.0) * float3(View.View_NormalOverrideParameter.w)) + View.View_NormalOverrideParameter.xyz)))) * 0.5) + 0.20000000298023223876953125), float3(0.0));
     float3 _246;
     if (View.View_OutOfBoundsMask > 0.0)
     {
@@ -482,19 +523,19 @@ fragment main0_out main0(main0_in in [[stage_in]], constant type_View& View [[bu
     {
         _246 = _216;
     }
-    float4 _255 = float4(fma(_246, float3(_215.w), _215.xyz), _108);
+    float4 _255 = float4((_246 * float3(_215.w)) + _215.xyz, _108);
     _255.w = 1.0;
     float4 _268;
     uint _269;
     if (View.View_NumSceneColorMSAASamples > 1)
     {
         _268 = _255 * float4(float(View.View_NumSceneColorMSAASamples) * 0.25);
-        _269 = gl_SampleMaskIn & 15u;
+        _269 = (spvUnsafeArray<uint, 1>({ uint(gl_SampleMaskIn) }))[0] & 15u;
     }
     else
     {
         _268 = _255;
-        _269 = gl_SampleMaskIn;
+        _269 = (spvUnsafeArray<uint, 1>({ uint(gl_SampleMaskIn) }))[0];
     }
     out.out_var_SV_Target0 = _268;
     out.gl_SampleMask = _269;

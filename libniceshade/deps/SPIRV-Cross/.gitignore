@@ -4,6 +4,7 @@
 *.o
 *.d
 *.txt
+/build
 /test
 /spirv-cross
 /obj
@@ -20,5 +21,11 @@
 .vs/
 *.vcxproj.user
 
+# Mac OS X Finder
+.DS_Store
+
 !CMakeLists.txt
 !LICENSES/*.txt
+
+# Running tests leaves *.spv files in the root directory.
+*.spv
