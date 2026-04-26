@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <optional>
 
 /**
  * @file
@@ -113,10 +114,14 @@ public:
   /** @return end iterator of the pipeline layout. */
   iterator end() const noexcept { return sets_.end(); }
 
+  /** @return native binding id associated with the push const buffer. */
+  const std::optional<uint32_t>& push_consts_native_binding() const noexcept { return push_consts_native_binding_; }
+
 private:
   std::map<uint32_t, descriptor_set_layout> sets_;   // shouldn't be unordered_map to guarantee consistent order.
   uint32_t                           max_set_ = 0u;  // Max set number encountered.
   uint32_t                           nres_    = 0u;  // Total number of resources.
+  std::optional<uint32_t>            push_consts_native_binding_;
 };
 
 }  // namespace niceshade

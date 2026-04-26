@@ -15,4 +15,5 @@ void main()
 /**NGF_NATIVE_BINDING_MAP
 (0 0) : 0
 (-1 -1) : -1
+-1
 **/

@@ -39,6 +39,7 @@ public:
       stage_mask_bit                                         smb,
       spirv_cross::Compiler&                                 refl,
       bool                                                   preserve_bindings) noexcept;
+  error process_push_const(const spirv_cross::SmallVector<spirv_cross::Resource>& r, spirv_cross::Compiler& refl) noexcept;
 
   value_or_error<pipeline_layout> build() noexcept;
 
@@ -71,6 +72,9 @@ private:
   descriptor_usage_map desc_usages_;
   uint32_t             max_set_ = 0u;  // Max set number encountered.
   uint32_t             nres_    = 0u;  // Total number of resources.
+
+  std::vector<descriptor_usage> push_const_usages_;
+  uint32_t push_const_native_binding_ = 0u;
 };
 
 constexpr uint32_t AUTOGEN_CIS_DESCRIPTOR_SET = 9999u;

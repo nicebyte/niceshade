@@ -27,4 +27,5 @@ vertex VSMain_out VSMain(texture2d<float> texel_buf [[texture(0)]])
 /**NGF_NATIVE_BINDING_MAP
 (0 0) : 0
 (-1 -1) : -1
+-1
 **/

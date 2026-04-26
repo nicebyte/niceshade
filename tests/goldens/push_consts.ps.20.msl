@@ -1,0 +1,28 @@
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+struct type_ConstantBuffer_pc
+{
+    float scale;
+};
+
+struct PSMain_out
+{
+    float4 out_var_SV_TARGET [[color(0)]];
+};
+
+fragment PSMain_out PSMain(constant type_ConstantBuffer_pc& buf1 [[buffer(1)]], float4 gl_FragCoord [[position]])
+{
+    PSMain_out out = {};
+    out.out_var_SV_TARGET = (gl_FragCoord * 0.5) + float4(0.5 * buf1.scale);
+    return out;
+}
+
+/**NGF_NATIVE_BINDING_MAP
+(0 0) : 0
+(0 2) : 1
+(-1 -1) : -1
+2
+**/

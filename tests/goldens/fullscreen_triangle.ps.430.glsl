@@ -9,4 +9,5 @@ void main()
 
 /**NGF_NATIVE_BINDING_MAP
 (-1 -1) : -1
+-1
 **/

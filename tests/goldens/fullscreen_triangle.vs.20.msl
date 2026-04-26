@@ -64,4 +64,5 @@ vertex VSMain_out VSMain(uint gl_VertexIndex [[vertex_id]])
 
 /**NGF_NATIVE_BINDING_MAP
 (-1 -1) : -1
+-1
 **/

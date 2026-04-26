@@ -89,6 +89,13 @@ error pipeline_layout_builder::process_resources(
   return error {};
 }
 
+ error pipeline_layout_builder::process_push_const(
+    const spirv_cross::SmallVector<spirv_cross::Resource>& r,
+    spirv_cross::Compiler&                                 refl) noexcept {
+  for (const auto& res : r) { push_const_usages_.emplace_back(std::make_pair(&refl, res.id)); }
+  return error {};
+}
+
 bool pipeline_layout_builder::remap_resources() noexcept {
   uint32_t num_descriptors_of_type[(int)descriptor_type::INVALID] = {0u};
   for (auto& set_id_and_layout : sets_) {
@@ -114,6 +121,14 @@ bool pipeline_layout_builder::remap_resources() noexcept {
       }
     }
   }
+
+  push_const_native_binding_ = num_descriptors_of_type[(int)descriptor_type::UNIFORM_BUFFER];
+  for (auto& pc_usage : push_const_usages_) {
+    pc_usage.first->set_decoration(
+        pc_usage.second,
+        spv::DecorationBinding,
+        push_const_native_binding_);
+  }
   return true;
 }
 
@@ -127,10 +142,12 @@ value_or_error<pipeline_layout> pipeline_layout_builder::build() noexcept {
   layout.sets_    = std::move(sets_);
   layout.max_set_ = max_set_;
   layout.nres_    = nres_;
+  if (!push_const_usages_.empty()) { layout.push_consts_native_binding_ = push_const_native_binding_; }
   sets_           = decltype(sets_) {};
   max_set_        = 0u;
   nres_           = 0u;
   desc_usages_.clear();
+  push_const_usages_.clear();
 
   return std::move(layout);
 }

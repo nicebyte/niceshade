@@ -36,7 +36,7 @@ kernel void CSMain(texture2d<float, access::write> dstTexture [[texture(0)]], ui
             float _140 = _97 * 0.5;
             float _141 = 1.0 - _140;
             float _151 = (((_132 / ((_132 * _141) + _140)) * (_139 / ((_139 * _141) + _140))) * _135) / (precise::max(_125.z, 0.0) * _50);
-            float _153 = pow(1.0 - _135, 5.0);
+            float _153 = powr(1.0 - _135, 5.0);
             _62 = _61 + (_153 * _151);
             _65 = _64 + ((1.0 - _153) * _151);
         }
@@ -52,5 +52,6 @@ kernel void CSMain(texture2d<float, access::write> dstTexture [[texture(0)]], ui
 /**NGF_NATIVE_BINDING_MAP
 (0 0) : 0
 (-1 -1) : -1
+-1
 **/
 /**NGF_THREADGROUP_SIZE 16 16 1 */

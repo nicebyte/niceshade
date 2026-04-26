@@ -28,5 +28,6 @@ kernel void CSMain()
 (1 0) : 0
 (1 1) : 1
 (-1 -1) : -1
+-1
 **/
 /**NGF_THREADGROUP_SIZE 16 16 1 */

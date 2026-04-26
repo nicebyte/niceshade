@@ -271,7 +271,13 @@ int main(int argc, const char* argv[]) {
                    << ") : " << binding_id_and_descriptor.second.native_binding << "\n";
               }
             }
-            os << "(-1 -1) : -1\n**/\n";
+            os << "(-1 -1) : -1\n";
+            if (compiled_tech.layout.push_consts_native_binding()) {
+                os << *compiled_tech.layout.push_consts_native_binding();
+            } else {
+                os << "-1";
+            }
+            os << "\n**/\n";
             native_binding_map_str = os.str();
           }
           fwrite(native_binding_map_str.data(), 1u, native_binding_map_str.size(), out_file);

@@ -15,5 +15,6 @@ kernel void CSMain(array<texture2d<float>, 4> inTexArr [[texture(0)]], texture2d
 (0 2) : 4
 (0 3) : 5
 (-1 -1) : -1
+-1
 **/
 /**NGF_THREADGROUP_SIZE 16 16 4 */

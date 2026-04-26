@@ -142,6 +142,7 @@ struct interface_variable {
     Half,
     Float,
     Double,
+    Struct,
     TypeCount
   };
 

@@ -66,4 +66,5 @@ vertex VSMain_out VSMain(uint gl_VertexIndex [[vertex_id]])
 (0 1) : 0
 (0 2) : 0
 (-1 -1) : -1
+-1
 **/

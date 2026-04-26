@@ -189,6 +189,8 @@ error compilation::add_resources(pipeline_layout_builder& builder, bool preserve
       process_resources(resources.storage_images, descriptor_type::LOADSTORE_IMAGE));
   NICESHADE_RETURN_IF_ERROR(
       process_resources(resources.acceleration_structures, descriptor_type::ACCELERATION_STRUCTURE));
+  NICESHADE_RETURN_IF_ERROR(
+      builder.process_push_const(resources.push_constant_buffers, *spv_cross_compiler_));
 
   return error {};
 }
